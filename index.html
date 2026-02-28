@@ -1,0 +1,1686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Anime War</title>
+<meta name="description" content="Anime card battle game featuring 200+ characters from One Piece and Naruto">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Anime War">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Chakra+Petch:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-height:100vh;min-height:100dvh;overflow-x:hidden}
+.ck{font-family:'Chakra Petch',sans-serif}
+.screen{display:none;min-height:100vh;min-height:100dvh;flex-direction:column;align-items:center}
+.screen.active{display:flex}
+#title-screen{justify-content:center;background:linear-gradient(180deg,#0a0a0f 0%,#1a0a2e 50%,#0a0a0f 100%);position:relative;padding:20px}
+#title-screen::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 30%,#E0313118 0%,transparent 60%);pointer-events:none}
+.title-main{font-size:clamp(52px,14vw,110px);letter-spacing:6px;text-shadow:0 0 40px #E0313155;line-height:1;text-align:center;z-index:1}
+.anime-select{display:flex;gap:10px;margin-top:28px;flex-wrap:wrap;justify-content:center;z-index:2}
+.anime-btn{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;padding:12px 28px;border:2px solid #333;background:transparent;color:#888;border-radius:8px;cursor:pointer;transition:all .2s;position:relative}
+.anime-btn.selected{color:#fff;border-color:var(--ac)}
+.anime-btn .tag{position:absolute;top:3px;right:5px;font-size:8px;font-family:'Chakra Petch',sans-serif;letter-spacing:1px;opacity:.6}
+.btn-battle{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:5px;padding:13px 50px;background:linear-gradient(135deg,#E03131,#C92A2A);color:#fff;border:none;border-radius:8px;cursor:pointer;box-shadow:0 0 30px #E0313144;margin-top:24px;transition:transform .2s;z-index:2}
+.btn-battle:active{transform:scale(.97)}.btn-battle:disabled{opacity:.4;cursor:default}
+.btn-ghost{font-family:'Chakra Petch',sans-serif;font-size:11px;letter-spacing:2px;padding:9px 22px;background:transparent;color:#666;border:1px solid #333;border-radius:6px;cursor:pointer;margin-top:12px;z-index:2}
+.btn-next{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:4px;padding:10px 36px;background:#ffffff11;color:#aaa;border:1px solid #333;border-radius:8px;cursor:pointer}
+.btn-next:active{background:#ffffff22;color:#fff}
+#game-screen{background:linear-gradient(180deg,#0a0a0f 0%,#12121f 50%,#0a0a0f 100%);padding:14px}
+.scoreboard{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:500px;margin-bottom:8px}
+.score-block{text-align:center;flex:1}.score-num{font-size:32px}
+.score-label{font-size:9px;letter-spacing:3px;font-family:'Chakra Petch',sans-serif}
+.round-block{text-align:center}
+.round-label{font-size:8px;color:#666;letter-spacing:3px;font-family:'Chakra Petch',sans-serif}
+.round-num{font-size:26px;color:#fff}.round-num span{color:#444;font-size:14px}
+.rival-banner{display:none;background:linear-gradient(90deg,transparent,#FFD70022,transparent);padding:5px 16px;margin-bottom:4px;text-align:center;font-size:16px;color:#FFD700;letter-spacing:4px;text-shadow:0 0 20px #FFD70044}
+.rival-banner.visible{display:block}
+.advantage-banner{display:none;padding:4px 14px;margin-bottom:4px;text-align:center;font-family:'Chakra Petch',sans-serif;font-size:9px;letter-spacing:1px;line-height:1.5;max-width:420px}
+.advantage-banner.visible{display:block}
+.battle-area{display:flex;align-items:flex-start;justify-content:center;gap:10px;margin:8px 0}
+.vs-text{font-size:20px;color:#444;letter-spacing:3px;min-width:36px;text-align:center;margin-top:100px}
+.vs-text.golden{color:#FFD700;font-size:28px;text-shadow:0 0 20px #FFD70044}
+.card-wrapper{width:148px;height:240px;flex-shrink:0;transition:all .4s}
+@media(min-width:400px){.card-wrapper{width:172px;height:275px}}
+@media(min-width:600px){.card-wrapper{width:200px;height:310px}.battle-area{gap:24px}.vs-text{margin-top:120px}}
+.card-wrapper.card-winner{filter:drop-shadow(0 0 12px #FFD70088) drop-shadow(0 0 25px #FFD70044)}
+.card-wrapper.card-loser{opacity:.45;filter:saturate(.3);transform:scale(.96)}
+.card-inner{position:relative;width:100%;height:100%}
+.card-face{position:absolute;width:100%;height:100%;border-radius:12px;overflow:hidden}
+.card-front{display:none;flex-direction:column;border:2px solid}
+.card-front.visible{display:flex}
+.card-back{display:flex;background:linear-gradient(135deg,#0f0f1a 0%,#1a1a3e 50%,#0f0f1a 100%);border:2px solid #333366;align-items:center;justify-content:center;flex-direction:column}
+.card-back.hidden{display:none}
+.card-back-icon{font-size:36px;opacity:.6}
+.card-back-label{font-size:10px;color:#333366;letter-spacing:3px;font-family:'Chakra Petch',sans-serif;margin-top:6px}
+.card-img-area{position:relative;width:100%;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0f0f1a}
+.card-img{width:100%;height:100%;object-fit:cover;object-position:center top;opacity:0;transition:opacity .4s;position:relative;z-index:1}
+.card-img.loaded{opacity:1}
+.card-emoji-fallback{position:absolute;font-size:56px;transition:opacity .3s;filter:drop-shadow(0 0 15px var(--cc));z-index:0}
+.card-emoji-fallback.hidden{opacity:0}
+.card-img-overlay{position:absolute;bottom:0;left:0;right:0;height:50%;background:linear-gradient(to top,#1a1a2eF0 0%,transparent 100%);pointer-events:none;z-index:2}
+.card-tier{position:absolute;top:6px;right:6px;font-weight:900;font-size:10px;padding:2px 7px;border-radius:4px;color:#000;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;z-index:3}
+.card-anime-tag{position:absolute;top:6px;left:6px;font-size:7px;padding:2px 5px;border-radius:3px;font-family:'Chakra Petch',sans-serif;letter-spacing:1px;z-index:3;font-weight:700}
+.card-bottom{position:relative;z-index:2;padding:8px 10px 10px;text-align:center;background:#1a1a2eF0}
+.card-name{font-family:'Bebas Neue',sans-serif;font-size:15px;color:#fff;letter-spacing:1.5px;line-height:1.1}
+@media(min-width:400px){.card-name{font-size:17px}}
+.card-title-text{font-family:'Chakra Petch',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;margin-top:2px;opacity:.8;line-height:1.2}
+@media(min-width:400px){.card-title-text{font-size:8px}}
+.card-result{margin-top:6px;font-size:16px;letter-spacing:3px;text-align:center;height:24px;transition:all .3s}
+.card-result.win-result{font-size:22px;color:#FFD700 !important;text-shadow:0 0 15px #FFD70066;letter-spacing:5px}
+.card-result.lose-result{font-size:13px;color:#E0313155 !important;letter-spacing:2px}
+.matchup-info{font-family:'Chakra Petch',sans-serif;font-size:9px;color:#666;letter-spacing:1px;text-align:center;margin-bottom:6px;min-height:14px;max-width:400px;line-height:1.4}
+.matchup-info .canon{color:#FFD700}.matchup-info .advtag{color:#4ECDC4}
+.action-area{margin-top:6px;min-height:48px;display:flex;align-items:center;justify-content:center}
+.revealing-text{font-size:15px;color:#666;letter-spacing:4px;font-family:'Chakra Petch',sans-serif}
+.rounds-remaining{margin-top:12px;font-family:'Chakra Petch',sans-serif;font-size:8px;color:#444;letter-spacing:2px}
+#gameover-screen{justify-content:center;background:linear-gradient(180deg,#0a0a0f 0%,#1a0a2e 50%,#0a0a0f 100%);padding:20px}
+.result-title{font-size:clamp(38px,10vw,76px);letter-spacing:5px;line-height:1;text-align:center}
+.final-scores{display:flex;gap:32px;margin:20px 0}
+.final-score-block{text-align:center}.final-score-num{font-size:40px}.final-score-label{font-size:12px;color:#666;letter-spacing:3px}
+.rival-count{font-family:'Chakra Petch',sans-serif;color:#FFD700;font-size:10px;letter-spacing:2px;margin-bottom:8px}
+.adv-count{font-family:'Chakra Petch',sans-serif;color:#4ECDC4;font-size:10px;letter-spacing:1.5px;margin-bottom:12px}
+.battle-log{max-width:440px;width:100%;max-height:220px;overflow-y:auto;margin-bottom:20px;-webkit-overflow-scrolling:touch}
+.log-entry{border-bottom:1px solid #ffffff06;padding:3px 0}
+.log-row{display:flex;align-items:center;justify-content:space-between;font-family:'Chakra Petch',sans-serif;font-size:9px}
+.log-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log-vs{padding:0 5px;font-size:8px;flex-shrink:0}
+.log-adv{font-size:7px;color:#4ECDC488;text-align:center;letter-spacing:.5px;font-family:'Chakra Petch',sans-serif}
+.roster-modal{display:none;position:fixed;inset:0;background:#0a0a0fEE;z-index:100;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px}
+.roster-modal.open{display:block}
+.roster-header{display:flex;justify-content:space-between;align-items:center;max-width:900px;margin:0 auto 12px;flex-wrap:wrap;gap:8px}
+.roster-header h2{font-size:24px;letter-spacing:3px}
+.roster-filters{display:flex;gap:6px}
+.roster-filter{font-family:'Chakra Petch',sans-serif;font-size:9px;padding:5px 12px;background:#1a1a2e;color:#888;border:1px solid #333;border-radius:4px;cursor:pointer;letter-spacing:1px}
+.roster-filter.active{color:#fff;border-color:#E03131}
+.roster-close{font-family:'Bebas Neue',sans-serif;font-size:14px;padding:6px 16px;background:#333;color:#fff;border:none;border-radius:6px;cursor:pointer}
+.roster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;max-width:900px;margin:0 auto}
+.roster-card{background:#1a1a2e;border-radius:8px;text-align:center;border:1px solid;overflow:hidden}
+.roster-img-wrap{width:100%;aspect-ratio:3/4;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;background:#0f0f1a}
+.roster-img-wrap img{width:100%;height:100%;object-fit:cover;object-position:center top;opacity:0;transition:opacity .3s}
+.roster-img-wrap .r-emoji{font-size:36px;position:absolute;transition:opacity .3s}
+.roster-info{padding:6px 8px 8px}
+.roster-name{font-family:'Bebas Neue',sans-serif;font-size:11px;color:#fff;letter-spacing:.8px}
+.roster-title{font-family:'Chakra Petch',sans-serif;font-size:6.5px;letter-spacing:1px;text-transform:uppercase}
+.roster-meta{display:flex;justify-content:center;align-items:center;gap:4px;margin-top:3px}
+.roster-tier{font-weight:900;font-size:8px;padding:1px 5px;border-radius:3px;color:#000;font-family:'Bebas Neue',sans-serif}
+.roster-pwr{font-family:'Bebas Neue',sans-serif;color:#aaa;font-size:11px}
+.roster-anime-tag{font-family:'Chakra Petch',sans-serif;font-size:6px;letter-spacing:.8px;padding:1px 4px;border-radius:2px;font-weight:700}
+.roster-rival{font-family:'Chakra Petch',sans-serif;color:#E03131;font-size:6px;letter-spacing:.6px;margin-top:2px}
+.roster-advs{font-family:'Chakra Petch',sans-serif;color:#4ECDC4;font-size:5.5px;letter-spacing:.4px;margin-top:1px;line-height:1.3}
+</style>
+</head>
+<body>
+<div id="title-screen" class="screen active">
+  <div class="ck" style="font-size:14px;color:#E03131;letter-spacing:8px;font-weight:700;z-index:1">⚔️ CARD BATTLE ⚔️</div>
+  <div class="title-main">ANIME WAR</div>
+  <div class="ck" style="font-size:11px;color:#555;letter-spacing:4px;margin-top:4px;z-index:1">SELECT YOUR ANIME</div>
+  <div class="anime-select">
+    <button class="anime-btn" data-anime="onepiece" onclick="toggleAnime(this)" style="--ac:#E03131">☠️ ONE PIECE<span class="tag" style="color:#E03131">58</span></button>
+    <button class="anime-btn" data-anime="naruto" onclick="toggleAnime(this)" style="--ac:#FF7B00">🍥 NARUTO<span class="tag" style="color:#FF7B00">46</span></button>
+  </div>
+  <div class="ck" style="font-size:9px;color:#444;letter-spacing:2px;margin-top:14px;z-index:1" id="select-info">Select one anime to battle</div>
+  <div class="ck" style="font-size:10px;color:#666;letter-spacing:3px;margin-top:18px;z-index:1">CHOOSE MODE</div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:8px;z-index:2;max-width:380px" id="mode-buttons">
+    <button class="btn-battle" id="btn-start" onclick="startGame()" disabled style="font-size:18px;padding:10px 28px">⚔️ CARD BATTLE</button>
+    <button class="btn-battle" onclick="startDraft()" disabled style="font-size:18px;padding:10px 28px;background:linear-gradient(135deg,#4ECDC4,#36B5AC)" id="btn-draft">👥 TEAM DRAFT</button>
+  </div>
+  <div style="display:flex;gap:6px;margin-top:10px;z-index:2">
+    <button class="btn-ghost" onclick="openRoster()">VIEW ALL FIGHTERS</button>
+    <button class="btn-ghost" onclick="openSandbox()" style="color:#FFD700;border-color:#FFD70044">⚔️ 1v1 SANDBOX</button>
+  </div>
+  <div style="margin-top:28px;font-size:9px;color:#383838;font-family:'Chakra Petch',sans-serif;letter-spacing:1.5px;text-align:center;line-height:1.8;max-width:340px;z-index:2">
+    104 CHARACTERS · 130+ MATCHUP ADVANTAGES · CROSS-ANIME BATTLES
+  </div>
+</div>
+<div id="game-screen" class="screen">
+  <div class="scoreboard">
+    <div class="score-block"><div class="score-num" id="p-score" style="color:#4ECDC4">0</div><div class="score-label" style="color:#4ECDC488">YOU</div></div>
+    <div class="round-block"><div class="round-label">ROUND</div><div class="round-num"><span id="round-num">1</span><span id="round-total">/20</span></div></div>
+    <div class="score-block"><div class="score-num" id="c-score" style="color:#E03131">0</div><div class="score-label" style="color:#E0313188">ENEMY</div></div>
+  </div>
+  <div class="rival-banner" id="rival-banner">⚔️ RIVAL CLASH ⚔️</div>
+  <div class="advantage-banner" id="advantage-banner"></div>
+  <div class="battle-area">
+    <div style="text-align:center"><div class="card-wrapper" id="p-wrap"><div class="card-inner" id="p-card-inner">
+      <div class="card-face card-front" id="p-card-front"></div>
+      <div class="card-face card-back"><div class="card-back-icon">☠️</div><div class="card-back-label">YOUR CARD</div></div>
+    </div></div><div class="card-result" id="p-result"></div></div>
+    <div class="vs-text" id="vs-text">VS</div>
+    <div style="text-align:center"><div class="card-wrapper" id="c-wrap"><div class="card-inner" id="c-card-inner">
+      <div class="card-face card-front" id="c-card-front"></div>
+      <div class="card-face card-back"><div class="card-back-icon">☠️</div><div class="card-back-label">ENEMY</div></div>
+    </div></div><div class="card-result" id="c-result"></div></div>
+  </div>
+  <div class="matchup-info" id="matchup-info"></div>
+  <div class="action-area" id="action-area"></div>
+  <div class="rounds-remaining" id="rounds-remaining"></div>
+</div>
+<div id="gameover-screen" class="screen">
+  <div class="ck" style="font-size:13px;color:#666;letter-spacing:4px;margin-bottom:5px">BATTLE COMPLETE</div>
+  <div class="result-title" id="result-title"></div>
+  <div class="final-scores">
+    <div class="final-score-block"><div class="final-score-num" id="final-p" style="color:#4ECDC4"></div><div class="final-score-label">YOU</div></div>
+    <div class="final-score-block"><div class="final-score-num" id="final-c" style="color:#E03131"></div><div class="final-score-label">ENEMY</div></div>
+  </div>
+  <div class="rival-count" id="rival-count"></div>
+  <div class="adv-count" id="adv-count"></div>
+  <div class="battle-log" id="battle-log"></div>
+  <button class="btn-battle" onclick="startGame()">REMATCH</button>
+  <button class="btn-ghost" onclick="showScreen('title-screen')">MENU</button>
+</div>
+<div class="roster-modal" id="roster-modal">
+  <div class="roster-header">
+    <h2>ALL FIGHTERS</h2>
+    <div class="roster-filters">
+      <button class="roster-filter active" onclick="filterRoster('all',this)">ALL</button>
+      <button class="roster-filter" onclick="filterRoster('onepiece',this)">ONE PIECE</button>
+      <button class="roster-filter" onclick="filterRoster('naruto',this)">NARUTO</button>
+    </div>
+    <button class="roster-close" onclick="closeRoster()">CLOSE</button>
+  </div>
+  <div class="roster-grid" id="roster-grid"></div>
+</div>
+<script>
+// ================================================================
+// CHARACTER DATA — 104 characters (58 OP + 46 NR)
+// ================================================================
+const OP=[
+// --- STRAW HATS ---
+{id:"op1",name:"Monkey D. Luffy",sn:"Luffy Monkey",title:"Captain, Straw Hat Pirates / Gear 5 Nika",anime:"onepiece",atk:97,def:85,spd:92,haki:98,df:95,rivalId:"op13",emoji:"👒",tier:"S",color:"#E03131"},
+{id:"op2",name:"Roronoa Zoro",sn:"Roronoa Zoro",title:"First Mate, Straw Hat Pirates / King of Hell",anime:"onepiece",atk:94,def:88,spd:85,haki:90,df:0,rivalId:"op18",emoji:"⚔️",tier:"S",color:"#2F9E44"},
+{id:"op3",name:"Vinsmoke Sanji",sn:"Sanji Vinsmoke",title:"Cook, Straw Hat Pirates / Ifrit Jambe",anime:"onepiece",atk:88,def:86,spd:93,haki:82,df:0,rivalId:"op26",emoji:"🔥",tier:"A",color:"#F08C00"},
+{id:"op4",name:"Nami",sn:"Nami One Piece",title:"Navigator, Straw Hat Pirates / Zeus",anime:"onepiece",atk:52,def:45,spd:65,haki:0,df:0,rivalId:"op27",emoji:"🌩️",tier:"C",color:"#FF922B"},
+{id:"op5",name:"Nico Robin",sn:"Nico Robin",title:"Archaeologist, Straw Hat Pirates / Demonio Fleur",anime:"onepiece",atk:72,def:65,spd:60,haki:45,df:80,rivalId:"op28",emoji:"🌸",tier:"B",color:"#7048E8"},
+{id:"op6",name:"Franky",sn:"Franky One Piece",title:"Shipwright, Straw Hat Pirates / General Franky",anime:"onepiece",atk:75,def:82,spd:55,haki:0,df:0,rivalId:"op29",emoji:"🤖",tier:"B",color:"#1098AD"},
+{id:"op7",name:"Jinbe",sn:"Jinbe",title:"Helmsman, Straw Hat Pirates / Fishman Karate",anime:"onepiece",atk:84,def:88,spd:70,haki:80,df:0,rivalId:"op30",emoji:"🦈",tier:"A",color:"#3B5BDB"},
+{id:"op8",name:"Tony Tony Chopper",sn:"Tony Tony Chopper",title:"Doctor, Straw Hat Pirates / Monster Point",anime:"onepiece",atk:58,def:60,spd:62,haki:0,df:70,rivalId:"op32",emoji:"🦌",tier:"C",color:"#E8590C"},
+{id:"op9",name:"Brook",sn:"Brook One Piece",title:"Musician, Straw Hat Pirates / Soul King",anime:"onepiece",atk:68,def:55,spd:78,haki:40,df:72,rivalId:"op31",emoji:"💀",tier:"B",color:"#495057"},
+{id:"op10",name:"Usopp",sn:"Usopp",title:"Sniper, Straw Hat Pirates / God Usopp",anime:"onepiece",atk:48,def:35,spd:60,haki:45,df:0,rivalId:"op38",emoji:"🎯",tier:"C",color:"#E8D44D"},
+// --- WORST GENERATION ---
+{id:"op11",name:"Trafalgar Law",sn:"Trafalgar Law",title:"Captain, Heart Pirates / Ope-Ope Fruit",anime:"onepiece",atk:85,def:75,spd:80,haki:78,df:92,rivalId:"op15",emoji:"⚕️",tier:"A",color:"#495057"},
+{id:"op12",name:"Eustass Kid",sn:"Eustass Kid",title:"Captain, Kid Pirates / Magnet-Magnet Fruit",anime:"onepiece",atk:86,def:80,spd:72,haki:75,df:85,rivalId:"op20",emoji:"🧲",tier:"A",color:"#C92A2A"},
+{id:"op58",name:"Killer",sn:"Killer One Piece",title:"Kid Pirates / Massacre Soldier",anime:"onepiece",atk:78,def:72,spd:82,haki:68,df:0,rivalId:"op2",emoji:"🔪",tier:"B",color:"#5C5F66"},
+// --- YONKO ---
+{id:"op13",name:"Kaido",sn:"Kaidou",title:"Emperor, Beast Pirates / King of Beasts",anime:"onepiece",atk:99,def:98,spd:82,haki:96,df:98,rivalId:"op1",emoji:"🐉",tier:"S+",color:"#5F3DC4"},
+{id:"op14",name:"Charlotte Linlin",sn:"Charlotte Linlin",title:"Emperor, Big Mom Pirates / Soul-Soul Fruit",anime:"onepiece",atk:96,def:97,spd:68,haki:92,df:95,rivalId:"op12",emoji:"🎂",tier:"S+",color:"#F06595"},
+{id:"op19",name:"Marshall D. Teach",sn:"Marshall D. Teach",title:"Emperor, Blackbeard Pirates / Two Devil Fruits",anime:"onepiece",atk:93,def:82,spd:65,haki:85,df:99,rivalId:"op20",emoji:"🕳️",tier:"S",color:"#343A40"},
+{id:"op20",name:"Red-Haired Shanks",sn:"Shanks",title:"Emperor, Red Hair Pirates / Supreme Haki",anime:"onepiece",atk:95,def:88,spd:94,haki:100,df:0,rivalId:"op19",emoji:"🍶",tier:"S+",color:"#E03131"},
+{id:"op46",name:"Buggy",sn:"Buggy One Piece",title:"Emperor by Proxy / Cross Guild Figurehead",anime:"onepiece",atk:45,def:42,spd:55,haki:35,df:62,rivalId:"op20",emoji:"🤡",tier:"C",color:"#E64980"},
+// --- WHITEBEARD PIRATES ---
+{id:"op21",name:"Edward Newgate",sn:"Edward Newgate",title:"Emperor, Whitebeard Pirates / Tremor-Tremor Fruit",anime:"onepiece",atk:98,def:92,spd:70,haki:95,df:98,rivalId:"op22",emoji:"🌊",tier:"S+",color:"#E8E8E8"},
+{id:"op49",name:"Marco",sn:"Marco One Piece Phoenix",title:"1st Div. Commander, Whitebeard Pirates / Phoenix",anime:"onepiece",atk:85,def:88,spd:82,haki:82,df:92,rivalId:"op19",emoji:"🔵",tier:"S",color:"#339AF0"},
+{id:"op50",name:"Jozu",sn:"Jozu One Piece",title:"3rd Div. Commander, Whitebeard Pirates / Diamond",anime:"onepiece",atk:82,def:95,spd:58,haki:75,df:85,rivalId:"op35",emoji:"💎",tier:"A",color:"#66D9E8"},
+{id:"op51",name:"Vista",sn:"Vista One Piece",title:"5th Div. Commander, Whitebeard Pirates / Flower Sword",anime:"onepiece",atk:82,def:78,spd:80,haki:82,df:0,rivalId:"op18",emoji:"🌹",tier:"A",color:"#8CE99A"},
+{id:"op23",name:"Portgas D. Ace",sn:"Portgas D. Ace",title:"2nd Div. Commander, Whitebeard Pirates / Fire Fist",anime:"onepiece",atk:85,def:72,spd:82,haki:72,df:88,rivalId:"op19",emoji:"🔥",tier:"A",color:"#FD7E14"},
+// --- BEAST PIRATES ---
+{id:"op25",name:"King",sn:"King Alber One Piece",title:"All-Star, Beast Pirates / Lunarian Wildfire",anime:"onepiece",atk:90,def:92,spd:85,haki:82,df:88,rivalId:"op2",emoji:"🦅",tier:"A",color:"#1B1B1B"},
+{id:"op26",name:"Queen",sn:"Queen One Piece Beast",title:"All-Star, Beast Pirates / The Plague",anime:"onepiece",atk:86,def:88,spd:62,haki:72,df:85,rivalId:"op3",emoji:"🦕",tier:"A",color:"#495057"},
+{id:"op27",name:"Ulti",sn:"Ulti One Piece",title:"Tobiroppo, Beast Pirates / Headbutt",anime:"onepiece",atk:70,def:72,spd:75,haki:55,df:68,rivalId:"op4",emoji:"🦖",tier:"B",color:"#D6336C"},
+{id:"op28",name:"Black Maria",sn:"Black Maria",title:"Tobiroppo, Beast Pirates / Spider Zoan",anime:"onepiece",atk:68,def:70,spd:60,haki:50,df:72,rivalId:"op5",emoji:"🕷️",tier:"B",color:"#7048E8"},
+{id:"op29",name:"Sasaki",sn:"Sasaki One Piece",title:"Tobiroppo, Beast Pirates / Triceratops",anime:"onepiece",atk:72,def:78,spd:55,haki:50,df:70,rivalId:"op6",emoji:"🦏",tier:"B",color:"#0CA678"},
+{id:"op30",name:"Who's Who",sn:"Who's-Who",title:"Tobiroppo, Beast Pirates / Saber-Tooth",anime:"onepiece",atk:74,def:70,spd:78,haki:60,df:72,rivalId:"op7",emoji:"🐱",tier:"B",color:"#3BC9DB"},
+// --- BIG MOM PIRATES ---
+{id:"op24",name:"Charlotte Katakuri",sn:"Charlotte Katakuri",title:"Sweet Commander, Big Mom Pirates / Mochi-Mochi",anime:"onepiece",atk:90,def:88,spd:88,haki:92,df:88,rivalId:"op1",emoji:"🍩",tier:"S",color:"#862E9C"},
+// --- WARLORDS ---
+{id:"op15",name:"Donquixote Doflamingo",sn:"Donquixote Doflamingo",title:"King of Dressrosa / Former Warlord / String Fruit",anime:"onepiece",atk:88,def:78,spd:82,haki:82,df:90,rivalId:"op11",emoji:"🕶️",tier:"A",color:"#D6336C"},
+{id:"op16",name:"Crocodile",sn:"Crocodile One Piece",title:"Cross Guild / Former Warlord / Sand-Sand Fruit",anime:"onepiece",atk:80,def:72,spd:68,haki:60,df:85,rivalId:"op1",emoji:"🏜️",tier:"A",color:"#AE8E50"},
+{id:"op43",name:"Boa Hancock",sn:"Boa Hancock",title:"Pirate Empress / Former Warlord / Love-Love Fruit",anime:"onepiece",atk:82,def:78,spd:85,haki:85,df:88,rivalId:"op19",emoji:"💘",tier:"A",color:"#F06595"},
+{id:"op44",name:"Bartholomew Kuma",sn:"Bartholomew Kuma",title:"Former Warlord / Revolutionary / Paw-Paw Fruit",anime:"onepiece",atk:85,def:88,spd:75,haki:72,df:88,rivalId:"op54",emoji:"🐻",tier:"A",color:"#9775FA"},
+{id:"op45",name:"Gecko Moria",sn:"Gecko Moria",title:"Former Warlord / Shadow-Shadow Fruit",anime:"onepiece",atk:70,def:72,spd:55,haki:55,df:82,rivalId:"op13",emoji:"🦇",tier:"B",color:"#845EF7"},
+// --- MARINES / ADMIRALS ---
+{id:"op22",name:"Sakazuki",sn:"Sakazuki",title:"Fleet Admiral / Magma-Magma Fruit",anime:"onepiece",atk:95,def:90,spd:78,haki:90,df:96,rivalId:"op21",emoji:"🌋",tier:"S",color:"#C92A2A"},
+{id:"op35",name:"Kuzan",sn:"Kuzan Aokiji",title:"Former Admiral / Ice-Ice Fruit",anime:"onepiece",atk:90,def:88,spd:82,haki:88,df:92,rivalId:"op22",emoji:"❄️",tier:"S",color:"#74C0FC"},
+{id:"op36",name:"Borsalino",sn:"Borsalino Kizaru",title:"Admiral / Light-Light Fruit",anime:"onepiece",atk:88,def:82,spd:100,haki:85,df:94,rivalId:"op37",emoji:"💡",tier:"S",color:"#FFE066"},
+{id:"op55",name:"Fujitora",sn:"Issho Fujitora",title:"Admiral / Gravity-Gravity Fruit",anime:"onepiece",atk:88,def:90,spd:72,haki:88,df:92,rivalId:"op22",emoji:"⬇️",tier:"S",color:"#845EF7"},
+{id:"op56",name:"Ryokugyu",sn:"Aramaki Ryokugyu",title:"Admiral / Forest-Forest Fruit",anime:"onepiece",atk:88,def:84,spd:78,haki:84,df:90,rivalId:"op20",emoji:"🌿",tier:"S",color:"#2B8A3E"},
+{id:"op40",name:"Sengoku",sn:"Sengoku One Piece",title:"Former Fleet Admiral / Buddha-Buddha Fruit",anime:"onepiece",atk:90,def:92,spd:72,haki:90,df:88,rivalId:"op33",emoji:"☸️",tier:"S",color:"#FFD700"},
+{id:"op34",name:"Monkey D. Garp",sn:"Garp Monkey",title:"Vice Admiral / Hero of the Marines",anime:"onepiece",atk:97,def:95,spd:85,haki:98,df:0,rivalId:"op33",emoji:"👊",tier:"S+",color:"#868E96"},
+// --- WORLD GOVERNMENT ---
+{id:"op53",name:"Imu",sn:"Imu One Piece",title:"Sovereign of the World / Ruler of the Empty Throne",anime:"onepiece",atk:98,def:96,spd:85,haki:96,df:98,rivalId:"op42",emoji:"🔱",tier:"S+",color:"#845EF7"},
+{id:"op54",name:"Saint Jaygarcia Saturn",sn:"Saturn Gorosei",title:"Gorosei / Warrior God of Science & Defense",anime:"onepiece",atk:90,def:88,spd:78,haki:88,df:92,rivalId:"op1",emoji:"🕸️",tier:"S",color:"#343A40"},
+// --- LEGENDS / ROGER ERA ---
+{id:"op33",name:"Gol D. Roger",sn:"Gol D. Roger",title:"King of the Pirates / Strongest Haki",anime:"onepiece",atk:99,def:95,spd:92,haki:100,df:0,rivalId:"op34",emoji:"👑",tier:"S+",color:"#FFD43B"},
+{id:"op37",name:"Silvers Rayleigh",sn:"Silvers Rayleigh",title:"First Mate, Roger Pirates / Dark King",anime:"onepiece",atk:92,def:88,spd:90,haki:96,df:0,rivalId:"op36",emoji:"⚡",tier:"S",color:"#C0C0C0"},
+{id:"op47",name:"Kozuki Oden",sn:"Kozuki Oden",title:"Daimyo of Kuri / Roger & Whitebeard Crew / Nitoryu",anime:"onepiece",atk:95,def:85,spd:85,haki:94,df:0,rivalId:"op13",emoji:"🍢",tier:"S",color:"#F76707"},
+{id:"op18",name:"Dracule Mihawk",sn:"Dracule Mihawk",title:"World's Strongest Swordsman / Cross Guild",anime:"onepiece",atk:96,def:90,spd:92,haki:95,df:0,rivalId:"op2",emoji:"🗡️",tier:"S",color:"#1B1B1B"},
+// --- RED HAIR PIRATES ---
+{id:"op57",name:"Ben Beckman",sn:"Ben Beckman",title:"First Mate, Red Hair Pirates",anime:"onepiece",atk:90,def:85,spd:88,haki:92,df:0,rivalId:"op36",emoji:"🔫",tier:"S",color:"#868E96"},
+// --- BLACKBEARD PIRATES ---
+{id:"op52",name:"Shiryu",sn:"Shiryu One Piece",title:"Blackbeard Pirates / Clear-Clear Fruit / Ex-Warden",anime:"onepiece",atk:88,def:80,spd:82,haki:82,df:82,rivalId:"op2",emoji:"🌫️",tier:"A",color:"#495057"},
+// --- REVOLUTIONARIES ---
+{id:"op41",name:"Sabo",sn:"Sabo One Piece",title:"Chief of Staff, Revolutionary Army / Flame-Flame Fruit",anime:"onepiece",atk:87,def:80,spd:88,haki:82,df:88,rivalId:"op23",emoji:"🎩",tier:"A",color:"#3B7DD8"},
+{id:"op42",name:"Monkey D. Dragon",sn:"Monkey D. Dragon",title:"Supreme Commander, Revolutionary Army",anime:"onepiece",atk:95,def:90,spd:88,haki:95,df:92,rivalId:"op53",emoji:"🌪️",tier:"S+",color:"#2D5016"},
+// --- OTHER PIRATES ---
+{id:"op48",name:"Yamato",sn:"Yamato One Piece",title:"Kaido's Son / Guardian Deity of Wano / Ice Oni",anime:"onepiece",atk:86,def:82,spd:82,haki:80,df:82,rivalId:"op13",emoji:"🐺",tier:"A",color:"#66D9E8"},
+{id:"op38",name:"Enel",sn:"Enel",title:"Former God of Skypiea / Rumble-Rumble Fruit",anime:"onepiece",atk:78,def:58,spd:85,haki:65,df:88,rivalId:"op1",emoji:"⚡",tier:"B",color:"#FCC419"},
+{id:"op39",name:"Shiki",sn:"Shiki Golden Lion",title:"Legendary Pirate / Float-Float Fruit",anime:"onepiece",atk:88,def:82,spd:78,haki:80,df:85,rivalId:"op40",emoji:"🦁",tier:"A",color:"#F59F00"},
+{id:"op17",name:"Rob Lucci",sn:"Rob Lucci",title:"CP0 Chief Agent / Leopard Zoan / Awakened",anime:"onepiece",atk:85,def:82,spd:88,haki:80,df:82,rivalId:"op1",emoji:"🐆",tier:"A",color:"#212529"},
+// --- OTHER ---
+{id:"op31",name:"Perona",sn:"Perona",title:"Thriller Bark / Hollow-Hollow Fruit",anime:"onepiece",atk:45,def:50,spd:60,haki:0,df:78,rivalId:"op10",emoji:"👻",tier:"C",color:"#F783AC"},
+{id:"op32",name:"Caesar Clown",sn:"Caesar Clown",title:"Punk Hazard Scientist / Gas-Gas Fruit",anime:"onepiece",atk:62,def:55,spd:58,haki:0,df:82,rivalId:"op8",emoji:"☠️",tier:"C",color:"#ADB5BD"},
+// --- NEW OP CHARACTERS ---
+{id:"op59",name:"X Drake",sn:"X Drake",title:"Worst Generation / Secret SWORD Agent / Dragon-Dragon Fruit",anime:"onepiece",atk:80,def:78,spd:75,haki:72,df:80,rivalId:"op26",emoji:"🦖",tier:"B",color:"#862E9C"},
+{id:"op60",name:"Basil Hawkins",sn:"Basil Hawkins",title:"Worst Generation / Straw-Straw Fruit / Card Reader",anime:"onepiece",atk:72,def:70,spd:68,haki:65,df:78,rivalId:"op58",emoji:"🃏",tier:"B",color:"#E8590C"},
+{id:"op61",name:"Scratchmen Apoo",sn:"Scratchmen Apoo",title:"Worst Generation / Tone-Tone Fruit / Sound Attacks",anime:"onepiece",atk:70,def:65,spd:72,haki:60,df:75,rivalId:"op59",emoji:"🎵",tier:"B",color:"#F76707"},
+{id:"op62",name:"Capone Bege",sn:"Capone Bege",title:"Worst Generation / Castle-Castle Fruit / Mafia Don",anime:"onepiece",atk:72,def:80,spd:55,haki:65,df:82,rivalId:"op14",emoji:"🏰",tier:"B",color:"#495057"},
+{id:"op63",name:"Urouge",sn:"Urouge",title:"Worst Generation / Mad Monk / Damage Conversion",anime:"onepiece",atk:78,def:75,spd:65,haki:60,df:72,rivalId:"op25",emoji:"🙏",tier:"B",color:"#E67700"},
+{id:"op64",name:"Jewelry Bonney",sn:"Jewelry Bonney",title:"Worst Generation / Age-Age Fruit / Kuma's Daughter",anime:"onepiece",atk:68,def:60,spd:78,haki:55,df:85,rivalId:"op44",emoji:"🍕",tier:"B",color:"#E64980"},
+{id:"op65",name:"Koby",sn:"Koby One Piece",title:"SWORD Captain / Honesty Impact / Future Admiral",anime:"onepiece",atk:75,def:72,spd:82,haki:78,df:0,rivalId:"op43",emoji:"💗",tier:"B",color:"#FF6B9D"},
+{id:"op66",name:"Smoker",sn:"Smoker One Piece",title:"Vice Admiral / Smoke-Smoke Fruit",anime:"onepiece",atk:76,def:72,spd:70,haki:72,df:78,rivalId:"op1",emoji:"💨",tier:"B",color:"#ADB5BD"},
+{id:"op67",name:"Sentomaru",sn:"Sentomaru",title:"Marine / Broadaxe / Strongest Defense",anime:"onepiece",atk:72,def:80,spd:60,haki:70,df:0,rivalId:"op36",emoji:"🪓",tier:"B",color:"#E8590C"},
+{id:"op68",name:"Magellan",sn:"Magellan",title:"Impel Down Warden / Venom-Venom Fruit",anime:"onepiece",atk:85,def:82,spd:60,haki:65,df:90,rivalId:"op19",emoji:"☠️",tier:"A",color:"#5F3DC4"},
+{id:"op69",name:"Tsuru",sn:"Tsuru One Piece",title:"Vice Admiral / Great Tactician / Wash-Wash Fruit",anime:"onepiece",atk:68,def:72,spd:55,haki:80,df:72,rivalId:"op40",emoji:"🧓",tier:"B",color:"#868E96"},
+{id:"op70",name:"Kong",sn:"Kong One Piece",title:"Commander-in-Chief / Former Fleet Admiral",anime:"onepiece",atk:88,def:85,spd:72,haki:88,df:0,rivalId:"op40",emoji:"🦍",tier:"A",color:"#495057"},
+{id:"op71",name:"Van Augur",sn:"Van Augur",title:"Blackbeard Pirates / Warp-Warp Fruit / Sniper",anime:"onepiece",atk:78,def:65,spd:82,haki:72,df:80,rivalId:"op10",emoji:"🎯",tier:"B",color:"#495057"},
+{id:"op72",name:"Avalo Pizarro",sn:"Avalo Pizarro",title:"Blackbeard Pirates / Island-Island Fruit",anime:"onepiece",atk:80,def:82,spd:65,haki:70,df:82,rivalId:"op54",emoji:"👑",tier:"B",color:"#C92A2A"},
+{id:"op73",name:"Charlotte Cracker",sn:"Charlotte Cracker",title:"Sweet Commander / Biscuit-Biscuit Fruit / 800M Berry",anime:"onepiece",atk:84,def:88,spd:72,haki:80,df:85,rivalId:"op1",emoji:"🍪",tier:"A",color:"#D9480F"},
+{id:"op74",name:"Charlotte Smoothie",sn:"Charlotte Smoothie",title:"Sweet Commander / Juice-Juice Fruit / 932M Berry",anime:"onepiece",atk:82,def:80,spd:75,haki:78,df:82,rivalId:"op7",emoji:"🧃",tier:"A",color:"#E599F7"},
+{id:"op75",name:"Charlotte Perospero",sn:"Charlotte Perospero",title:"Big Mom Pirates / Lick-Lick Fruit / Eldest Son",anime:"onepiece",atk:78,def:75,spd:68,haki:72,df:80,rivalId:"op49",emoji:"🍬",tier:"B",color:"#7048E8"},
+{id:"op76",name:"Charlotte Oven",sn:"Charlotte Oven",title:"Big Mom Pirates / Heat-Heat Fruit",anime:"onepiece",atk:80,def:78,spd:68,haki:72,df:78,rivalId:"op23",emoji:"🔥",tier:"B",color:"#E8590C"},
+{id:"op77",name:"Jack",sn:"Jack One Piece",title:"All-Star, Beast Pirates / Mammoth / 1B Berry",anime:"onepiece",atk:82,def:88,spd:55,haki:72,df:82,rivalId:"op7",emoji:"🦣",tier:"A",color:"#5C5F66"},
+{id:"op78",name:"Page One",sn:"Page One",title:"Tobiroppo / Spinosaurus / Ancient Zoan",anime:"onepiece",atk:70,def:72,spd:68,haki:55,df:70,rivalId:"op3",emoji:"🦕",tier:"B",color:"#495057"},
+{id:"op79",name:"Kinemon",sn:"Kinemon",title:"Red Scabbard / Foxfire Style / Leader",anime:"onepiece",atk:78,def:72,spd:72,haki:75,df:68,rivalId:"op13",emoji:"🔥",tier:"B",color:"#E03131"},
+{id:"op80",name:"Denjiro",sn:"Denjiro",title:"Red Scabbard / Kyoshiro / Strongest Samurai",anime:"onepiece",atk:80,def:78,spd:78,haki:78,df:0,rivalId:"op15",emoji:"⚔️",tier:"B",color:"#1864AB"},
+{id:"op81",name:"Inuarashi",sn:"Inuarashi",title:"Red Scabbard / Duke of Zou / Sulong Form",anime:"onepiece",atk:82,def:78,spd:80,haki:78,df:0,rivalId:"op77",emoji:"🐕",tier:"B",color:"#F08C00"},
+{id:"op82",name:"Nekomamushi",sn:"Nekomamushi",title:"Red Scabbard / Boss of Zou / Sulong Form",anime:"onepiece",atk:82,def:80,spd:78,haki:78,df:0,rivalId:"op75",emoji:"🐱",tier:"B",color:"#F59F00"},
+{id:"op83",name:"Ashura Doji",sn:"Ashura Doji",title:"Red Scabbard / Mountain Bandit / Oden's Strongest",anime:"onepiece",atk:80,def:78,spd:70,haki:75,df:0,rivalId:"op77",emoji:"💀",tier:"B",color:"#495057"},
+{id:"op84",name:"Kawamatsu",sn:"Kawamatsu",title:"Red Scabbard / Kappa Swordsman",anime:"onepiece",atk:78,def:80,spd:72,haki:72,df:0,rivalId:"op50",emoji:"🐸",tier:"B",color:"#2B8A3E"},
+{id:"op85",name:"Izo",sn:"Izo One Piece",title:"Red Scabbard / 16th Div. Commander Whitebeard / Gunslinger",anime:"onepiece",atk:78,def:70,spd:78,haki:75,df:0,rivalId:"op52",emoji:"🔫",tier:"B",color:"#E64980"},
+{id:"op86",name:"Ivankov",sn:"Ivankov",title:"Revolutionary Commander / Horm-Horm Fruit / Okama King",anime:"onepiece",atk:78,def:72,spd:80,haki:72,df:82,rivalId:"op22",emoji:"👸",tier:"B",color:"#7048E8"},
+{id:"op87",name:"Bartolomeo",sn:"Bartolomeo",title:"Barto Club / Barrier-Barrier Fruit / Luffy Fanboy",anime:"onepiece",atk:65,def:95,spd:60,haki:55,df:88,rivalId:"op15",emoji:"🛡️",tier:"B",color:"#37B24D"},
+{id:"op88",name:"Cavendish",sn:"Cavendish",title:"Beautiful Pirates / Hakuba Alter Ego / White Horse",anime:"onepiece",atk:80,def:72,spd:85,haki:72,df:0,rivalId:"op15",emoji:"🐴",tier:"B",color:"#F59F00"},
+{id:"op89",name:"Edward Weevil",sn:"Edward Weevil",title:"Former Warlord / Self-Proclaimed Whitebeard Jr.",anime:"onepiece",atk:92,def:88,spd:60,haki:65,df:0,rivalId:"op21",emoji:"💪",tier:"A",color:"#F76707"},
+{id:"op90",name:"Kaku",sn:"Kaku CP0",title:"CP0 Agent / Giraffe-Giraffe Fruit Awakened",anime:"onepiece",atk:80,def:78,spd:82,haki:75,df:78,rivalId:"op2",emoji:"🦒",tier:"B",color:"#1098AD"},
+{id:"op91",name:"Jabra",sn:"Jabra",title:"Former CP9 / Wolf-Wolf Fruit / Iron Body",anime:"onepiece",atk:72,def:75,spd:72,haki:55,df:70,rivalId:"op3",emoji:"🐺",tier:"B",color:"#495057"},
+{id:"op92",name:"Arlong",sn:"Arlong",title:"Fishman Pirate / Saw-Nose / Nami's Tormentor",anime:"onepiece",atk:65,def:68,spd:60,haki:0,df:0,rivalId:"op4",emoji:"🦈",tier:"C",color:"#3B5BDB"},
+{id:"op93",name:"Bon Clay",sn:"Bon Clay Mr 2",title:"Clone-Clone Fruit / Okama Way / Luffy's Friend",anime:"onepiece",atk:68,def:65,spd:75,haki:50,df:78,rivalId:"op22",emoji:"🦢",tier:"C",color:"#E64980"},
+{id:"op94",name:"Vergo",sn:"Vergo",title:"Former Vice Admiral / Doflamingo's Right Hand / Full Body Haki",anime:"onepiece",atk:80,def:85,spd:72,haki:82,df:0,rivalId:"op11",emoji:"🦯",tier:"B",color:"#5C5F66"},
+{id:"op95",name:"Diamante",sn:"Diamante",title:"Doflamingo Family / Flag-Flag Fruit / Colosseum Champion",anime:"onepiece",atk:75,def:72,spd:72,haki:70,df:72,rivalId:"op41",emoji:"💎",tier:"B",color:"#5C5F66"},
+{id:"op96",name:"Pica",sn:"Pica One Piece",title:"Doflamingo Family / Stone-Stone Fruit / Mountain Giant",anime:"onepiece",atk:78,def:85,spd:55,haki:72,df:82,rivalId:"op2",emoji:"🗿",tier:"B",color:"#868E96"},
+{id:"op97",name:"Pedro",sn:"Pedro One Piece",title:"Mink Warrior / Sulong / Self-Sacrifice Hero",anime:"onepiece",atk:75,def:68,spd:80,haki:72,df:0,rivalId:"op75",emoji:"🐆",tier:"B",color:"#F08C00"},
+{id:"op98",name:"Momonosuke",sn:"Momonosuke",title:"Shogun of Wano / Azure Dragon Form / Oden's Son",anime:"onepiece",atk:65,def:70,spd:60,haki:55,df:80,rivalId:"op13",emoji:"🐲",tier:"C",color:"#E64980"},
+{id:"op99",name:"Lucky Roux",sn:"Lucky Roux",title:"Red Hair Pirates / Officer / Fastest Draw",anime:"onepiece",atk:85,def:82,spd:78,haki:85,df:0,rivalId:"op57",emoji:"🍖",tier:"A",color:"#E03131"},
+{id:"op100",name:"Yasopp",sn:"Yasopp",title:"Red Hair Pirates / Sniper King / Usopp's Father",anime:"onepiece",atk:80,def:68,spd:82,haki:88,df:0,rivalId:"op10",emoji:"🎯",tier:"A",color:"#F59F00"},
+{id:"op101",name:"Rocks D. Xebec",sn:"Rocks D Xebec",title:"Captain of Rocks Pirates / Most Dangerous Pirate Ever",anime:"onepiece",atk:99,def:95,spd:90,haki:98,df:95,rivalId:"op33",emoji:"☠️",tier:"S+",color:"#1B1B1B"},
+{id:"op102",name:"Bellamy",sn:"Bellamy",title:"Spring-Spring Fruit / Dressrosa Fighter",anime:"onepiece",atk:62,def:58,spd:72,haki:50,df:68,rivalId:"op1",emoji:"🔔",tier:"C",color:"#5C5F66"},
+];
+
+const NR=[
+// --- TEAM 7 ---
+{id:"nr1",name:"Naruto Uzumaki",sn:"Naruto Uzumaki",title:"Seventh Hokage / Nine-Tails Jinchuriki",anime:"naruto",atk:98,def:88,spd:95,haki:96,df:99,rivalId:"nr2",emoji:"🍥",tier:"S+",color:"#FF7B00"},
+{id:"nr2",name:"Sasuke Uchiha",sn:"Sasuke Uchiha",title:"Shadow Hokage / Rinnegan & Eternal Mangekyo",anime:"naruto",atk:96,def:85,spd:94,haki:97,df:96,rivalId:"nr1",emoji:"⚡",tier:"S+",color:"#3B3980"},
+{id:"nr3",name:"Sakura Haruno",sn:"Sakura Haruno",title:"Hokage's Advisor / Strength of a Hundred Seal",anime:"naruto",atk:82,def:78,spd:72,haki:60,df:75,rivalId:"nr11",emoji:"🌸",tier:"B",color:"#FF69B4"},
+{id:"nr4",name:"Kakashi Hatake",sn:"Kakashi Hatake",title:"Sixth Hokage / Copy Ninja / Sharingan",anime:"naruto",atk:88,def:82,spd:90,haki:88,df:80,rivalId:"nr8",emoji:"📖",tier:"A",color:"#8B95A5"},
+// --- UCHIHA ---
+{id:"nr5",name:"Itachi Uchiha",sn:"Itachi Uchiha",title:"Rogue Ninja / Mangekyo Sharingan / Tsukuyomi",anime:"naruto",atk:90,def:78,spd:88,haki:96,df:95,rivalId:"nr2",emoji:"🌙",tier:"S",color:"#8B0000"},
+{id:"nr6",name:"Madara Uchiha",sn:"Madara Uchiha",title:"Ghost of the Uchiha / Rinnegan / Ten-Tails Host",anime:"naruto",atk:98,def:95,spd:90,haki:97,df:98,rivalId:"nr7",emoji:"🔮",tier:"S+",color:"#4A0E4E"},
+{id:"nr8",name:"Obito Uchiha",sn:"Obito Uchiha",title:"Former Akatsuki Leader / Kamui / Ten-Tails Host",anime:"naruto",atk:92,def:85,spd:88,haki:85,df:95,rivalId:"nr4",emoji:"🎭",tier:"S",color:"#FF4500"},
+{id:"nr41",name:"Shisui Uchiha",sn:"Shisui Uchiha",title:"Body Flicker Shisui / Kotoamatsukami",anime:"naruto",atk:85,def:72,spd:95,haki:90,df:88,rivalId:"nr5",emoji:"🌀",tier:"A",color:"#2B8A3E"},
+// --- SENJU / HOKAGE ---
+{id:"nr7",name:"Hashirama Senju",sn:"Hashirama Senju",title:"First Hokage / God of Shinobi / Wood Style",anime:"naruto",atk:97,def:96,spd:85,haki:92,df:98,rivalId:"nr6",emoji:"🌳",tier:"S+",color:"#228B22"},
+{id:"nr30",name:"Tobirama Senju",sn:"Tobirama Senju",title:"Second Hokage / Creator of Edo Tensei & FTG",anime:"naruto",atk:90,def:85,spd:88,haki:92,df:90,rivalId:"nr6",emoji:"💧",tier:"S",color:"#1E90FF"},
+{id:"nr31",name:"Hiruzen Sarutobi",sn:"Hiruzen Sarutobi",title:"Third Hokage / The Professor / All Five Natures",anime:"naruto",atk:85,def:80,spd:72,haki:88,df:82,rivalId:"nr12",emoji:"🐒",tier:"A",color:"#8B4513"},
+{id:"nr13",name:"Minato Namikaze",sn:"Minato Namikaze",title:"Fourth Hokage / Yellow Flash / Flying Thunder God",anime:"naruto",atk:92,def:80,spd:100,haki:90,df:88,rivalId:"nr8",emoji:"💨",tier:"S",color:"#FFD700"},
+// --- LEGENDARY SANNIN ---
+{id:"nr10",name:"Jiraiya",sn:"Jiraiya",title:"Legendary Sannin / Toad Sage / Naruto's Master",anime:"naruto",atk:86,def:78,spd:76,haki:85,df:82,rivalId:"nr9",emoji:"🐸",tier:"A",color:"#DC143C"},
+{id:"nr11",name:"Tsunade",sn:"Tsunade",title:"Fifth Hokage / Legendary Sannin / Creation Rebirth",anime:"naruto",atk:84,def:85,spd:68,haki:72,df:80,rivalId:"nr12",emoji:"💎",tier:"A",color:"#DAA520"},
+{id:"nr12",name:"Orochimaru",sn:"Orochimaru",title:"Legendary Sannin / Immortality Seeker / Snake Sage",anime:"naruto",atk:86,def:80,spd:78,haki:82,df:90,rivalId:"nr11",emoji:"🐍",tier:"A",color:"#9370DB"},
+// --- AKATSUKI ---
+{id:"nr9",name:"Pain / Nagato",sn:"Nagato",title:"Akatsuki Founder / Six Paths of Pain / Rinnegan",anime:"naruto",atk:94,def:82,spd:80,haki:92,df:96,rivalId:"nr1",emoji:"☯️",tier:"S",color:"#7B3F00"},
+{id:"nr27",name:"Konan",sn:"Konan Naruto",title:"Akatsuki Co-Founder / Paper Angel / 600 Billion Bombs",anime:"naruto",atk:76,def:72,spd:75,haki:78,df:82,rivalId:"nr8",emoji:"📄",tier:"B",color:"#4169E1"},
+{id:"nr22",name:"Deidara",sn:"Deidara",title:"Akatsuki / Explosive Clay Artist / Art is an Explosion",anime:"naruto",atk:82,def:62,spd:78,haki:70,df:85,rivalId:"nr2",emoji:"💥",tier:"B",color:"#FFD700"},
+{id:"nr23",name:"Sasori",sn:"Sasori",title:"Akatsuki / Red Sand Puppeteer / Hiruko Armor",anime:"naruto",atk:80,def:75,spd:72,haki:78,df:82,rivalId:"nr3",emoji:"🦂",tier:"B",color:"#8B0000"},
+{id:"nr24",name:"Kisame Hoshigaki",sn:"Kisame Hoshigaki",title:"Akatsuki / Tailless Tailed Beast / Samehada",anime:"naruto",atk:88,def:82,spd:75,haki:72,df:85,rivalId:"nr14",emoji:"🦈",tier:"A",color:"#4682B4"},
+{id:"nr25",name:"Hidan",sn:"Hidan",title:"Akatsuki / Jashin Immortal / Ritual Curse",anime:"naruto",atk:72,def:65,spd:70,haki:40,df:78,rivalId:"nr20",emoji:"⛪",tier:"B",color:"#808080"},
+{id:"nr26",name:"Kakuzu",sn:"Kakuzu",title:"Akatsuki / Five Heart Monster / Fought First Hokage",anime:"naruto",atk:80,def:82,spd:68,haki:72,df:80,rivalId:"nr4",emoji:"🖤",tier:"B",color:"#2F4F4F"},
+{id:"nr21",name:"Kabuto Yakushi",sn:"Kabuto Yakushi",title:"Orochimaru's Protégé / Dragon Sage Mode",anime:"naruto",atk:84,def:78,spd:80,haki:82,df:88,rivalId:"nr5",emoji:"🔬",tier:"A",color:"#708090"},
+// --- KONOHA JONIN ---
+{id:"nr14",name:"Might Guy",sn:"Maito Gai",title:"Konoha Jonin / Sublime Green Beast / Eight Inner Gates",anime:"naruto",atk:96,def:75,spd:95,haki:78,df:0,rivalId:"nr4",emoji:"🥊",tier:"S",color:"#00AA00"},
+{id:"nr15",name:"Rock Lee",sn:"Rock Lee",title:"Konoha Taijutsu Specialist / Guy's Protégé",anime:"naruto",atk:82,def:68,spd:90,haki:55,df:0,rivalId:"nr16",emoji:"🥋",tier:"B",color:"#00CC00"},
+{id:"nr37",name:"Asuma Sarutobi",sn:"Asuma Sarutobi",title:"Team 10 Leader / Twelve Guardian Ninja / Wind Blade",anime:"naruto",atk:74,def:70,spd:72,haki:72,df:60,rivalId:"nr25",emoji:"🚬",tier:"B",color:"#696969"},
+{id:"nr38",name:"Yamato",sn:"Yamato Naruto",title:"ANBU Captain / Wood Style User",anime:"naruto",atk:76,def:78,spd:72,haki:75,df:80,rivalId:"nr12",emoji:"🪵",tier:"B",color:"#8B4513"},
+// --- KONOHA NEXT GEN ---
+{id:"nr16",name:"Gaara",sn:"Gaara",title:"Fifth Kazekage / One-Tail Jinchuriki / Sand Shield",anime:"naruto",atk:84,def:92,spd:70,haki:78,df:88,rivalId:"nr15",emoji:"🏜️",tier:"A",color:"#C2B280"},
+{id:"nr18",name:"Neji Hyuga",sn:"Neji Hyuuga",title:"Hyuga Prodigy / Gentle Fist / Byakugan 360",anime:"naruto",atk:78,def:80,spd:82,haki:82,df:0,rivalId:"nr1",emoji:"👁️",tier:"B",color:"#E6E6FA"},
+{id:"nr19",name:"Hinata Hyuga",sn:"Hinata Hyuuga",title:"Byakugan Princess / Twin Lion Fists",anime:"naruto",atk:62,def:65,spd:68,haki:70,df:0,rivalId:"nr9",emoji:"💜",tier:"C",color:"#9966CC"},
+{id:"nr20",name:"Shikamaru Nara",sn:"Shikamaru Nara",title:"Konoha Advisor / 200+ IQ / Shadow Paralysis",anime:"naruto",atk:55,def:58,spd:62,haki:95,df:72,rivalId:"nr25",emoji:"🧠",tier:"B",color:"#556B2F"},
+{id:"nr34",name:"Temari",sn:"Temari Naruto",title:"Sand Village / Wind Scythe Jutsu",anime:"naruto",atk:68,def:60,spd:70,haki:65,df:72,rivalId:"nr20",emoji:"🌪️",tier:"C",color:"#9ACD32"},
+{id:"nr35",name:"Ino Yamanaka",sn:"Ino Yamanaka",title:"Konoha Sensor / Mind Transfer Jutsu",anime:"naruto",atk:50,def:48,spd:62,haki:72,df:68,rivalId:"nr3",emoji:"💐",tier:"C",color:"#DA70D6"},
+{id:"nr36",name:"Kiba Inuzuka",sn:"Kiba Inuzuka",title:"Konoha Tracker / Fang Over Fang",anime:"naruto",atk:64,def:60,spd:78,haki:50,df:55,rivalId:"nr1",emoji:"🐕",tier:"C",color:"#8B6914"},
+{id:"nr39",name:"Shino Aburame",sn:"Shino Aburame",title:"Konoha Tracker / Parasitic Insect Techniques",anime:"naruto",atk:62,def:68,spd:65,haki:72,df:75,rivalId:"nr29",emoji:"🐛",tier:"C",color:"#2F4F4F"},
+{id:"nr40",name:"Choji Akimichi",sn:"Chouji Akimichi",title:"Akimichi Clan / Butterfly Mode",anime:"naruto",atk:78,def:75,spd:55,haki:55,df:70,rivalId:"nr26",emoji:"🦋",tier:"B",color:"#CD853F"},
+// --- CLOUD / MIST / STONE ---
+{id:"nr17",name:"Killer Bee",sn:"Killer Bee Naruto",title:"Cloud Village / Eight-Tails Jinchuriki / Rapper",anime:"naruto",atk:88,def:82,spd:80,haki:75,df:90,rivalId:"nr2",emoji:"🐙",tier:"A",color:"#4169E1"},
+{id:"nr42",name:"Fourth Raikage Ay",sn:"Raikage Ay",title:"Fourth Raikage / Lightning Armor / Fastest Kage",anime:"naruto",atk:90,def:85,spd:95,haki:78,df:0,rivalId:"nr13",emoji:"💪",tier:"A",color:"#FFE066"},
+{id:"nr28",name:"Zabuza Momochi",sn:"Zabuza Momochi",title:"Seven Swordsmen of the Mist / Demon of the Mist",anime:"naruto",atk:78,def:72,spd:76,haki:68,df:65,rivalId:"nr4",emoji:"🗡️",tier:"B",color:"#2E8B57"},
+{id:"nr29",name:"Haku",sn:"Haku Naruto",title:"Zabuza's Protégé / Demonic Ice Mirrors",anime:"naruto",atk:70,def:62,spd:85,haki:60,df:80,rivalId:"nr1",emoji:"❄️",tier:"C",color:"#B0E0E6"},
+{id:"nr46",name:"Mei Terumi",sn:"Mei Terumi",title:"Fifth Mizukage / Lava & Acid Style",anime:"naruto",atk:78,def:72,spd:70,haki:75,df:82,rivalId:"nr28",emoji:"💋",tier:"B",color:"#E64980"},
+{id:"nr43",name:"Ohnoki",sn:"Oonoki",title:"Third Tsuchikage / Particle Style Disintegration",anime:"naruto",atk:82,def:75,spd:55,haki:85,df:90,rivalId:"nr6",emoji:"⛰️",tier:"A",color:"#BE4BDB"},
+{id:"nr44",name:"Kimimaro",sn:"Kimimaro",title:"Sound Five Leader / Shikotsumyaku Bone Manipulation",anime:"naruto",atk:82,def:78,spd:82,haki:60,df:80,rivalId:"nr16",emoji:"🦴",tier:"B",color:"#DEE2E6"},
+// --- ROOT / OTHERS ---
+{id:"nr32",name:"Danzo Shimura",sn:"Danzou Shimura",title:"Root Foundation Leader / Stolen Sharingan Army",anime:"naruto",atk:78,def:75,spd:65,haki:80,df:82,rivalId:"nr2",emoji:"🩹",tier:"B",color:"#36454F"},
+// --- OTSUTSUKI ---
+{id:"nr33",name:"Kaguya Otsutsuki",sn:"Kaguya Ootsutsuki",title:"Progenitor of Chakra / Rabbit Goddess / God Tier",anime:"naruto",atk:99,def:98,spd:88,haki:90,df:100,rivalId:"nr1",emoji:"🌕",tier:"S+",color:"#E6E6FA"},
+{id:"nr45",name:"Hagoromo Otsutsuki",sn:"Hagoromo Ootsutsuki",title:"Sage of Six Paths / Creator of Ninjutsu / Kaguya's Son",anime:"naruto",atk:99,def:98,spd:92,haki:100,df:99,rivalId:"nr33",emoji:"☀️",tier:"S+",color:"#FCC419"},
+// --- NEW NR CHARACTERS ---
+{id:"nr47",name:"Toneri Otsutsuki",sn:"Toneri Ootsutsuki",title:"Otsutsuki Clan / Tenseigan / Moon Dweller",anime:"naruto",atk:88,def:82,spd:85,haki:88,df:90,rivalId:"nr1",emoji:"🌙",tier:"S",color:"#BE4BDB"},
+{id:"nr48",name:"Third Raikage",sn:"Sandaime Raikage",title:"Strongest Raikage / Hell Stab / Invincible Body",anime:"naruto",atk:95,def:98,spd:88,haki:80,df:0,rivalId:"nr42",emoji:"⚡",tier:"S",color:"#F59F00"},
+{id:"nr49",name:"Mu",sn:"Mu Nidaime Tsuchikage",title:"Second Tsuchikage / Particle Style / Invisibility",anime:"naruto",atk:82,def:68,spd:80,haki:85,df:88,rivalId:"nr43",emoji:"👻",tier:"A",color:"#BE4BDB"},
+{id:"nr50",name:"Gengetsu Hozuki",sn:"Gengetsu Hozuki",title:"Second Mizukage / Clam Genjutsu / Water Gun",anime:"naruto",atk:82,def:72,spd:75,haki:80,df:85,rivalId:"nr49",emoji:"🫧",tier:"A",color:"#3BC9DB"},
+{id:"nr51",name:"Yagura",sn:"Yagura Karatachi",title:"Fourth Mizukage / Three-Tails Jinchuriki / Perfect Control",anime:"naruto",atk:82,def:78,spd:75,haki:72,df:85,rivalId:"nr8",emoji:"🐢",tier:"A",color:"#339AF0"},
+{id:"nr52",name:"Rasa",sn:"Rasa Kazekage",title:"Fourth Kazekage / Gold Dust / Gaara's Father",anime:"naruto",atk:78,def:75,spd:65,haki:72,df:80,rivalId:"nr16",emoji:"✨",tier:"B",color:"#F59F00"},
+{id:"nr53",name:"Yugito Nii",sn:"Yugito Nii",title:"Two-Tails Jinchuriki / Blue Fire Cat",anime:"naruto",atk:80,def:72,spd:82,haki:68,df:82,rivalId:"nr25",emoji:"🐱",tier:"B",color:"#3BC9DB"},
+{id:"nr54",name:"Roshi",sn:"Roshi Naruto",title:"Four-Tails Jinchuriki / Lava Style",anime:"naruto",atk:78,def:75,spd:65,haki:68,df:82,rivalId:"nr24",emoji:"🐵",tier:"B",color:"#E03131"},
+{id:"nr55",name:"Han",sn:"Han Naruto",title:"Five-Tails Jinchuriki / Steam Armor",anime:"naruto",atk:82,def:80,spd:72,haki:65,df:80,rivalId:"nr26",emoji:"🐴",tier:"B",color:"#E8590C"},
+{id:"nr56",name:"Utakata",sn:"Utakata",title:"Six-Tails Jinchuriki / Bubble Style",anime:"naruto",atk:75,def:70,spd:72,haki:68,df:82,rivalId:"nr23",emoji:"🫧",tier:"B",color:"#339AF0"},
+{id:"nr57",name:"Fu",sn:"Fuu Jinchuriki",title:"Seven-Tails Jinchuriki / Lucky Seven Choumei",anime:"naruto",atk:75,def:68,spd:80,haki:65,df:82,rivalId:"nr27",emoji:"🪲",tier:"B",color:"#37B24D"},
+{id:"nr58",name:"Black Zetsu",sn:"Black Zetsu",title:"Kaguya's Will / Manipulator of Shinobi History",anime:"naruto",atk:45,def:60,spd:65,haki:82,df:75,rivalId:"nr6",emoji:"🖤",tier:"C",color:"#1B1B1B"},
+{id:"nr59",name:"White Zetsu",sn:"White Zetsu",title:"Plant Creature / Clone Army / Spore Technique",anime:"naruto",atk:40,def:50,spd:60,haki:45,df:65,rivalId:"nr38",emoji:"🤍",tier:"C",color:"#E9ECEF"},
+{id:"nr60",name:"Hanzo",sn:"Hanzo Salamander",title:"Hanzo of the Salamander / Poison / Legendary Ninja",anime:"naruto",atk:85,def:80,spd:78,haki:82,df:82,rivalId:"nr9",emoji:"🦎",tier:"A",color:"#495057"},
+{id:"nr61",name:"Tayuya",sn:"Tayuya",title:"Sound Four / Flute Genjutsu / Doki Summoning",anime:"naruto",atk:65,def:55,spd:62,haki:70,df:72,rivalId:"nr20",emoji:"🎶",tier:"C",color:"#E03131"},
+{id:"nr62",name:"Kidomaru",sn:"Kidomaru",title:"Sound Four / Spider Web / Six Arms",anime:"naruto",atk:72,def:65,spd:70,haki:68,df:70,rivalId:"nr18",emoji:"🕷️",tier:"C",color:"#5C5F66"},
+{id:"nr63",name:"Sakon & Ukon",sn:"Sakon Ukon",title:"Sound Four / Parasite Demon / Twin Brothers",anime:"naruto",atk:70,def:72,spd:68,haki:55,df:72,rivalId:"nr36",emoji:"👥",tier:"C",color:"#3B5BDB"},
+{id:"nr64",name:"Jirobo",sn:"Jirobo",title:"Sound Four / Earth Style / Absorption Barrier",anime:"naruto",atk:72,def:75,spd:50,haki:48,df:65,rivalId:"nr40",emoji:"🪨",tier:"C",color:"#E8590C"},
+{id:"nr65",name:"Kankuro",sn:"Kankuro",title:"Sand Village / Puppet Master / Three Puppet Attack",anime:"naruto",atk:70,def:65,spd:62,haki:68,df:72,rivalId:"nr23",emoji:"🎭",tier:"B",color:"#5C5F66"},
+{id:"nr66",name:"Chiyo",sn:"Chiyo",title:"Sand Elder / Legendary Puppeteer / Ten Puppet Collection",anime:"naruto",atk:72,def:65,spd:58,haki:80,df:78,rivalId:"nr23",emoji:"👵",tier:"B",color:"#862E9C"},
+{id:"nr67",name:"Suigetsu Hozuki",sn:"Suigetsu Hozuki",title:"Team Taka / Water Body / Zabuza's Successor",anime:"naruto",atk:75,def:68,spd:78,haki:58,df:78,rivalId:"nr28",emoji:"💧",tier:"B",color:"#339AF0"},
+{id:"nr68",name:"Jugo",sn:"Jugo",title:"Team Taka / Sage Transformation / Berserker",anime:"naruto",atk:82,def:78,spd:65,haki:50,df:80,rivalId:"nr44",emoji:"🦅",tier:"B",color:"#E8590C"},
+{id:"nr69",name:"Karin",sn:"Karin Uzumaki",title:"Team Taka / Uzumaki Clan / Heal Bite / Sensor",anime:"naruto",atk:45,def:50,spd:60,haki:82,df:68,rivalId:"nr3",emoji:"👓",tier:"C",color:"#E03131"},
+{id:"nr70",name:"Darui",sn:"Darui",title:"Fifth Raikage / Storm Style / Black Lightning",anime:"naruto",atk:82,def:75,spd:80,haki:78,df:82,rivalId:"nr42",emoji:"⚡",tier:"A",color:"#495057"},
+{id:"nr71",name:"Omoi",sn:"Omoi",title:"Cloud Jonin / Kenjutsu / Lightning Sword",anime:"naruto",atk:68,def:62,spd:72,haki:65,df:60,rivalId:"nr37",emoji:"⚔️",tier:"C",color:"#495057"},
+{id:"nr72",name:"Chojuro",sn:"Chojuro",title:"Sixth Mizukage / Hiramekarei / Seven Swordsman",anime:"naruto",atk:75,def:70,spd:72,haki:72,df:0,rivalId:"nr28",emoji:"🐟",tier:"B",color:"#339AF0"},
+{id:"nr73",name:"Sai",sn:"Sai Naruto",title:"ANBU Root / Super Beast Scroll / Ink Ninjutsu",anime:"naruto",atk:72,def:65,spd:75,haki:70,df:75,rivalId:"nr32",emoji:"🎨",tier:"B",color:"#1B1B1B"},
+{id:"nr74",name:"Konohamaru",sn:"Konohamaru Sarutobi",title:"Jonin / Rasengan / Third Hokage's Grandson",anime:"naruto",atk:68,def:62,spd:72,haki:65,df:68,rivalId:"nr31",emoji:"🧣",tier:"C",color:"#2B8A3E"},
+{id:"nr75",name:"Kurenai Yuhi",sn:"Kurenai Yuhi",title:"Genjutsu Mistress / Jonin / Team 8 Leader",anime:"naruto",atk:60,def:55,spd:65,haki:78,df:72,rivalId:"nr5",emoji:"🌹",tier:"C",color:"#E03131"},
+{id:"nr76",name:"Anko Mitarashi",sn:"Anko Mitarashi",title:"Former Student of Orochimaru / Snake Techniques",anime:"naruto",atk:68,def:62,spd:75,haki:65,df:72,rivalId:"nr12",emoji:"🐍",tier:"C",color:"#7048E8"},
+{id:"nr77",name:"Iruka Umino",sn:"Iruka Umino",title:"Academy Teacher / Naruto's First Bond",anime:"naruto",atk:45,def:50,spd:55,haki:65,df:50,rivalId:"nr1",emoji:"🐬",tier:"C",color:"#1864AB"},
+{id:"nr78",name:"Might Duy",sn:"Might Duy",title:"Eternal Genin / Eight Gates Released / Guy's Father",anime:"naruto",atk:90,def:55,spd:88,haki:60,df:0,rivalId:"nr24",emoji:"🌟",tier:"B",color:"#37B24D"},
+{id:"nr79",name:"Hiashi Hyuga",sn:"Hiashi Hyuuga",title:"Hyuga Clan Head / Gentle Fist Master / Byakugan",anime:"naruto",atk:75,def:78,spd:68,haki:80,df:0,rivalId:"nr18",emoji:"👁️",tier:"B",color:"#E6E6FA"},
+{id:"nr80",name:"Shikaku Nara",sn:"Shikaku Nara",title:"Nara Clan Head / Chief Strategist / Shadow Bind",anime:"naruto",atk:60,def:58,spd:55,haki:95,df:68,rivalId:"nr20",emoji:"🦌",tier:"B",color:"#495057"},
+{id:"nr81",name:"Kushina Uzumaki",sn:"Kushina Uzumaki",title:"Naruto's Mother / Red Hot-Blooded Habanero / Chains",anime:"naruto",atk:78,def:72,spd:80,haki:75,df:85,rivalId:"nr13",emoji:"🌶️",tier:"B",color:"#E03131"},
+{id:"nr82",name:"Tenten",sn:"Tenten",title:"Weapon Summoning Specialist / Bashosen Fan",anime:"naruto",atk:62,def:55,spd:68,haki:58,df:65,rivalId:"nr34",emoji:"🎯",tier:"C",color:"#E8590C"},
+{id:"nr83",name:"Mifune",sn:"Mifune",title:"Head of the Land of Iron / Greatest Samurai / Iai Slash",anime:"naruto",atk:82,def:78,spd:82,haki:78,df:0,rivalId:"nr60",emoji:"⚔️",tier:"B",color:"#868E96"},
+{id:"nr84",name:"Pakura",sn:"Pakura",title:"Sand Village / Scorch Style / Blazing Heat",anime:"naruto",atk:78,def:62,spd:75,haki:70,df:82,rivalId:"nr46",emoji:"🔥",tier:"B",color:"#E8590C"},
+{id:"nr85",name:"Ginkaku",sn:"Ginkaku",title:"Gold & Silver Brothers / Nine-Tails Chakra / Treasured Tools",anime:"naruto",atk:82,def:78,spd:72,haki:65,df:80,rivalId:"nr30",emoji:"🥈",tier:"B",color:"#868E96"},
+{id:"nr86",name:"Kinkaku",sn:"Kinkaku",title:"Gold & Silver Brothers / Six-Tails Cloak / Treasured Tools",anime:"naruto",atk:85,def:80,spd:75,haki:68,df:82,rivalId:"nr30",emoji:"🥇",tier:"A",color:"#F59F00"},
+{id:"nr87",name:"Mangetsu Hozuki",sn:"Mangetsu Hozuki",title:"Seven Swordsmen / Master of All 7 Blades",anime:"naruto",atk:82,def:72,spd:80,haki:72,df:78,rivalId:"nr28",emoji:"🗡️",tier:"B",color:"#3BC9DB"},
+{id:"nr88",name:"Torune Aburame",sn:"Torune Aburame",title:"Root ANBU / Nano-Sized Venomous Insects",anime:"naruto",atk:68,def:65,spd:72,haki:70,df:75,rivalId:"nr39",emoji:"🪲",tier:"C",color:"#5C5F66"},
+{id:"nr89",name:"Ao",sn:"Ao Naruto",title:"Mist Hunter-Nin / Byakugan / Sensor Type",anime:"naruto",atk:65,def:62,spd:68,haki:75,df:0,rivalId:"nr32",emoji:"🔵",tier:"C",color:"#1864AB"},
+{id:"nr90",name:"Chiriku",sn:"Chiriku",title:"Twelve Guardian Ninja / Welcoming Approach / Monk",anime:"naruto",atk:72,def:68,spd:65,haki:70,df:72,rivalId:"nr37",emoji:"📿",tier:"B",color:"#F59F00"},
+{id:"nr91",name:"Ajisai",sn:"Ajisai",title:"Rain Village Chunin / Paper Bomb Expert",anime:"naruto",atk:55,def:50,spd:65,haki:55,df:60,rivalId:"nr27",emoji:"🌺",tier:"C",color:"#BE4BDB"},
+{id:"nr92",name:"Hayate Gekko",sn:"Hayate Gekko",title:"Leaf Jonin / Crescent Moon Dance / Sword Specialist",anime:"naruto",atk:68,def:60,spd:72,haki:65,df:0,rivalId:"nr37",emoji:"🌙",tier:"C",color:"#495057"},
+{id:"nr93",name:"Ibiki Morino",sn:"Ibiki Morino",title:"Torture & Interrogation / Psychological Warfare Expert",anime:"naruto",atk:60,def:65,spd:55,haki:82,df:0,rivalId:"nr20",emoji:"🧠",tier:"C",color:"#495057"},
+{id:"nr94",name:"Fugaku Uchiha",sn:"Fugaku Uchiha",title:"Uchiha Clan Head / Mangekyo Sharingan / Wicked Eye",anime:"naruto",atk:78,def:72,spd:75,haki:80,df:82,rivalId:"nr5",emoji:"👁️",tier:"B",color:"#1B1B1B"},
+{id:"nr95",name:"Izuna Uchiha",sn:"Izuna Uchiha",title:"Madara's Brother / Mangekyo Sharingan",anime:"naruto",atk:82,def:75,spd:80,haki:78,df:82,rivalId:"nr30",emoji:"👁️",tier:"A",color:"#5C5F66"},
+{id:"nr96",name:"Kagami Uchiha",sn:"Kagami Uchiha",title:"Uchiha Elder / Tobirama's Squad / Will of Fire",anime:"naruto",atk:75,def:70,spd:78,haki:78,df:78,rivalId:"nr41",emoji:"🔥",tier:"B",color:"#E03131"},
+{id:"nr97",name:"Sakumo Hatake",sn:"Sakumo Hatake",title:"White Fang / Greater Than the Sannin / Kakashi's Father",anime:"naruto",atk:90,def:82,spd:90,haki:85,df:0,rivalId:"nr10",emoji:"🐺",tier:"S",color:"#ADB5BD"},
+{id:"nr98",name:"Nawaki",sn:"Nawaki",title:"Tsunade's Brother / Dream of Hokage",anime:"naruto",atk:45,def:40,spd:55,haki:50,df:45,rivalId:"nr11",emoji:"🍀",tier:"C",color:"#37B24D"},
+{id:"nr99",name:"Dan Kato",sn:"Dan Kato",title:"Jonin / Spirit Transformation / Tsunade's Lover",anime:"naruto",atk:72,def:65,spd:75,haki:72,df:78,rivalId:"nr11",emoji:"💙",tier:"B",color:"#339AF0"},
+{id:"nr100",name:"Nagato (Edo)",sn:"Nagato Edo Tensei",title:"Reanimated Nagato / Full Rinnegan Power / No Pain Bodies",anime:"naruto",atk:95,def:85,spd:82,haki:92,df:98,rivalId:"nr17",emoji:"☯️",tier:"S",color:"#862E9C"},
+];
+
+const ALL_CHARS=[...OP,...NR];
+
+// ================================================================
+// IMAGE SYSTEM
+// ================================================================
+const CHAR_IMGS={"nr1":"images/nr1.jpg","nr10":"images/nr10.jpg","nr11":"images/nr11.jpg","nr12":"images/nr12.jpg","nr13":"images/nr13.jpg","nr14":"images/nr14.jpg","nr15":"images/nr15.jpg","nr16":"images/nr16.jpg","nr17":"images/nr17.jpg","nr18":"images/nr18.jpg","nr19":"images/nr19.jpg","nr2":"images/nr2.jpg","nr20":"images/nr20.jpg","nr21":"images/nr21.jpg","nr22":"images/nr22.jpg","nr23":"images/nr23.jpg","nr24":"images/nr24.jpg","nr25":"images/nr25.jpg","nr26":"images/nr26.jpg","nr27":"images/nr27.jpg","nr28":"images/nr28.jpg","nr29":"images/nr29.jpg","nr3":"images/nr3.jpg","nr30":"images/nr30.jpg","nr31":"images/nr31.jpg","nr32":"images/nr32.jpg","nr33":"images/nr33.jpg","nr34":"images/nr34.jpg","nr35":"images/nr35.jpg","nr36":"images/nr36.jpg","nr37":"images/nr37.jpg","nr38":"images/nr38.jpg","nr39":"images/nr39.jpg","nr4":"images/nr4.jpg","nr40":"images/nr40.jpg","nr5":"images/nr5.jpg","nr6":"images/nr6.jpg","nr7":"images/nr7.jpg","nr8":"images/nr8.jpg","nr9":"images/nr9.jpg","op1":"images/op1.jpg","op10":"images/op10.jpg","op11":"images/op11.jpg","op12":"images/op12.jpg","op13":"images/op13.jpg","op14":"images/op14.jpg","op15":"images/op15.jpg","op16":"images/op16.jpg","op17":"images/op17.jpg","op18":"images/op18.jpg","op19":"images/op19.jpg","op2":"images/op2.jpg","op20":"images/op20.jpg","op21":"images/op21.jpg","op22":"images/op22.jpg","op23":"images/op23.jpg","op24":"images/op24.jpg","op25":"images/op25.jpg","op26":"images/op26.jpg","op27":"images/op27.jpg","op28":"images/op28.jpg","op29":"images/op29.jpg","op3":"images/op3.jpg","op30":"images/op30.jpg","op31":"images/op31.jpg","op32":"images/op32.jpg","op33":"images/op33.jpg","op34":"images/op34.jpg","op35":"images/op35.jpg","op36":"images/op36.jpg","op37":"images/op37.jpg","op38":"images/op38.jpg","op39":"images/op39.jpg","op4":"images/op4.jpg","op40":"images/op40.jpg","op5":"images/op5.jpg","op6":"images/op6.jpg","op7":"images/op7.jpg","op8":"images/op8.jpg","op9":"images/op9.jpg","op41":"images/op41.jpg","op42":"images/op42.jpg","op43":"images/op43.jpg","op44":"images/op44.jpg","op46":"images/op46.jpg","op49":"images/op49.jpg","op50":"images/op50.jpg","op51":"images/op51.jpg","op52":"images/op52.jpg","op53":"images/op53.jpg","op55":"images/op55.jpg","op58":"images/op58.jpg","nr41":"images/nr41.jpg","nr42":"images/nr42.jpg","nr43":"images/nr43.jpg","nr44":"images/nr44.jpg","nr45":"images/nr45.jpg","nr46":"images/nr46.jpg","op45":"images/op45.jpg","op47":"images/op47.jpg","op48":"images/op48.jpg","op56":"images/op56.jpg","op57":"images/op57.jpg","op54":"images/op54.jpg","nr100":"images/nr100.jpg","nr47":"images/nr47.jpg","nr48":"images/nr48.jpg","nr49":"images/nr49.jpg","nr50":"images/nr50.jpg","nr51":"images/nr51.jpg","nr52":"images/nr52.jpg","nr53":"images/nr53.jpg","nr54":"images/nr54.jpg","nr55":"images/nr55.jpg","nr56":"images/nr56.jpg","nr57":"images/nr57.jpg","nr58":"images/nr58.jpg","nr59":"images/nr59.jpg","nr60":"images/nr60.jpg","nr61":"images/nr61.jpg","nr62":"images/nr62.jpg","nr63":"images/nr63.jpg","nr64":"images/nr64.jpg","nr65":"images/nr65.jpg","nr66":"images/nr66.jpg","nr67":"images/nr67.jpg","nr68":"images/nr68.jpg","nr69":"images/nr69.jpg","nr70":"images/nr70.jpg","nr71":"images/nr71.jpg","nr72":"images/nr72.jpg","nr73":"images/nr73.jpg","nr74":"images/nr74.jpg","nr75":"images/nr75.jpg","nr76":"images/nr76.jpg","nr77":"images/nr77.jpg","nr78":"images/nr78.jpg","nr79":"images/nr79.jpg","nr80":"images/nr80.jpg","nr81":"images/nr81.jpg","nr82":"images/nr82.jpg","nr83":"images/nr83.jpg","nr84":"images/nr84.jpg","nr85":"images/nr85.jpg","nr86":"images/nr86.jpg","nr87":"images/nr87.jpg","nr88":"images/nr88.jpg","nr89":"images/nr89.jpg","nr90":"images/nr90.jpg","nr91":"images/nr91.jpg","nr92":"images/nr92.jpg","nr93":"images/nr93.jpg","nr94":"images/nr94.jpg","nr95":"images/nr95.jpg","nr96":"images/nr96.jpg","nr97":"images/nr97.jpg","nr98":"images/nr98.jpg","nr99":"images/nr99.jpg","op100":"images/op100.jpg","op101":"images/op101.jpg","op102":"images/op102.jpg","op59":"images/op59.jpg","op60":"images/op60.jpg","op61":"images/op61.jpg","op62":"images/op62.jpg","op63":"images/op63.jpg","op64":"images/op64.jpg","op65":"images/op65.jpg","op66":"images/op66.jpg","op67":"images/op67.jpg","op68":"images/op68.jpg","op69":"images/op69.jpg","op70":"images/op70.jpg","op71":"images/op71.jpg","op72":"images/op72.jpg","op73":"images/op73.jpg","op74":"images/op74.jpg","op75":"images/op75.jpg","op76":"images/op76.jpg","op77":"images/op77.jpg","op78":"images/op78.jpg","op79":"images/op79.jpg","op80":"images/op80.jpg","op81":"images/op81.jpg","op82":"images/op82.jpg","op83":"images/op83.jpg","op84":"images/op84.jpg","op85":"images/op85.jpg","op86":"images/op86.jpg","op87":"images/op87.jpg","op88":"images/op88.jpg","op89":"images/op89.jpg","op90":"images/op90.jpg","op91":"images/op91.jpg","op92":"images/op92.jpg","op93":"images/op93.jpg","op94":"images/op94.jpg","op95":"images/op95.jpg","op96":"images/op96.jpg","op97":"images/op97.jpg","op98":"images/op98.jpg","op99":"images/op99.jpg"};
+function loadCardImg(ct,c){const img=ct.querySelector('.card-img'),em=ct.querySelector('.card-emoji-fallback');if(!img||!em)return;
+const url=CHAR_IMGS[c.id];if(!url)return;img.src=url;img.onload=()=>{img.classList.add('loaded');em.classList.add('hidden')}}
+
+// ================================================================
+// MATCHUP DATABASE (130+)
+// ================================================================
+const MATCHUPS={
+// --- ONE PIECE: Straw Hat victories ---
+"op1>op13":{bonus:14,reason:"Luffy defeated Kaido in Gear 5"},
+"op1>op16":{bonus:15,reason:"Rubber counters sand, water weakness exposed"},
+"op1>op17":{bonus:12,reason:"Luffy overwhelmed Lucci twice"},
+"op1>op38":{bonus:20,reason:"Rubber is completely immune to lightning"},
+"op1>op24":{bonus:10,reason:"Luffy surpassed future sight in Gear 4"},
+"op1>op15":{bonus:10,reason:"Gear 4 overpowered String-String fruit"},
+"op2>op25":{bonus:12,reason:"Zoro cut through King's Lunarian flame"},
+"op2>op9":{bonus:8,reason:"Zoro outclasses Brook in swordsmanship"},
+"op3>op26":{bonus:12,reason:"Ifrit Jambe overwhelmed Queen"},
+"op3>op17":{bonus:6,reason:"Sanji's speed exceeds Lucci's Shave"},
+"op4>op27":{bonus:22,reason:"Zeus gave Nami the decisive edge over Ulti"},
+"op5>op28":{bonus:12,reason:"Demonio Fleur crushed Black Maria"},
+"op6>op29":{bonus:12,reason:"General Franky overpowered Sasaki"},
+"op7>op30":{bonus:12,reason:"Fishman Karate outclassed Who's Who"},
+"op7>op16":{bonus:14,reason:"Water-based attacks devastate sand Logia"},
+"op10>op31":{bonus:18,reason:"Already negative, Hollows have no effect"},
+// --- ONE PIECE: Yonko clashes ---
+"op20>op12":{bonus:18,reason:"Shanks one-shot Kid with Divine Departure"},
+"op20>op19":{bonus:10,reason:"Supreme Conqueror's Haki dominance"},
+"op13>op14":{bonus:6,reason:"Kaido edges Big Mom in raw combat"},
+"op14>op12":{bonus:12,reason:"Big Mom overwhelmed Kid eventually"},
+"op13>op22":{bonus:8,reason:"Kaido's dragon form tanks magma"},
+"op21>op13":{bonus:6,reason:"Prime Whitebeard rivaled all Yonko"},
+"op21>op22":{bonus:10,reason:"Quake punches cracked Akainu open"},
+// --- ONE PIECE: Marine / Admiral battles ---
+"op22>op35":{bonus:10,reason:"Akainu won the 10-day Punk Hazard duel"},
+"op22>op23":{bonus:16,reason:"Magma burns hotter than fire"},
+"op36>op17":{bonus:8,reason:"Light-speed overwhelms Lucci's agility"},
+"op55>op15":{bonus:8,reason:"Fujitora's gravity crushed Doflamingo's birdcage"},
+"op56>op45":{bonus:10,reason:"Ryokugyu drained Moria-level opponents effortlessly"},
+// --- ONE PIECE: Warlord fights ---
+"op11>op15":{bonus:10,reason:"Gamma Knife bypassed string defenses"},
+"op43>op45":{bonus:12,reason:"Empress Haki petrifies Shadow zombies easily"},
+"op43>op46":{bonus:15,reason:"Hancock's Haki overwhelms Buggy completely"},
+// --- ONE PIECE: Blackbeard crew ---
+"op19>op23":{bonus:14,reason:"Darkness nullified fire completely"},
+"op19>op38":{bonus:14,reason:"Dark-Dark fruit cancels all Devil Fruits"},
+"op19>op11":{bonus:12,reason:"Darkness cancels Ope-Ope fruit powers"},
+"op49>op19":{bonus:6,reason:"Marco fought Blackbeard in the Payback War"},
+// --- ONE PIECE: WB commanders ---
+"op49>op26":{bonus:8,reason:"Phoenix kicked Queen off the Live Floor"},
+"op49>op25":{bonus:6,reason:"Phoenix regeneration countered Lunarian fire"},
+
+
+// --- ONE PIECE: Roger era ---
+"op33>op40":{bonus:10,reason:"Roger outclassed Sengoku's generation"},
+"op34>op33":{bonus:5,reason:"Garp matched Roger blow for blow"},
+"op37>op36":{bonus:8,reason:"Rayleigh stalled Kizaru at Sabaody"},
+"op47>op13":{bonus:12,reason:"Oden scarred Kaido with Oden Nitoryu"},
+"op47>op2":{bonus:6,reason:"Oden's legendary Haki outclasses current Zoro"},
+"op57>op36":{bonus:6,reason:"Beckman's Haki rifle froze Kizaru at Marineford"},
+// --- ONE PIECE: Sword / Haki ---
+"op18>op25":{bonus:10,reason:"World's strongest swordsman outclasses"},
+"op18>op2":{bonus:6,reason:"Mihawk still holds the title Zoro seeks"},
+"op35>op23":{bonus:12,reason:"Ice counters fire effectively"},
+"op9>op31":{bonus:10,reason:"Soul King's ice resistance vs ghost powers"},
+// --- ONE PIECE: Revolutionary / Government ---
+"op42>op44":{bonus:6,reason:"Dragon leads the Revolution, Kuma serves it"},
+"op41>op23":{bonus:6,reason:"Sabo honors Ace's will with the same flame"},
+"op53>op54":{bonus:8,reason:"Imu commands the Gorosei as sovereign"},
+"op54>op44":{bonus:10,reason:"Saturn fatally struck Kuma on Egghead"},
+// --- ONE PIECE: Other ---
+"op48>op29":{bonus:10,reason:"Yamato's divine power overwhelmed Sasaki"},
+"op52>op17":{bonus:8,reason:"Clear-Clear fruit stealth vs leopard reflexes"},
+"op20>op56":{bonus:10,reason:"Shanks' Haki scared Ryokugyu off Wano"},
+// --- NARUTO: Main character fights ---
+"nr1>nr9":{bonus:14,reason:"Naruto defeated all six Paths of Pain"},
+"nr1>nr18":{bonus:12,reason:"Naruto proved destiny wrong vs Neji"},
+"nr1>nr33":{bonus:12,reason:"Team 7 sealed Kaguya together"},
+"nr1>nr16":{bonus:8,reason:"Naruto reformed Gaara through sheer will"},
+"nr1>nr2":{bonus:5,reason:"Naruto edged Sasuke at the final valley"},
+"nr1>nr5":{bonus:10,reason:"Kurama breaks genjutsu, Sharingan neutralized"},
+"nr2>nr22":{bonus:14,reason:"Sharingan hard-countered Deidara's art"},
+"nr2>nr32":{bonus:14,reason:"Sasuke destroyed Danzo's Izanagi loop"},
+"nr2>nr8":{bonus:8,reason:"Sasuke helped defeat Obito in the war"},
+"nr2>nr17":{bonus:6,reason:"Mature Sasuke surpasses Killer Bee now"},
+// --- NARUTO: Uchiha hierarchy ---
+"nr5>nr2":{bonus:10,reason:"Itachi held back and still dominated"},
+"nr5>nr4":{bonus:8,reason:"Itachi was always a step ahead of Kakashi"},
+"nr5>nr21":{bonus:8,reason:"Itachi's Izanami trapped Sage Kabuto"},
+"nr5>nr12":{bonus:8,reason:"Itachi resisted Orochimaru's body takeover"},
+"nr6>nr5":{bonus:10,reason:"Madara's power eclipses Itachi completely"},
+"nr6>nr30":{bonus:8,reason:"Madara dominated Tobirama in the war"},
+"nr6>nr9":{bonus:10,reason:"Madara's Rinnegan surpasses Pain's copy"},
+"nr41>nr32":{bonus:14,reason:"Shisui's Kotoamatsukami outclasses Danzo's stolen eye"},
+// --- NARUTO: Senju vs Uchiha ---
+"nr7>nr6":{bonus:10,reason:"Hashirama defeated Madara at the Valley"},
+"nr7>nr8":{bonus:8,reason:"Wood Style suppresses tailed beasts"},
+// --- NARUTO: Hokage fights ---
+"nr14>nr6":{bonus:20,reason:"Eight Gates nearly killed Six Paths Madara"},
+"nr14>nr24":{bonus:8,reason:"Taijutsu specialist counters sword fighters"},
+"nr13>nr8":{bonus:14,reason:"Minato outsmarted Masked Man Obito"},
+"nr13>nr9":{bonus:8,reason:"Flying Thunder God counters push/pull"},
+"nr2>nr42":{bonus:8,reason:"Sasuke's Amaterasu forced Raikage to sacrifice his arm"},
+// --- NARUTO: Team battles ---
+"nr4>nr8":{bonus:10,reason:"Kakashi pierced Obito's Kamui dimension"},
+"nr4>nr28":{bonus:12,reason:"Kakashi defeated Zabuza twice"},
+"nr4>nr22":{bonus:6,reason:"Kakashi's Sharingan reads Deidara's bombs"},
+"nr3>nr23":{bonus:14,reason:"Sakura and Chiyo dismantled all puppets"},
+"nr3>nr35":{bonus:10,reason:"Sakura surpassed Ino in combat completely"},
+// --- NARUTO: Strategic / Ability counters ---
+"nr20>nr25":{bonus:16,reason:"Shikamaru's genius perfectly countered Hidan"},
+"nr20>nr34":{bonus:8,reason:"Shadow bind activates before wind arrives"},
+"nr37>nr25":{bonus:6,reason:"Asuma held Hidan before the ritual"},
+"nr16>nr15":{bonus:10,reason:"Sand crushed Lee in the Chunin Exams"},
+"nr16>nr28":{bonus:10,reason:"Sand Shield blocks all sword attacks"},
+"nr16>nr44":{bonus:10,reason:"Gaara's sand burial stopped Kimimaro's final attack"},
+"nr44>nr15":{bonus:8,reason:"Kimimaro overwhelmed Lee before the illness struck"},
+// --- NARUTO: Sannin / Kage ---
+"nr31>nr12":{bonus:8,reason:"Reaper Death Seal took Orochimaru's arms"},
+"nr9>nr10":{bonus:10,reason:"Pain killed Jiraiya in the rain"},
+"nr10>nr12":{bonus:6,reason:"Jiraiya nearly killed Orochimaru once"},
+"nr12>nr11":{bonus:6,reason:"Orochimaru outmaneuvered Tsunade"},
+"nr11>nr3":{bonus:6,reason:"Tsunade is the master, Sakura the student"},
+"nr43>nr22":{bonus:8,reason:"Particle Style disintegrates any explosive clay"},
+// --- NARUTO: Akatsuki / Other ---
+"nr27>nr8":{bonus:16,reason:"600 billion paper bombs nearly killed Obito"},
+"nr40>nr26":{bonus:10,reason:"Butterfly Mode destroyed Kakuzu's last heart"},
+"nr33>nr6":{bonus:10,reason:"Kaguya surpasses Madara as the progenitor"},
+"nr17>nr5":{bonus:10,reason:"Eight-Tails breaks genjutsu, counters Sharingan"},
+"nr12>nr38":{bonus:8,reason:"Orochimaru's adaptability beats Wood Style"},
+"nr39>nr29":{bonus:10,reason:"Bugs drain chakra, counter ice mirrors"},
+"nr15>nr18":{bonus:8,reason:"Lee's speed overwhelms Gentle Fist timing"},
+
+"nr9>nr31":{bonus:8,reason:"Six paths overwhelm any single Kage"},
+// --- NARUTO: Otsutsuki ---
+"nr45>nr33":{bonus:10,reason:"Hagoromo sealed Kaguya as the Sage of Six Paths"},
+"nr45>nr6":{bonus:10,reason:"Sage of Six Paths transcends all shinobi power"},
+// --- CROSS-ANIME ---
+"nr5>op15":{bonus:10,reason:"Tsukuyomi devastates non-Haki genjutsu defense"},
+"op20>nr5":{bonus:10,reason:"Supreme Haki could resist Sharingan genjutsu"},
+"nr13>op36":{bonus:8,reason:"Flying Thunder God matches light speed"},
+"op1>nr16":{bonus:8,reason:"Gear 5 turns everything to rubber, sand too"},
+"nr1>op19":{bonus:6,reason:"Kurama chakra resists darkness extraction"},
+"op13>nr14":{bonus:8,reason:"Dragon scales withstand Eight Gates"},
+"nr6>op22":{bonus:6,reason:"Perfect Susanoo shields against magma"},
+"op21>nr9":{bonus:8,reason:"Quake-Quake overpowers Almighty Push"},
+"nr33>op13":{bonus:8,reason:"Dimension-hopping goddess vs dragon emperor"},
+"nr7>op21":{bonus:6,reason:"Wood Style suppression dampens quakes"},
+"op33>nr6":{bonus:5,reason:"Pirate King's Haki rivals Uchiha godhood"},
+"nr2>op11":{bonus:8,reason:"Amenotejikara swaps counter Law's Room"},
+"op7>nr24":{bonus:8,reason:"Fishman Karate in water vs Kisame's domain"},
+"nr4>op17":{bonus:6,reason:"Copy Ninja adapts to Lucci's fighting style"},
+"op37>nr31":{bonus:6,reason:"Dark King's Haki overwhelms the Professor"},
+"nr14>op25":{bonus:8,reason:"Eight Gates power overwhelms Lunarian defense"},
+"op18>nr24":{bonus:8,reason:"World's strongest swordsman vs Samehada"},
+
+
+"nr13>op3":{bonus:6,reason:"Yellow Flash speed surpasses Sanji's kicks"},
+"op34>nr14":{bonus:6,reason:"Garp's fists rival Eight Gates raw power"},
+"nr7>op13":{bonus:6,reason:"Wood Style can suppress Zoan transformations"},
+"op22>nr38":{bonus:8,reason:"Magma overwhelms and burns through wood"},
+"nr30>op35":{bonus:6,reason:"Water Style mastery counters ice techniques"},
+"op19>nr8":{bonus:6,reason:"Darkness nullifies Kamui dimensional travel"},
+"nr6>op21":{bonus:5,reason:"Susanoo and Rinnegan counter quake attacks"},
+"nr45>op53":{bonus:6,reason:"Sage of Six Paths vs World Sovereign, godly clash"},
+"op42>nr43":{bonus:6,reason:"Revolutionary leader outclasses aging Tsuchikage"},
+"op47>nr24":{bonus:6,reason:"Oden's two-sword Haki outclasses Samehada"},
+// --- ADDITIONAL CANON MATCHUPS ---
+// One Piece: Wano outcomes
+"op9>op28":{bonus:10,reason:"Brook overcame Black Maria's illusions with soul power"},
+"op48>op27":{bonus:8,reason:"Yamato is leagues above the Tobiroppo"},
+"op48>op26":{bonus:6,reason:"Yamato held off Kaido, stronger than Queen"},
+// One Piece: Commander hierarchy
+"op25>op26":{bonus:6,reason:"King is the stronger All-Star, Lunarian durability"},
+"op24>op25":{bonus:4,reason:"Katakuri's future sight gives him an edge over King"},
+"op24>op15":{bonus:8,reason:"Katakuri is far above Doflamingo in every stat"},
+"op26>op38":{bonus:8,reason:"Queen's Yonko Commander strength dwarfs pre-TS Enel"},
+"op25>op38":{bonus:10,reason:"King's Lunarian flame obliterates Enel's lightning"},
+"op26>op15":{bonus:4,reason:"Queen is roughly Doflamingo's level, slight edge"},
+// One Piece: Admiral vs Warlord/Commander
+"op56>op15":{bonus:10,reason:"Admiral Ryokugyu far outclasses Doflamingo"},
+"op36>op15":{bonus:10,reason:"Kizaru is far above Doflamingo's level"},
+"op22>op15":{bonus:12,reason:"Akainu would destroy Doflamingo"},
+"op35>op15":{bonus:10,reason:"Aokiji far outclasses Doflamingo"},
+"op37>op15":{bonus:10,reason:"Rayleigh would handle Doflamingo easily"},
+// One Piece: Yonko tier
+"op47>op25":{bonus:6,reason:"Oden scarred Kaido, far above King's level"},
+"op47>op24":{bonus:6,reason:"Oden's strength surpasses any commander"},
+"op41>op15":{bonus:4,reason:"Sabo with Flame-Flame fruit edges Doflamingo"},
+"op42>op54":{bonus:6,reason:"Dragon's full power likely surpasses the Gorosei"},
+"op57>op25":{bonus:4,reason:"Beckman is Shanks' right hand, elite tier"},
+"op57>op24":{bonus:4,reason:"Beckman's reputation puts him above commanders"},
+"op43>op15":{bonus:4,reason:"Hancock's Haki and DF combo overwhelms Doflamingo"},
+"op43>op17":{bonus:4,reason:"Empress Haki outmatches Lucci's raw power"},
+"op52>op15":{bonus:4,reason:"Shiryu of the Rain matches Doflamingo's level"},
+"op44>op15":{bonus:4,reason:"Kuma's Paw-Paw fruit teleports attacks away"},
+"op39>op15":{bonus:6,reason:"Shiki was a legendary rival to Roger's era"},
+// One Piece: Lower tier clarifications
+"op15>op16":{bonus:8,reason:"Doflamingo is a step above Crocodile overall"},
+"op15>op38":{bonus:8,reason:"Doflamingo's Haki and strings outclass pre-TS Enel"},
+"op17>op38":{bonus:6,reason:"Post-TS Lucci with Haki beats Enel who has none"},
+"op11>op16":{bonus:6,reason:"Law's Ope-Ope fruit is devastating, beat Crocodile tier"},
+"op11>op38":{bonus:6,reason:"Law's Haki and Room counter Enel effectively"},
+"op23>op38":{bonus:4,reason:"Ace's Logia fire matches Enel's lightning, Haki edge"},
+"op7>op38":{bonus:6,reason:"Jinbe's Haki and water counter Enel's lightning"},
+"op12>op16":{bonus:4,reason:"Kid's magnetism and brute force beat Crocodile"},
+"op45>op32":{bonus:4,reason:"Gecko Moria's shadow army overwhelms Caesar"},
+"op5>op32":{bonus:4,reason:"Robin's clutch can disable Caesar"},
+"op8>op31":{bonus:6,reason:"Monster Point Chopper can resist Perona's ghosts"},
+"op8>op10":{bonus:4,reason:"Chopper's Monster Point overwhelms Usopp"},
+"op4>op10":{bonus:4,reason:"Nami's Clima-Tact with Zeus beats Usopp"},
+"op46>op10":{bonus:4,reason:"Buggy's DF makes him immune to Usopp's attacks"},
+"op46>op4":{bonus:4,reason:"Buggy's Chop-Chop nullifies physical attacks"},
+// Naruto: Key fights
+"nr4>nr23":{bonus:6,reason:"Kakashi's Sharingan counters puppet techniques"},
+"nr8>nr4":{bonus:4,reason:"Obito's Kamui is nearly unbeatable for Kakashi"},
+"nr10>nr23":{bonus:6,reason:"Jiraiya's sage mode overwhelms puppets"},
+"nr23>nr44":{bonus:4,reason:"Sasori's puppets overwhelm bone manipulation"},
+"nr27>nr23":{bonus:6,reason:"Konan's 600 billion paper bombs counter puppets"},
+"nr42>nr17":{bonus:4,reason:"Raikage's lightning armor matches Bee's power"},
+"nr46>nr23":{bonus:4,reason:"Mizukage's lava melts puppet materials"},
+"nr22>nr16":{bonus:4,reason:"C4 nano bombs bypass sand shield"},
+"nr26>nr25":{bonus:6,reason:"Kakuzu's multiple hearts counter Hidan's immortality"},
+"nr13>nr42":{bonus:8,reason:"Minato's Flying Thunder God outpaces Lightning Armor"},
+// --- NEW CHARACTER MATCHUPS ---
+"op3>op78":{bonus:10,reason:"Sanji one-shot Page One with Raid Suit"},
+"op7>op77":{bonus:6,reason:"Jinbe\'s Fishman Karate outclasses Jack"},
+"op1>op73":{bonus:12,reason:"Luffy destroyed Cracker\'s biscuit army"},
+"op1>op102":{bonus:15,reason:"Luffy one-punched Bellamy twice"},
+"op1>op92":{bonus:15,reason:"Luffy shattered Arlong Park for Nami"},
+"op2>op96":{bonus:12,reason:"Zoro sliced Pica\'s mountain body in half"},
+"op2>op90":{bonus:10,reason:"Zoro defeated Kaku in Enies Lobby"},
+"op41>op95":{bonus:8,reason:"Sabo demolished Diamante in the colosseum"},
+"op11>op94":{bonus:10,reason:"Law bisected Vergo with Haki-coated Room"},
+"op15>op94":{bonus:4,reason:"Doflamingo commands Vergo"},
+"op17>op90":{bonus:6,reason:"Lucci as CP0 chief outranks Kaku"},
+"op68>op19":{bonus:6,reason:"Magellan\'s venom nearly killed Blackbeard"},
+"op33>op101":{bonus:8,reason:"Roger and Garp defeated Rocks at God Valley"},
+"op34>op101":{bonus:6,reason:"Garp helped defeat Rocks at God Valley"},
+"op101>op21":{bonus:6,reason:"Rocks commanded Whitebeard, Big Mom, Kaido"},
+"op101>op13":{bonus:4,reason:"Rocks was captain over Kaido"},
+"op101>op14":{bonus:4,reason:"Rocks was captain over Big Mom"},
+"op101>op39":{bonus:6,reason:"Rocks era pirate, above Shiki"},
+"op25>op77":{bonus:8,reason:"King far outranks Jack among All-Stars"},
+"op26>op77":{bonus:6,reason:"Queen outranks Jack among All-Stars"},
+"op73>op77":{bonus:4,reason:"Cracker and Jack are comparable but Cracker\'s biscuits edge"},
+"op49>op77":{bonus:8,reason:"Marco easily handled Jack during the war"},
+"op48>op77":{bonus:6,reason:"Yamato far surpasses Jack\'s level"},
+"op81>op77":{bonus:6,reason:"Inuarashi defeated Jack in Sulong form"},
+"op82>op75":{bonus:6,reason:"Nekomamushi defeated Perospero in Sulong form"},
+"op65>op43":{bonus:4,reason:"Koby challenged Hancock at Amazon Lily"},
+"op89>op49":{bonus:4,reason:"Weevil\'s brute strength rivals young Whitebeard"},
+"op97>op75":{bonus:4,reason:"Pedro sacrificed himself to stop Perospero"},
+"op88>op15":{bonus:4,reason:"Hakuba\'s speed threatened Doflamingo\'s officers"},
+"op99>op57":{bonus:4,reason:"Lucky Roux and Beckman are close, slight edge Beckman"},
+"op57>op99":{bonus:4,reason:"Beckman is the brains and edge of Shanks\' crew"},
+"op3>op91":{bonus:10,reason:"Sanji kicked Jabra through walls in Enies Lobby"},
+"op6>op66":{bonus:4,reason:"Franky\'s tech matches Smoker\'s logia"},
+"op37>op70":{bonus:4,reason:"Rayleigh\'s era might edge Kong"},
+"op86>op22":{bonus:4,reason:"Ivankov survived Akainu at Marineford"},
+"op87>op15":{bonus:6,reason:"Bartolomeo\'s barrier blocked Doflamingo\'s strings"},
+"nr48>nr42":{bonus:8,reason:"Third Raikage\'s Hell Stab surpasses Fourth Raikage"},
+"nr48>nr17":{bonus:6,reason:"Third Raikage fought Eight-Tails to a draw"},
+"nr1>nr48":{bonus:8,reason:"Naruto\'s Rasenshuriken cracked Third Raikage\'s armor"},
+"nr49>nr43":{bonus:6,reason:"Mu was Ohnoki\'s master in Particle Style"},
+"nr50>nr49":{bonus:6,reason:"Gengetsu and Mu killed each other, evenly matched"},
+"nr49>nr50":{bonus:6,reason:"Mu and Gengetsu killed each other, evenly matched"},
+"nr16>nr52":{bonus:8,reason:"Gaara\'s sand surpassed his father\'s gold dust"},
+"nr60>nr10":{bonus:6,reason:"Hanzo defeated all three Sannin and gave them their title"},
+"nr60>nr11":{bonus:6,reason:"Hanzo overwhelmed young Tsunade"},
+"nr60>nr12":{bonus:6,reason:"Hanzo overwhelmed young Orochimaru"},
+"nr9>nr60":{bonus:10,reason:"Pain assassinated Hanzo and destroyed the Rain Village"},
+"nr97>nr10":{bonus:6,reason:"White Fang was said to be stronger than the Sannin"},
+"nr97>nr11":{bonus:6,reason:"Sakumo\'s legend surpassed the three Sannin"},
+"nr97>nr12":{bonus:6,reason:"White Fang outclassed the three Legendary Sannin"},
+"nr4>nr97":{bonus:4,reason:"Kakashi inherited and surpassed his father\'s legacy"},
+"nr78>nr24":{bonus:10,reason:"Might Duy\'s Eight Gates killed 4 of the 7 Swordsmen"},
+"nr14>nr78":{bonus:4,reason:"Guy perfected what his father started"},
+"nr70>nr26":{bonus:6,reason:"Darui captured Kinkaku and Ginkaku with treasured tools"},
+"nr86>nr30":{bonus:6,reason:"Kinkaku\'s Six-Tails form challenged Tobirama"},
+"nr30>nr86":{bonus:4,reason:"Tobirama ultimately outsmarted the Gold and Silver Brothers"},
+"nr95>nr30":{bonus:4,reason:"Izuna matched Tobirama until Flying Thunder God"},
+"nr30>nr95":{bonus:6,reason:"Tobirama killed Izuna with Flying Thunder God"},
+"nr100>nr17":{bonus:8,reason:"Edo Nagato overpowered Killer Bee with ease"},
+"nr100>nr1":{bonus:4,reason:"Edo Nagato nearly captured Naruto before Itachi intervened"},
+"nr5>nr100":{bonus:8,reason:"Edo Itachi broke Nagato free from Kabuto\'s control"},
+"nr67>nr28":{bonus:4,reason:"Suigetsu seeks to inherit Zabuza\'s blade"},
+"nr68>nr44":{bonus:4,reason:"Jugo\'s sage transformation matches Kimimaro\'s bone power"},
+"nr83>nr60":{bonus:4,reason:"Mifune\'s Iai slash speed rivals shinobi legends"},
+"nr66>nr23":{bonus:6,reason:"Chiyo and Sakura defeated Sasori, her grandson"},
+"nr20>nr61":{bonus:8,reason:"Shikamaru outsmarted Tayuya\'s genjutsu"},
+"nr18>nr62":{bonus:8,reason:"Neji defeated Kidomaru\'s spider web with Byakugan"},
+"nr40>nr64":{bonus:8,reason:"Choji\'s butterfly mode crushed Jirobo"},
+"nr36>nr63":{bonus:4,reason:"Kiba barely defeated Sakon/Ukon with Kankuro\'s help"},
+"nr65>nr63":{bonus:8,reason:"Kankuro\'s puppets saved Kiba from Sakon/Ukon"},
+"nr51>nr8":{bonus:4,reason:"Yagura was secretly controlled by Obito"},
+"nr8>nr51":{bonus:8,reason:"Obito controlled Yagura as his puppet"},
+"nr81>nr33":{bonus:4,reason:"Kushina\'s chains could restrain the Nine-Tails"},
+"nr94>nr32":{bonus:6,reason:"Fugaku could have led the coup, stronger than Danzo"},
+"nr24>nr87":{bonus:4,reason:"Kisame is the strongest of the Seven Swordsmen generation"},
+
+"op66>op65":{bonus:4,reason:"Smoker outranks and outpowers Koby currently"},
+"nr10>nr21":{bonus:2,reason:"Jiraiya is clearly superior to Kabuto in Sage Mode"},
+"nr11>nr21":{bonus:5,reason:"Tsunade defeated Kabuto despite his regeneration"},
+};
+
+// ================================================================
+// ENGINE
+// ================================================================
+const TC={"S+":"#FFD700","S":"#FF6B6B","A":"#4ECDC4","B":"#45B7D1","C":"#96CEB4"};
+const AC={onepiece:"#E03131",naruto:"#FF7B00"};
+const AL={onepiece:"OP",naruto:"NR"};
+const TB={"S+":10,"S":6,"A":3,"B":0,"C":-3};
+let selectedAnimes=new Set(),state={};
+
+function getPower(c){let s=[c.atk,c.def,c.spd,c.haki,c.df].filter(v=>v>0);return s.length?Math.round(s.reduce((a,b)=>a+b,0)/s.length):0}
+function getEP(c){return getPower(c)+(TB[c.tier]||0)}
+function isRival(a,b){return a.rivalId===b.id||b.rivalId===a.id}
+function getAdv(a,b){return{advA:MATCHUPS[a.id+">"+b.id]||null,advB:MATCHUPS[b.id+">"+a.id]||null}}
+function resolveBattle(c1,c2){
+  let p1=getEP(c1),p2=getEP(c2),b1=0,b2=0;
+  let{advA,advB}=getAdv(c1,c2);
+  if(advA)b1+=advA.bonus;if(advB)b2+=advB.bonus;
+  if(isRival(c1,c2)){b1+=2;b2+=2;if(advA)b1+=3;if(advB)b2+=3}
+  let r1=Math.floor(Math.random()*9)-4,r2=Math.floor(Math.random()*9)-4;
+  let f1=p1+b1+r1,f2=p2+b2+r2;
+  return f1===f2?(Math.random()>.5?1:2):(f1>f2?1:2);
+}
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+
+function toggleAnime(btn){let a=btn.dataset.anime;
+// Single-select: clear all others first
+document.querySelectorAll('.anime-btn').forEach(b=>{b.classList.remove('selected');selectedAnimes.delete(b.dataset.anime)});
+selectedAnimes.add(a);btn.classList.add('selected');
+let t=(selectedAnimes.has('onepiece')?OP.length:0)+(selectedAnimes.has('naruto')?NR.length:0);
+let dis=t===0;
+document.getElementById('btn-start').disabled=dis;
+document.getElementById('btn-draft').disabled=dis;
+document.getElementById('select-info').textContent=t>0?t+' fighters selected':'Select one anime to battle'}
+
+function buildCardHTML(c){
+  let tc=TC[c.tier]||"#888",ac=AC[c.anime],al=AL[c.anime];
+  return `<div class="card-tier" style="background:${tc}">${c.tier}</div>
+    <div class="card-anime-tag" style="background:${ac}22;color:${ac};border:1px solid ${ac}44">${al}</div>
+    <div class="card-img-area"><img class="card-img" alt="">
+      <div class="card-emoji-fallback" style="--cc:${c.color}">${c.emoji}</div>
+      <div class="card-img-overlay"></div></div>
+    <div class="card-bottom"><div class="card-name">${c.name}</div>
+      <div class="card-title-text" style="color:${c.color}">${c.title}</div>
+      </div>`}
+
+function getActiveChars(){let c=[];if(selectedAnimes.has('onepiece'))c.push(...OP);if(selectedAnimes.has('naruto'))c.push(...NR);return c}
+
+function startGame(){
+  let chars=getActiveChars();if(chars.length<2)return;
+  let sh=shuffle(chars),half=Math.floor(sh.length/2),tr=Math.min(half,20);
+  state={playerDeck:sh.slice(0,half),cpuDeck:sh.slice(half),playerScore:0,cpuScore:0,round:0,totalRounds:tr,phase:"ready",battleLog:[]};
+  showScreen('game-screen');document.getElementById('round-total').textContent='/'+tr;resetRound()}
+
+function resetRound(){
+  document.getElementById('p-score').textContent=state.playerScore;
+  document.getElementById('c-score').textContent=state.cpuScore;
+  document.getElementById('round-num').textContent=state.round+1;
+  document.getElementById('rival-banner').classList.remove('visible');
+  let ab=document.getElementById('advantage-banner');ab.classList.remove('visible');ab.innerHTML='';
+  let pr=document.getElementById('p-result'),cr=document.getElementById('c-result');
+  pr.textContent='';pr.className='card-result';cr.textContent='';cr.className='card-result';
+  document.getElementById('matchup-info').innerHTML='';
+  document.getElementById('vs-text').className='vs-text';document.getElementById('vs-text').textContent='VS';
+  document.getElementById('rounds-remaining').textContent=(state.totalRounds-state.round)+' ROUNDS REMAINING';
+  // Reset card states
+  document.querySelectorAll('.card-front').forEach(el=>{el.classList.remove('visible')});
+  document.querySelectorAll('.card-back').forEach(el=>{el.classList.remove('hidden')});
+  document.querySelectorAll('.card-inner').forEach(el=>{el.style.transform='';el.style.transition=''});
+  document.getElementById('p-wrap').classList.remove('card-winner','card-loser');
+  document.getElementById('c-wrap').classList.remove('card-winner','card-loser');
+  let pC=state.playerDeck[state.round],cC=state.cpuDeck[state.round];
+  let pF=document.getElementById('p-card-front'),cF=document.getElementById('c-card-front');
+  pF.innerHTML=buildCardHTML(pC);
+  pF.style.background=`linear-gradient(145deg,#1a1a2e 0%,${pC.color}22 50%,#1a1a2e 100%)`;
+  pF.style.borderColor=pC.color+'88';pF.style.boxShadow=`0 0 16px ${pC.color}33`;
+  cF.innerHTML=buildCardHTML(cC);
+  cF.style.background=`linear-gradient(145deg,#1a1a2e 0%,${cC.color}22 50%,#1a1a2e 100%)`;
+  cF.style.borderColor=cC.color+'88';cF.style.boxShadow=`0 0 16px ${cC.color}33`;
+  loadCardImg(pF,pC);loadCardImg(cF,cC);
+  document.getElementById('action-area').innerHTML='<button class="btn-battle" onclick="flipCards()">FLIP CARDS</button>';
+  state.phase='ready'}
+
+function animateFlip(ci,fr,bk){return new Promise(res=>{
+  ci.style.transition='transform .25s ease-in';ci.style.transform='scaleX(0)';
+  setTimeout(()=>{bk.classList.add('hidden');fr.classList.add('visible');
+    ci.style.transition='transform .25s ease-out';ci.style.transform='scaleX(1)';
+    setTimeout(res,260)},260)})}
+
+function flipCards(){
+  if(state.phase!=='ready'||state.round>=state.totalRounds)return;
+  state.phase='flipping';
+  document.getElementById('action-area').innerHTML='<div class="revealing-text">REVEALING...</div>';
+  const pI=document.getElementById('p-card-inner'),cI=document.getElementById('c-card-inner');
+  const pFr=document.getElementById('p-card-front'),cFr=document.getElementById('c-card-front');
+  const pBk=pI.querySelector('.card-back'),cBk=cI.querySelector('.card-back');
+  Promise.all([animateFlip(pI,pFr,pBk),animateFlip(cI,cFr,cBk)]).then(()=>{
+    let pC=state.playerDeck[state.round],cC=state.cpuDeck[state.round];
+    let rival=isRival(pC,cC),{advA,advB}=getAdv(pC,cC);
+    if(rival)document.getElementById('rival-banner').classList.add('visible');
+    let abEl=document.getElementById('advantage-banner'),lines=[];
+    if(advA)lines.push(`<span style="color:#4ECDC4">▲ ${pC.name}</span> <span style="color:#888">+${advA.bonus}</span> <span style="color:#666">${advA.reason}</span>`);
+    if(advB)lines.push(`<span style="color:#E07070">▲ ${cC.name}</span> <span style="color:#888">+${advB.bonus}</span> <span style="color:#666">${advB.reason}</span>`);
+    if(lines.length){abEl.innerHTML=lines.join('<br>');abEl.classList.add('visible')}
+    setTimeout(()=>{
+      let w=resolveBattle(pC,cC);state.phase='result';
+      if(w===1)state.playerScore++;else state.cpuScore++;
+      document.getElementById('p-score').textContent=state.playerScore;
+      document.getElementById('c-score').textContent=state.cpuScore;
+      // WIN/LOSE with emphasis
+      let pr=document.getElementById('p-result'),cr=document.getElementById('c-result');
+      pr.textContent=w===1?'👑 WIN':'LOSE';pr.className='card-result '+(w===1?'win-result':'lose-result');
+      cr.textContent=w===2?'👑 WIN':'LOSE';cr.className='card-result '+(w===2?'win-result':'lose-result');
+      document.getElementById('p-wrap').classList.add(w===1?'card-winner':'card-loser');
+      document.getElementById('c-wrap').classList.add(w===2?'card-winner':'card-loser');
+      document.getElementById('vs-text').className='vs-text golden';
+      let info='';
+      if(advA)info+=`<span class="advtag">+${advA.bonus} ${pC.name}</span> `;
+      if(advB)info+=`<span class="canon">+${advB.bonus} ${cC.name}</span>`;
+      if(!info)info=`<span style="color:#666">${pC.emoji} vs ${cC.emoji}</span>`;
+      document.getElementById('matchup-info').innerHTML=info;
+      state.battleLog.push({round:state.round+1,p:pC,c:cC,winner:w,rival,advA,advB});
+      document.getElementById('action-area').innerHTML=`<button class="btn-next" onclick="nextRound()">${state.round+1>=state.totalRounds?'SEE RESULTS':'NEXT ROUND'}</button>`;
+    },700)})}
+
+function nextRound(){state.round++;if(state.round>=state.totalRounds){showGameOver();return}resetRound()}
+
+function showGameOver(){
+  let won=state.playerScore>state.cpuScore,tied=state.playerScore===state.cpuScore;
+  let t=document.getElementById('result-title');
+  t.textContent=won?'VICTORY':tied?'DRAW':'DEFEAT';
+  t.style.color=won?'#FFD700':tied?'#aaa':'#E03131';
+  t.style.textShadow=won?'0 0 40px #FFD70044':'none';
+  document.getElementById('final-p').textContent=state.playerScore;
+  document.getElementById('final-c').textContent=state.cpuScore;
+  let rc=state.battleLog.filter(b=>b.rival).length;
+  document.getElementById('rival-count').textContent=rc>0?`⚔️ ${rc} RIVAL ${rc===1?'CLASH':'CLASHES'}`:'';
+  let ac=state.battleLog.filter(b=>b.advA||b.advB).length;
+  document.getElementById('adv-count').textContent=ac>0?`▲ ${ac} MATCHUP ${ac===1?'ADVANTAGE':'ADVANTAGES'} TRIGGERED`:'';
+  document.getElementById('battle-log').innerHTML=state.battleLog.map(b=>{
+    let pc=b.winner===1?'#4ECDC4':'#666',cc=b.winner===2?'#E03131':'#666';
+    let vs=b.rival?'⚔️':'vs',vc=b.rival?'#FFD700':'#444';
+    let at='';if(b.advA)at+=`${b.p.name.split(' ').pop()} +${b.advA.bonus}  `;if(b.advB)at+=`${b.c.name.split(' ').pop()} +${b.advB.bonus}`;
+    return `<div class="log-entry">${at?`<div class="log-adv">${at}</div>`:''}<div class="log-row"><span class="log-name" style="color:${pc}">${b.p.emoji} ${b.p.name}</span><span class="log-vs" style="color:${vc}">${vs}</span><span class="log-name" style="color:${cc};text-align:right">${b.c.name} ${b.c.emoji}</span></div></div>`}).join('');
+  showScreen('gameover-screen')}
+
+// ROSTER
+let rF='all';
+function openRoster(){renderRoster();document.getElementById('roster-modal').classList.add('open')}
+function closeRoster(){document.getElementById('roster-modal').classList.remove('open')}
+function filterRoster(f,btn){rF=f;document.querySelectorAll('.roster-filter').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderRoster()}
+function renderRoster(){
+  let chars=rF==='all'?ALL_CHARS:ALL_CHARS.filter(c=>c.anime===rF);
+  let sorted=[...chars].sort((a,b)=>getEP(b)-getEP(a));
+  document.getElementById('roster-grid').innerHTML=sorted.map(c=>{
+    let rival=ALL_CHARS.find(r=>r.id===c.rivalId);
+    let tc=TC[c.tier],ac=AC[c.anime],al=AL[c.anime];
+    let advs=[];for(let k in MATCHUPS){if(k.startsWith(c.id+'>')){let tid=k.split('>')[1];let tgt=ALL_CHARS.find(t=>t.id===tid);if(tgt)advs.push(`vs ${tgt.name.split(' ').pop()} +${MATCHUPS[k].bonus}`)}}
+    let aH=advs.length?`<div class="roster-advs">▲ ${advs.slice(0,3).join(' · ')}${advs.length>3?' +'+(advs.length-3)+' more':''}</div>`:'';
+    return `<div class="roster-card" style="border-color:${c.color}44">
+      <div class="roster-img-wrap" style="background:linear-gradient(180deg,${c.color}15,#0f0f1a)">
+        <div class="r-emoji">${c.emoji}</div>
+        <img data-cid="${c.id}" alt="" loading="lazy"></div>
+      <div class="roster-info"><div class="roster-name">${c.name}</div>
+        <div class="roster-title" style="color:${c.color}">${c.title}</div>
+        <div class="roster-meta"><span class="roster-anime-tag" style="background:${ac}22;color:${ac}">${al}</span>
+          <span class="roster-tier" style="background:${tc}">${c.tier}</span>
+          <span class="roster-pwr">PWR ${getEP(c)}</span></div>
+        ${rival?`<div class="roster-rival">RIVAL: ${rival.name}</div>`:''}${aH}</div></div>`}).join('');
+  loadRosterImages(sorted)}
+function loadRosterImages(chars){for(const c of chars){
+  const img=document.querySelector(`#roster-grid img[data-cid="${c.id}"]`);if(!img)continue;
+  const em=img.closest('.roster-img-wrap')?.querySelector('.r-emoji');
+  const url=CHAR_IMGS[c.id];if(!url)continue;
+  img.src=url;img.onload=()=>{img.style.opacity='1';if(em)em.style.opacity='0'}}}
+
+// ================================================================
+// 1v1 SANDBOX SIMULATOR
+// ================================================================
+function openSandbox(){document.getElementById('sandbox-modal').classList.add('open');renderSandbox()}
+function closeSandbox(){document.getElementById('sandbox-modal').classList.remove('open')}
+
+let sbFilterA='all',sbFilterB='all';
+function setSandboxFilter(side,val,btn){
+  if(side==='a')sbFilterA=val; else sbFilterB=val;
+  btn.closest('.sb-filters').querySelectorAll('.sb-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSandbox();
+}
+
+function sandboxResolve(c1,c2){
+  // Deterministic resolution: no randomness, pure power + matchup advantages
+  let p1=getEP(c1),p2=getEP(c2),b1=0,b2=0;
+  let{advA,advB}=getAdv(c1,c2);
+  let rival=isRival(c1,c2);
+  if(advA)b1+=advA.bonus;if(advB)b2+=advB.bonus;
+  if(rival){b1+=2;b2+=2;if(advA)b1+=3;if(advB)b2+=3}
+  let f1=p1+b1,f2=p2+b2;
+  let winner=f1>=f2?1:2; // tie goes to character A (higher seed)
+  // Build explanation
+  let wChar=winner===1?c1:c2, lChar=winner===1?c2:c1;
+  let wScore=winner===1?f1:f2, lScore=winner===1?f2:f1;
+  let wAdv=winner===1?advA:advB;
+  let reason='';
+  if(wAdv){
+    reason=wAdv.reason;
+  } else if(wScore-lScore>=15){
+    reason=wChar.name+' vastly outclasses '+lChar.name+' in raw power ('+wScore+' vs '+lScore+')';
+  } else if(wScore-lScore>=5){
+    reason=wChar.name+' edges out '+lChar.name+' with superior stats ('+wScore+' vs '+lScore+')';
+  } else {
+    reason='Extremely close fight, but '+wChar.name+' barely wins with a slight stat edge ('+wScore+' vs '+lScore+')';
+  }
+  return {winner,wChar,lChar,wScore,lScore,reason,rival,advA,advB,f1,f2};
+}
+
+let sbCharA=null,sbCharB=null;
+function selectSandboxChar(side,id){
+  let c=ALL_CHARS.find(ch=>ch.id===id);
+  if(side==='a')sbCharA=c; else sbCharB=c;
+  renderSandbox();
+}
+
+function renderSandbox(){
+  let charsA=sbFilterA==='all'?ALL_CHARS:ALL_CHARS.filter(c=>c.anime===sbFilterA);
+  let charsB=sbFilterB==='all'?ALL_CHARS:ALL_CHARS.filter(c=>c.anime===sbFilterB);
+  charsA=[...charsA].sort((a,b)=>getEP(b)-getEP(a));
+  charsB=[...charsB].sort((a,b)=>getEP(b)-getEP(a));
+
+  // Build portrait card for selected character
+  function sbPortrait(c,side){
+    if(!c)return `<div class="sb-portrait-empty">SELECT<br>FIGHTER ${side==='a'?'A':'B'}</div>`;
+    let tc=TC[c.tier],imgUrl=CHAR_IMGS[c.id]||'';
+    let borderColor=side==='a'?'#4ECDC4':'#E07070';
+    return `<div class="sb-portrait" style="border-color:${borderColor}88;box-shadow:0 0 20px ${borderColor}33">
+      <div class="sb-portrait-img-wrap" style="background:linear-gradient(180deg,${c.color}20,#0f0f1a)">
+        <div class="sb-portrait-emoji" id="sb-emoji-${side}">${c.emoji}</div>
+        <img class="sb-portrait-img" id="sb-img-${side}" data-cid="${c.id}" alt="" style="opacity:0">
+      </div>
+      <div class="sb-portrait-info">
+        <div class="sb-portrait-tier" style="background:${tc}">${c.tier}</div>
+        <div class="sb-portrait-name">${c.name}</div>
+        <div class="sb-portrait-title" style="color:${c.color}">${c.title}</div>
+        <div class="sb-portrait-pwr">PWR <span style="color:${tc}">${getEP(c)}</span></div>
+      </div>
+    </div>`;
+  }
+
+  let resultHTML='';
+  if(sbCharA&&sbCharB&&sbCharA.id!==sbCharB.id){
+    let r=sandboxResolve(sbCharA,sbCharB);
+    let wc=r.winner===1?'#4ECDC4':'#E07070';
+    let winSide=r.winner===1?'a':'b';
+    let loseSide=r.winner===1?'b':'a';
+    resultHTML=`<div class="sb-result-area">
+      <div class="sb-matchup-portraits">
+        <div class="sb-portrait-slot ${r.winner===1?'sb-portrait-winner':'sb-portrait-loser'}">${sbPortrait(sbCharA,'a')}</div>
+        <div class="sb-vs-badge">${r.rival?'RIVAL':'VS'}</div>
+        <div class="sb-portrait-slot ${r.winner===2?'sb-portrait-winner':'sb-portrait-loser'}">${sbPortrait(sbCharB,'b')}</div>
+      </div>
+      <div class="sb-result">
+        <div class="sb-result-header" style="color:${wc}">${r.wChar.emoji} ${r.wChar.name} WINS</div>
+        <div class="sb-result-score">${r.f1} vs ${r.f2}</div>
+        ${r.rival?'<div class="sb-rival-tag">RIVAL CLASH</div>':''}
+        <div class="sb-result-reason">${r.reason}</div>
+        ${r.advA?`<div class="sb-adv-line" style="color:#4ECDC4">${sbCharA.name} +${r.advA.bonus} ${r.advA.reason}</div>`:''}
+        ${r.advB?`<div class="sb-adv-line" style="color:#E07070">${sbCharB.name} +${r.advB.bonus} ${r.advB.reason}</div>`:''}
+      </div>
+    </div>`;
+  } else if(sbCharA||sbCharB){
+    resultHTML=`<div class="sb-matchup-portraits">
+      <div class="sb-portrait-slot">${sbPortrait(sbCharA,'a')}</div>
+      <div class="sb-vs-badge">VS</div>
+      <div class="sb-portrait-slot">${sbPortrait(sbCharB,'b')}</div>
+    </div>`;
+    if(sbCharA&&sbCharB&&sbCharA.id===sbCharB.id){
+      resultHTML+='<div class="sb-result"><div class="sb-result-reason">Pick two different characters!</div></div>';
+    }
+  }
+
+  let makeGrid=(chars,side,selected)=>chars.map(c=>{
+    let tc=TC[c.tier],ac=AC[c.anime],sel=selected&&selected.id===c.id;
+    let imgUrl=CHAR_IMGS[c.id]||'';
+    return `<div class="sb-char ${sel?'sb-selected':''}" style="border-color:${sel?c.color+'cc':c.color+'33'};${sel?'box-shadow:0 0 12px '+c.color+'44;background:#1a1a2e':''}" onclick="selectSandboxChar('${side}','${c.id}')">
+      <div class="sb-char-thumb" style="background:linear-gradient(135deg,${c.color}15,#0f0f1a)">
+        <span class="sb-thumb-emoji" id="sb-te-${side}-${c.id}">${c.emoji}</span>
+        <img class="sb-thumb-img" data-sbthumb="${side}-${c.id}" alt="" style="opacity:0">
+      </div>
+      <span class="sb-char-name">${c.name}</span>
+      <span class="sb-char-pwr" style="color:${tc}">${getEP(c)}</span>
+    </div>`}).join('');
+
+  document.getElementById('sb-content').innerHTML=`
+    ${resultHTML}
+    <div class="sb-columns">
+      <div class="sb-col">
+        <div class="sb-col-title" style="color:#4ECDC4">FIGHTER A ${sbCharA?'- '+sbCharA.emoji+' '+sbCharA.name:''}</div>
+        <div class="sb-filters">
+          <button class="sb-filter ${sbFilterA==='all'?'active':''}" onclick="setSandboxFilter('a','all',this)">ALL</button>
+          <button class="sb-filter ${sbFilterA==='onepiece'?'active':''}" onclick="setSandboxFilter('a','onepiece',this)">OP</button>
+          <button class="sb-filter ${sbFilterA==='naruto'?'active':''}" onclick="setSandboxFilter('a','naruto',this)">NR</button>
+        </div>
+        <div class="sb-grid">${makeGrid(charsA,'a',sbCharA)}</div>
+      </div>
+      <div class="sb-col">
+        <div class="sb-col-title" style="color:#E07070">FIGHTER B ${sbCharB?'- '+sbCharB.emoji+' '+sbCharB.name:''}</div>
+        <div class="sb-filters">
+          <button class="sb-filter ${sbFilterB==='all'?'active':''}" onclick="setSandboxFilter('b','all',this)">ALL</button>
+          <button class="sb-filter ${sbFilterB==='onepiece'?'active':''}" onclick="setSandboxFilter('b','onepiece',this)">OP</button>
+          <button class="sb-filter ${sbFilterB==='naruto'?'active':''}" onclick="setSandboxFilter('b','naruto',this)">NR</button>
+        </div>
+        <div class="sb-grid">${makeGrid(charsB,'b',sbCharB)}</div>
+      </div>
+    </div>`;
+  // Load sandbox images
+  loadSandboxImages(charsA,'a');loadSandboxImages(charsB,'b');
+  // Load portrait images
+  ['a','b'].forEach(side=>{
+    let ch=side==='a'?sbCharA:sbCharB;if(!ch)return;
+    let img=document.getElementById('sb-img-'+side);
+    let em=document.getElementById('sb-emoji-'+side);
+    let url=CHAR_IMGS[ch.id];if(!img||!url)return;
+    img.src=url;img.onload=()=>{img.style.opacity='1';if(em)em.style.opacity='0'};
+  });
+}
+function loadSandboxImages(chars,side){
+  for(const c of chars){
+    let img=document.querySelector(`img[data-sbthumb="${side}-${c.id}"]`);if(!img)continue;
+    let em=document.getElementById('sb-te-'+side+'-'+c.id);
+    let url=CHAR_IMGS[c.id];if(!url)continue;
+    img.src=url;img.onload=()=>{img.style.opacity='1';if(em)em.style.opacity='0'};
+  }
+}
+</script>
+
+<!-- Sandbox Modal -->
+<div class="sandbox-modal" id="sandbox-modal">
+  <div class="sb-header">
+    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:3px;color:#FFD700">⚔️ 1v1 SANDBOX</h2>
+    <div class="ck" style="font-size:9px;color:#666;letter-spacing:1px">Pick two characters for a deterministic 1v1. No RNG.</div>
+    <button class="roster-close" onclick="closeSandbox()">CLOSE</button>
+  </div>
+  <div id="sb-content"></div>
+</div>
+
+<style>
+.sandbox-modal{display:none;position:fixed;inset:0;background:#0a0a0fF5;z-index:100;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px}
+.sandbox-modal.open{display:block}
+.sb-header{display:flex;justify-content:space-between;align-items:center;max-width:960px;margin:0 auto 12px;flex-wrap:wrap;gap:8px}
+.sb-columns{display:flex;gap:12px;max-width:960px;margin:0 auto}
+.sb-col{flex:1;min-width:0}
+.sb-col-title{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;margin-bottom:6px;min-height:20px}
+.sb-filters{display:flex;gap:4px;margin-bottom:8px}
+.sb-filter{font-family:'Chakra Petch',sans-serif;font-size:8px;padding:4px 10px;background:#1a1a2e;color:#888;border:1px solid #333;border-radius:4px;cursor:pointer;letter-spacing:1px}
+.sb-filter.active{color:#fff;border-color:#FFD700}
+.sb-grid{display:flex;flex-direction:column;gap:4px;max-height:55vh;overflow-y:auto;padding-right:4px}
+.sb-char{display:flex;align-items:center;gap:8px;padding:6px 10px;background:#12121f;border:1px solid;border-radius:6px;cursor:pointer;transition:all .15s}
+.sb-char:hover{background:#1a1a2e}
+.sb-selected{background:#1a1a2e !important}
+.sb-char-thumb{width:32px;height:32px;border-radius:4px;overflow:hidden;flex-shrink:0;position:relative;display:flex;align-items:center;justify-content:center}
+.sb-thumb-emoji{font-size:16px;position:absolute;transition:opacity .3s}
+.sb-thumb-img{width:100%;height:100%;object-fit:cover;object-position:center top;position:absolute;transition:opacity .3s}
+.sb-char-name{font-family:'Chakra Petch',sans-serif;font-size:9px;color:#ccc;letter-spacing:.5px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-char-pwr{font-family:'Bebas Neue',sans-serif;font-size:13px;flex-shrink:0}
+.sb-result-area{max-width:960px;margin:0 auto 16px}
+.sb-matchup-portraits{display:flex;align-items:flex-start;justify-content:center;gap:12px;max-width:960px;margin:0 auto 12px}
+.sb-portrait-slot{flex:0 1 180px}
+.sb-portrait-winner{filter:drop-shadow(0 0 10px #FFD70066)}
+.sb-portrait-loser{opacity:.55;filter:saturate(.4);transform:scale(.95)}
+.sb-portrait{border-radius:10px;overflow:hidden;border:2px solid;background:#12121f}
+.sb-portrait-img-wrap{width:100%;aspect-ratio:3/4;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.sb-portrait-emoji{font-size:42px;position:absolute;z-index:0;filter:drop-shadow(0 0 10px rgba(255,255,255,.2));transition:opacity .3s}
+.sb-portrait-img{width:100%;height:100%;object-fit:cover;object-position:center top;position:absolute;z-index:1;transition:opacity .4s}
+.sb-portrait-info{padding:8px 10px 10px;text-align:center;position:relative}
+.sb-portrait-tier{display:inline-block;font-weight:900;font-size:9px;padding:2px 6px;border-radius:3px;color:#000;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;margin-bottom:3px}
+.sb-portrait-name{font-family:'Bebas Neue',sans-serif;font-size:14px;color:#fff;letter-spacing:1.5px;line-height:1.1}
+.sb-portrait-title{font-family:'Chakra Petch',sans-serif;font-size:7px;letter-spacing:.8px;text-transform:uppercase;margin-top:2px;opacity:.8;line-height:1.2}
+.sb-portrait-pwr{font-family:'Bebas Neue',sans-serif;font-size:16px;color:#aaa;margin-top:4px;letter-spacing:2px}
+.sb-portrait-empty{font-family:'Bebas Neue',sans-serif;font-size:14px;color:#444;letter-spacing:2px;text-align:center;padding:40px 10px;border:2px dashed #333;border-radius:10px;line-height:1.6}
+.sb-vs-badge{font-family:'Bebas Neue',sans-serif;font-size:18px;color:#FFD700;letter-spacing:3px;margin-top:80px;flex-shrink:0;text-shadow:0 0 15px #FFD70044}
+.sb-result{max-width:960px;margin:0 auto 16px;background:linear-gradient(135deg,#1a1a2e,#0f0f1a);border:1px solid #FFD70033;border-radius:10px;padding:16px 20px;text-align:center}
+.sb-result-header{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;text-shadow:0 0 20px currentColor}
+.sb-result-score{font-family:'Chakra Petch',sans-serif;font-size:11px;color:#888;letter-spacing:2px;margin:4px 0}
+.sb-rival-tag{font-family:'Bebas Neue',sans-serif;font-size:12px;color:#FFD700;letter-spacing:3px;margin:4px 0}
+.sb-result-reason{font-family:'Chakra Petch',sans-serif;font-size:10px;color:#ccc;letter-spacing:.5px;line-height:1.5;margin:8px 0 4px;max-width:500px;display:inline-block}
+.sb-adv-line{font-family:'Chakra Petch',sans-serif;font-size:9px;letter-spacing:.5px;margin:3px 0;opacity:.8}
+@media(max-width:500px){.sb-columns{flex-direction:column}.sb-grid{max-height:35vh}}
+</style>
+
+<!-- ============ TEAM DRAFT MODAL ============ -->
+<div class="draft-modal" id="draft-modal">
+  <div id="draft-content"></div>
+</div>
+
+
+<style>
+.draft-modal{display:none;position:fixed;inset:0;background:#0a0a0fF8;z-index:100;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px}
+.draft-modal.open{display:block}
+/* Draft */
+.dr-header{text-align:center;margin-bottom:12px}
+.dr-header h2{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:4px;color:#4ECDC4}
+.dr-round{font-family:'Chakra Petch',sans-serif;font-size:10px;color:#888;letter-spacing:2px;margin-top:4px}
+.dr-teams{display:flex;gap:16px;max-width:960px;margin:0 auto 12px;align-items:flex-start}
+.dr-team{flex:1;min-width:0}
+.dr-team-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;margin-bottom:6px;text-align:center}
+.dr-slots{display:flex;flex-direction:column;gap:6px}
+.dr-slot{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#12121f;border:1px solid #333;border-radius:8px;min-height:52px;cursor:pointer;transition:all .15s}
+.dr-slot.dr-slot-empty{border-style:dashed;opacity:.5}
+.dr-slot.dr-slot-highlight{border-color:#4ECDC488;box-shadow:0 0 10px #4ECDC422;animation:pulse-slot 1s infinite alternate}
+@keyframes pulse-slot{from{box-shadow:0 0 5px #4ECDC411}to{box-shadow:0 0 15px #4ECDC433}}
+.dr-slot-role{font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:2px;color:#888;width:70px;flex-shrink:0;text-align:center}
+.dr-slot-thumb{width:36px;height:36px;border-radius:4px;overflow:hidden;flex-shrink:0;position:relative;display:flex;align-items:center;justify-content:center;background:#0f0f1a}
+.dr-slot-thumb img{width:100%;height:100%;object-fit:cover;object-position:center top;position:absolute;transition:opacity .3s}
+.dr-slot-thumb .dr-em{font-size:18px;position:absolute}
+.dr-slot-info{flex:1;min-width:0}
+.dr-slot-name{font-family:'Bebas Neue',sans-serif;font-size:12px;color:#fff;letter-spacing:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dr-slot-score{font-family:'Chakra Petch',sans-serif;font-size:8px;letter-spacing:1px}
+.dr-draw-area{text-align:center;max-width:960px;margin:0 auto 16px}
+.dr-drawn-card{display:inline-flex;flex-direction:column;align-items:center;background:#1a1a2e;border:2px solid;border-radius:12px;padding:0;width:160px;overflow:hidden}
+.dr-drawn-img{width:160px;height:200px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.dr-drawn-img img{width:100%;height:100%;object-fit:cover;object-position:center top;position:absolute;z-index:1;transition:opacity .4s}
+.dr-drawn-img .dr-big-em{font-size:48px;position:absolute;z-index:0}
+.dr-drawn-info{padding:8px 12px;text-align:center;width:100%}
+.dr-drawn-name{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;color:#fff}
+.dr-drawn-title{font-family:'Chakra Petch',sans-serif;font-size:7px;letter-spacing:.8px;margin-top:2px;opacity:.8}
+.dr-drawn-pwr{font-family:'Bebas Neue',sans-serif;font-size:14px;color:#aaa;margin-top:3px}
+.dr-actions{margin-top:10px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.dr-action-btn{font-family:'Chakra Petch',sans-serif;font-size:9px;letter-spacing:1px;padding:7px 14px;background:#1a1a2e;color:#ccc;border:1px solid #444;border-radius:6px;cursor:pointer;transition:all .15s}
+.dr-action-btn:hover{background:#252540;border-color:#888}
+.dr-action-btn.dr-skip{color:#E03131;border-color:#E0313144}
+.dr-action-btn:disabled{opacity:.3;cursor:default}
+.dr-result{max-width:960px;margin:0 auto;text-align:center}
+.dr-result-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(30px,8vw,60px);letter-spacing:4px;line-height:1}
+.dr-role-results{display:flex;flex-direction:column;gap:4px;max-width:500px;margin:12px auto}
+.dr-role-row{display:flex;align-items:center;font-family:'Chakra Petch',sans-serif;font-size:9px;padding:5px 8px;background:#12121f;border-radius:6px}
+.dr-role-row .rr-role{width:70px;color:#888;letter-spacing:1px;flex-shrink:0;text-align:left}
+.dr-role-row .rr-left{flex:1;text-align:right;padding-right:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dr-role-row .rr-vs{color:#444;flex-shrink:0;padding:0 4px}
+.dr-role-row .rr-right{flex:1;text-align:left;padding-left:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dr-total-row{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;margin-top:8px}
+/* Tournament */
+@media(max-width:500px){.dr-teams{flex-direction:column}}
+</style>
+
+
+<script>
+
+// ================================================================
+// TEAM DRAFT MODE v2 — 6 roles, character-specific fits, synergies
+// ================================================================
+const ROLES=['CAPTAIN','VICE CAPTAIN','TANK','STRATEGIST','DUELIST','SUPPORT'];
+const ROLE_ICONS={CAPTAIN:'\u{1F451}','VICE CAPTAIN':'\u{2694}\uFE0F',TANK:'\u{1F6E1}\uFE0F',STRATEGIST:'\u{1F9E0}',DUELIST:'\u{1F525}',SUPPORT:'\u{1F48E}'};
+const ROLE_DESC={
+  CAPTAIN:'Leader. Inspires the team, sets the tone.',
+  'VICE CAPTAIN':'Right hand. Reliable, balanced, deadly.',
+  TANK:'Wall. Absorbs damage, protects the squad.',
+  STRATEGIST:'Brain. Plans, outsmarts, controls the fight.',
+  DUELIST:'Blade. Pure 1v1 combat specialist.',
+  SUPPORT:'Backbone. Heals, buffs, utility, firepower.'
+};
+
+// ---- Character-specific role fit ----
+// Scale: S=25, A=15, B=8, C=0, D=-8
+// Philosophy: Strong characters are GOOD everywhere, just BETTER in some roles.
+// Garp for example: elite captain/vice/tank, decent everywhere else.
+// Luffy: elite captain/duelist, poor strategist but still brings raw power.
+const ROLE_FIT={
+// === ONE PIECE ===
+"op1":{CAPTAIN:25,'VICE CAPTAIN':15,TANK:8,STRATEGIST:-8,DUELIST:25,SUPPORT:8},    // Luffy: born captain, elite duelist, terrible planner
+"op2":{CAPTAIN:8,'VICE CAPTAIN':25,TANK:15,STRATEGIST:0,DUELIST:25,SUPPORT:0},      // Zoro: elite vice captain & duelist
+"op3":{CAPTAIN:0,'VICE CAPTAIN':15,TANK:8,STRATEGIST:8,DUELIST:15,SUPPORT:15},      // Sanji: versatile, cook=support, fast duelist
+"op4":{CAPTAIN:0,'VICE CAPTAIN':0,TANK:-8,STRATEGIST:15,DUELIST:-8,SUPPORT:25},     // Nami: navigator strategist, weather support
+"op5":{CAPTAIN:0,'VICE CAPTAIN':8,TANK:0,STRATEGIST:25,DUELIST:0,SUPPORT:15},       // Robin: intel queen, archaeologist strategist
+"op6":{CAPTAIN:0,'VICE CAPTAIN':8,TANK:25,STRATEGIST:0,DUELIST:0,SUPPORT:15},       // Franky: tank/engineer support
+"op7":{CAPTAIN:15,'VICE CAPTAIN':15,TANK:25,STRATEGIST:8,DUELIST:8,SUPPORT:8},      // Jinbe: wise helmsman, great everywhere
+"op8":{CAPTAIN:0,'VICE CAPTAIN':0,TANK:8,STRATEGIST:8,DUELIST:-8,SUPPORT:25},       // Chopper: elite doctor/support
+"op9":{CAPTAIN:0,'VICE CAPTAIN':0,TANK:0,STRATEGIST:0,DUELIST:8,SUPPORT:15},        // Brook: soul king utility support
+"op10":{CAPTAIN:0,'VICE CAPTAIN':0,TANK:-8,STRATEGIST:15,DUELIST:-8,SUPPORT:15},    // Usopp: sniper support/tactician
+"op11":{CAPTAIN:8,'VICE CAPTAIN':8,TANK:0,STRATEGIST:25,DUELIST:15,SUPPORT:15},     // Law: surgeon strategist, Room utility
+"op12":{CAPTAIN:15,'VICE CAPTAIN':8,TANK:15,STRATEGIST:-8,DUELIST:15,SUPPORT:0},    // Kid: aggressive captain, magnetic duelist
+"op13":{CAPTAIN:25,'VICE CAPTAIN':8,TANK:25,STRATEGIST:0,DUELIST:15,SUPPORT:0},     // Kaido: emperor, indestructible tank
+"op14":{CAPTAIN:25,'VICE CAPTAIN':8,TANK:25,STRATEGIST:8,DUELIST:8,SUPPORT:8},      // Big Mom: emperor, soul utility
+"op15":{CAPTAIN:15,'VICE CAPTAIN':8,TANK:0,STRATEGIST:25,DUELIST:15,SUPPORT:0},     // Doflamingo: puppet master, string strategist
+"op16":{CAPTAIN:15,'VICE CAPTAIN':0,TANK:0,STRATEGIST:25,DUELIST:8,SUPPORT:0},      // Crocodile: scheming boss
+"op17":{CAPTAIN:0,'VICE CAPTAIN':15,TANK:8,STRATEGIST:0,DUELIST:25,SUPPORT:0},      // Lucci: assassin duelist
+"op18":{CAPTAIN:8,'VICE CAPTAIN':15,TANK:8,STRATEGIST:0,DUELIST:25,SUPPORT:0},      // Mihawk: world's greatest duelist
+"op19":{CAPTAIN:25,'VICE CAPTAIN':0,TANK:15,STRATEGIST:15,DUELIST:15,SUPPORT:0},    // Blackbeard: scheming emperor
+"op20":{CAPTAIN:25,'VICE CAPTAIN':8,TANK:0,STRATEGIST:8,DUELIST:15,SUPPORT:15},     // Shanks: inspirational captain, haki monster
+"op21":{CAPTAIN:25,'VICE CAPTAIN':8,TANK:25,STRATEGIST:0,DUELIST:15,SUPPORT:8},     // Whitebeard: family captain, quake tank
+"op22":{CAPTAIN:15,'VICE CAPTAIN':8,TANK:15,STRATEGIST:0,DUELIST:15,SUPPORT:0},     // Akainu: fleet admiral, magma duelist
+"op23":{CAPTAIN:8,'VICE CAPTAIN':15,TANK:0,STRATEGIST:0,DUELIST:15,SUPPORT:8},      // Ace: loyal vice, fire duelist
+"op24":{CAPTAIN:8,'VICE CAPTAIN':25,TANK:15,STRATEGIST:8,DUELIST:15,SUPPORT:0},     // Katakuri: future sight vice captain
+"op25":{CAPTAIN:0,'VICE CAPTAIN':15,TANK:25,STRATEGIST:0,DUELIST:15,SUPPORT:0},     // King: lunarian tank/duelist
+"op26":{CAPTAIN:0,'VICE CAPTAIN':8,TANK:25,STRATEGIST:8,DUELIST:0,SUPPORT:8},       // Queen: plague tank, science support
+"op27":{CAPTAIN:0,'VICE CAPTAIN':0,TANK:8,STRATEGIST:0,DUELIST:8,SUPPORT:0},        // Ulti
+"op28":{CAPTAIN:0,'VICE CAPTAIN':0,TANK:0,STRATEGIST:8,DUELIST:0,SUPPORT:8},        // Black Maria: trap/support
+"op29":{CAPTAIN:0,'VICE CAPTAIN':0,TANK:15,STRATEGIST:0,DUELIST:0,SUPPORT:0},       // Sasaki: tank
+"op30":{CAPTAIN:0,'VICE CAPTAIN':0,TANK:0,STRATEGIST:0,DUELIST:15,SUPPORT:0},       // Who's Who: duelist
+"op31":{CAPTAIN:0,'VICE CAPTAIN':0,TANK:0,STRATEGIST:8,DUELIST:0,SUPPORT:25},       // Perona: ghost support/debuffer
+"op32":{CAPTAIN:0,'VICE CAPTAIN':0,TANK:0,STRATEGIST:15,DUELIST:0,SUPPORT:15},      // Caesar: scientist strategist/support
+"op33":{CAPTAIN:25,'VICE CAPTAIN':8,TANK:8,STRATEGIST:8,DUELIST:25,SUPPORT:8},      // Roger: pirate king, elite captain & duelist
+"op34":{CAPTAIN:15,'VICE CAPTAIN':25,TANK:25,STRATEGIST:8,DUELIST:15,SUPPORT:8},    // Garp: hero, elite vice/tank, strong everywhere
+"op35":{CAPTAIN:8,'VICE CAPTAIN':15,TANK:15,STRATEGIST:8,DUELIST:8,SUPPORT:8},      // Kuzan: versatile ice admiral
+"op36":{CAPTAIN:0,'VICE CAPTAIN':8,TANK:0,STRATEGIST:0,DUELIST:15,SUPPORT:15},      // Kizaru: light speed duelist/support
+"op37":{CAPTAIN:15,'VICE CAPTAIN':25,TANK:8,STRATEGIST:15,DUELIST:15,SUPPORT:8},    // Rayleigh: dark king, legendary vice
+"op38":{CAPTAIN:8,'VICE CAPTAIN':0,TANK:0,STRATEGIST:0,DUELIST:15,SUPPORT:8},       // Enel: lightning duelist
+"op39":{CAPTAIN:15,'VICE CAPTAIN':8,TANK:0,STRATEGIST:8,DUELIST:8,SUPPORT:0},       // Shiki: flying captain
+"op40":{CAPTAIN:15,'VICE CAPTAIN':8,TANK:15,STRATEGIST:25,DUELIST:0,SUPPORT:8},     // Sengoku: buddha strategist
+"op41":{CAPTAIN:8,'VICE CAPTAIN':15,TANK:0,STRATEGIST:8,DUELIST:15,SUPPORT:8},      // Sabo: revolutionary vice, flame duelist
+"op42":{CAPTAIN:25,'VICE CAPTAIN':8,TANK:0,STRATEGIST:25,DUELIST:8,SUPPORT:8},      // Dragon: revolutionary leader/strategist
+"op43":{CAPTAIN:15,'VICE CAPTAIN':8,TANK:0,STRATEGIST:0,DUELIST:15,SUPPORT:15},     // Hancock: empress, love support/duelist
+"op44":{CAPTAIN:0,'VICE CAPTAIN':0,TANK:25,STRATEGIST:0,DUELIST:0,SUPPORT:25},      // Kuma: tyrant tank, paw-paw support
+"op45":{CAPTAIN:8,'VICE CAPTAIN':0,TANK:8,STRATEGIST:15,DUELIST:0,SUPPORT:8},       // Moria: shadow strategist
+"op46":{CAPTAIN:8,'VICE CAPTAIN':0,TANK:0,STRATEGIST:0,DUELIST:0,SUPPORT:8},        // Buggy: lucky captain, chop support
+"op47":{CAPTAIN:25,'VICE CAPTAIN':15,TANK:8,STRATEGIST:0,DUELIST:25,SUPPORT:0},     // Oden: legendary captain & swordsman
+"op48":{CAPTAIN:8,'VICE CAPTAIN':15,TANK:15,STRATEGIST:0,DUELIST:15,SUPPORT:0},     // Yamato: vice/tank
+"op49":{CAPTAIN:8,'VICE CAPTAIN':15,TANK:8,STRATEGIST:0,DUELIST:8,SUPPORT:25},      // Marco: phoenix healer, elite support
+"op50":{CAPTAIN:0,'VICE CAPTAIN':8,TANK:25,STRATEGIST:0,DUELIST:8,SUPPORT:0},       // Jozu: diamond tank
+"op51":{CAPTAIN:0,'VICE CAPTAIN':15,TANK:0,STRATEGIST:0,DUELIST:15,SUPPORT:0},      // Vista: swordsman vice/duelist
+"op52":{CAPTAIN:0,'VICE CAPTAIN':15,TANK:0,STRATEGIST:0,DUELIST:25,SUPPORT:0},      // Shiryu: invisible assassin duelist
+"op53":{CAPTAIN:25,'VICE CAPTAIN':0,TANK:15,STRATEGIST:25,DUELIST:8,SUPPORT:8},     // Imu: shadow ruler, supreme strategist
+"op54":{CAPTAIN:15,'VICE CAPTAIN':0,TANK:15,STRATEGIST:25,DUELIST:8,SUPPORT:0},     // Saturn: elder planet strategist
+"op55":{CAPTAIN:8,'VICE CAPTAIN':8,TANK:25,STRATEGIST:8,DUELIST:8,SUPPORT:8},       // Fujitora: gravity tank, just/versatile
+"op56":{CAPTAIN:0,'VICE CAPTAIN':8,TANK:8,STRATEGIST:0,DUELIST:15,SUPPORT:8},       // Ryokugyu: plant admiral
+"op57":{CAPTAIN:0,'VICE CAPTAIN':25,TANK:0,STRATEGIST:15,DUELIST:8,SUPPORT:0},      // Ben Beckman: smartest vice captain
+"op58":{CAPTAIN:0,'VICE CAPTAIN':8,TANK:0,STRATEGIST:0,DUELIST:15,SUPPORT:0},       // Killer: massacre soldier duelist
+// === NARUTO ===
+"nr1":{CAPTAIN:25,'VICE CAPTAIN':15,TANK:15,STRATEGIST:-8,DUELIST:25,SUPPORT:8},    // Naruto: hokage captain, sage duelist, bad planner
+"nr2":{CAPTAIN:15,'VICE CAPTAIN':25,TANK:8,STRATEGIST:8,DUELIST:25,SUPPORT:0},      // Sasuke: shadow hokage vice, sharingan duelist
+"nr3":{CAPTAIN:0,'VICE CAPTAIN':0,TANK:8,STRATEGIST:8,DUELIST:8,SUPPORT:25},        // Sakura: elite medical support, strong fighter
+"nr4":{CAPTAIN:15,'VICE CAPTAIN':15,TANK:0,STRATEGIST:25,DUELIST:15,SUPPORT:8},     // Kakashi: copy ninja, genius strategist
+"nr5":{CAPTAIN:8,'VICE CAPTAIN':15,TANK:0,STRATEGIST:25,DUELIST:25,SUPPORT:0},      // Itachi: genius strategist & genjutsu duelist
+"nr6":{CAPTAIN:25,'VICE CAPTAIN':8,TANK:25,STRATEGIST:15,DUELIST:25,SUPPORT:0},     // Madara: god-tier at everything combat
+"nr7":{CAPTAIN:25,'VICE CAPTAIN':8,TANK:25,STRATEGIST:8,DUELIST:15,SUPPORT:15},     // Hashirama: god of shinobi, wood healing
+"nr8":{CAPTAIN:8,'VICE CAPTAIN':8,TANK:0,STRATEGIST:25,DUELIST:15,SUPPORT:0},       // Obito: mastermind, kamui duelist
+"nr9":{CAPTAIN:25,'VICE CAPTAIN':8,TANK:0,STRATEGIST:15,DUELIST:15,SUPPORT:0},      // Pain: god-path captain/strategist
+"nr10":{CAPTAIN:8,'VICE CAPTAIN':8,TANK:0,STRATEGIST:8,DUELIST:8,SUPPORT:15},       // Jiraiya: toad sage mentor/support
+"nr11":{CAPTAIN:15,'VICE CAPTAIN':0,TANK:15,STRATEGIST:0,DUELIST:0,SUPPORT:25},     // Tsunade: hokage, legendary healer support
+"nr12":{CAPTAIN:8,'VICE CAPTAIN':0,TANK:0,STRATEGIST:25,DUELIST:8,SUPPORT:15},      // Orochimaru: scientist, forbidden jutsu
+"nr13":{CAPTAIN:15,'VICE CAPTAIN':25,TANK:0,STRATEGIST:15,DUELIST:25,SUPPORT:8},    // Minato: yellow flash, elite duelist/vice
+"nr14":{CAPTAIN:8,'VICE CAPTAIN':15,TANK:25,STRATEGIST:-8,DUELIST:25,SUPPORT:0},    // Guy: pure power, 8 gates duelist/tank
+"nr15":{CAPTAIN:0,'VICE CAPTAIN':8,TANK:15,STRATEGIST:-8,DUELIST:15,SUPPORT:0},     // Rock Lee: taijutsu duelist/tank
+"nr16":{CAPTAIN:15,'VICE CAPTAIN':8,TANK:25,STRATEGIST:8,DUELIST:8,SUPPORT:15},     // Gaara: kazekage, sand tank/support
+"nr17":{CAPTAIN:8,'VICE CAPTAIN':15,TANK:15,STRATEGIST:0,DUELIST:15,SUPPORT:8},     // Killer Bee: jinchuriki vice/duelist
+"nr18":{CAPTAIN:0,'VICE CAPTAIN':15,TANK:8,STRATEGIST:8,DUELIST:15,SUPPORT:8},      // Neji: byakugan vice/duelist
+"nr19":{CAPTAIN:0,'VICE CAPTAIN':0,TANK:0,STRATEGIST:0,DUELIST:0,SUPPORT:25},       // Hinata: gentle fist support
+"nr20":{CAPTAIN:0,'VICE CAPTAIN':8,TANK:-8,STRATEGIST:25,DUELIST:-8,SUPPORT:15},    // Shikamaru: 200 IQ god-tier strategist
+"nr21":{CAPTAIN:0,'VICE CAPTAIN':0,TANK:0,STRATEGIST:15,DUELIST:0,SUPPORT:25},      // Kabuto: medical spy, sage support
+"nr22":{CAPTAIN:0,'VICE CAPTAIN':8,TANK:0,STRATEGIST:8,DUELIST:15,SUPPORT:0},       // Deidara: explosive artist duelist
+"nr23":{CAPTAIN:0,'VICE CAPTAIN':8,TANK:8,STRATEGIST:15,DUELIST:8,SUPPORT:8},       // Sasori: puppet master strategist
+"nr24":{CAPTAIN:0,'VICE CAPTAIN':15,TANK:25,STRATEGIST:0,DUELIST:15,SUPPORT:0},     // Kisame: shark tank/duelist
+"nr25":{CAPTAIN:0,'VICE CAPTAIN':0,TANK:15,STRATEGIST:0,DUELIST:8,SUPPORT:0},       // Hidan: immortal tank
+"nr26":{CAPTAIN:0,'VICE CAPTAIN':8,TANK:15,STRATEGIST:8,DUELIST:8,SUPPORT:0},       // Kakuzu: five hearts tank
+"nr27":{CAPTAIN:0,'VICE CAPTAIN':8,TANK:0,STRATEGIST:15,DUELIST:0,SUPPORT:25},      // Konan: origami support/strategist
+"nr28":{CAPTAIN:0,'VICE CAPTAIN':8,TANK:0,STRATEGIST:0,DUELIST:15,SUPPORT:0},       // Zabuza: demon duelist
+"nr29":{CAPTAIN:0,'VICE CAPTAIN':0,TANK:0,STRATEGIST:0,DUELIST:8,SUPPORT:25},       // Haku: ice mirror support
+"nr30":{CAPTAIN:15,'VICE CAPTAIN':15,TANK:0,STRATEGIST:25,DUELIST:15,SUPPORT:8},    // Tobirama: inventor, water strategist
+"nr31":{CAPTAIN:25,'VICE CAPTAIN':8,TANK:8,STRATEGIST:15,DUELIST:8,SUPPORT:8},      // Hiruzen: professor, knows all jutsu
+"nr32":{CAPTAIN:8,'VICE CAPTAIN':0,TANK:0,STRATEGIST:25,DUELIST:0,SUPPORT:0},       // Danzo: shadow schemer
+"nr33":{CAPTAIN:25,'VICE CAPTAIN':0,TANK:25,STRATEGIST:8,DUELIST:25,SUPPORT:8},     // Kaguya: goddess, raw power everything
+"nr34":{CAPTAIN:0,'VICE CAPTAIN':0,TANK:0,STRATEGIST:8,DUELIST:8,SUPPORT:15},       // Temari: wind fan support
+"nr35":{CAPTAIN:0,'VICE CAPTAIN':0,TANK:0,STRATEGIST:8,DUELIST:0,SUPPORT:25},       // Ino: mind-transfer support
+"nr36":{CAPTAIN:0,'VICE CAPTAIN':0,TANK:0,STRATEGIST:0,DUELIST:8,SUPPORT:0},        // Kiba: fang duelist
+"nr37":{CAPTAIN:0,'VICE CAPTAIN':8,TANK:0,STRATEGIST:8,DUELIST:8,SUPPORT:8},        // Asuma: balanced jonin
+"nr38":{CAPTAIN:0,'VICE CAPTAIN':8,TANK:8,STRATEGIST:0,DUELIST:0,SUPPORT:25},       // Yamato: wood-style support/containment
+"nr39":{CAPTAIN:0,'VICE CAPTAIN':0,TANK:0,STRATEGIST:15,DUELIST:0,SUPPORT:15},      // Shino: insect recon support/strategist
+"nr40":{CAPTAIN:0,'VICE CAPTAIN':8,TANK:25,STRATEGIST:0,DUELIST:8,SUPPORT:0},       // Choji: butterfly tank
+"nr41":{CAPTAIN:0,'VICE CAPTAIN':25,TANK:0,STRATEGIST:15,DUELIST:25,SUPPORT:0},     // Shisui: body-flicker, genjutsu god duelist
+"nr42":{CAPTAIN:15,'VICE CAPTAIN':15,TANK:25,STRATEGIST:0,DUELIST:15,SUPPORT:0},    // Ay: raikage lightning tank
+"nr43":{CAPTAIN:15,'VICE CAPTAIN':0,TANK:15,STRATEGIST:25,DUELIST:0,SUPPORT:8},     // Ohnoki: tsuchikage, particle strategist
+"nr44":{CAPTAIN:0,'VICE CAPTAIN':8,TANK:15,STRATEGIST:0,DUELIST:25,SUPPORT:0},      // Kimimaro: bone duelist
+"nr45":{CAPTAIN:25,'VICE CAPTAIN':8,TANK:15,STRATEGIST:25,DUELIST:15,SUPPORT:25},   // Hagoromo: sage of six paths, transcendent
+"nr46":{CAPTAIN:8,'VICE CAPTAIN':0,TANK:0,STRATEGIST:8,DUELIST:8,SUPPORT:15},       // Mei: lava/acid mizukage support
+// --- NEW CHARACTER ROLE FITS ---
+"op59":{captain:"B",vice:"B",tank:"B",strat:"B",duelist:"B",support:"A"},
+"op60":{captain:"B",vice:"B",tank:"B",strat:"C",duelist:"C",support:"A"},
+"op61":{captain:"B",vice:"B",tank:"C",strat:"C",duelist:"C",support:"B"},
+"op62":{captain:"B",vice:"B",tank:"A",strat:"C",duelist:"C",support:"A"},
+"op63":{captain:"B",vice:"B",tank:"B",strat:"C",duelist:"C",support:"B"},
+"op64":{captain:"B",vice:"B",tank:"C",strat:"C",duelist:"B",support:"A"},
+"op65":{captain:"B",vice:"B",tank:"B",strat:"B",duelist:"B",support:"C"},
+"op66":{captain:"B",vice:"B",tank:"B",strat:"B",duelist:"B",support:"A"},
+"op67":{captain:"B",vice:"B",tank:"A",strat:"B",duelist:"C",support:"C"},
+"op68":{captain:"A",vice:"A",tank:"A",strat:"C",duelist:"B",support:"S"},
+"op69":{captain:"B",vice:"B",tank:"B",strat:"A",duelist:"C",support:"B"},
+"op70":{captain:"A",vice:"A",tank:"A",strat:"A",duelist:"B",support:"C"},
+"op71":{captain:"B",vice:"B",tank:"C",strat:"B",duelist:"B",support:"A"},
+"op72":{captain:"B",vice:"B",tank:"A",strat:"B",duelist:"B",support:"A"},
+"op73":{captain:"A",vice:"A",tank:"S",strat:"A",duelist:"B",support:"A"},
+"op74":{captain:"A",vice:"A",tank:"A",strat:"B",duelist:"B",support:"A"},
+"op75":{captain:"B",vice:"B",tank:"B",strat:"B",duelist:"B",support:"A"},
+"op76":{captain:"B",vice:"B",tank:"B",strat:"B",duelist:"B",support:"A"},
+"op77":{captain:"A",vice:"A",tank:"S",strat:"B",duelist:"C",support:"A"},
+"op78":{captain:"B",vice:"B",tank:"B",strat:"C",duelist:"C",support:"B"},
+"op79":{captain:"B",vice:"B",tank:"B",strat:"B",duelist:"B",support:"B"},
+"op80":{captain:"B",vice:"B",tank:"B",strat:"B",duelist:"B",support:"C"},
+"op81":{captain:"B",vice:"B",tank:"B",strat:"B",duelist:"B",support:"C"},
+"op82":{captain:"B",vice:"B",tank:"A",strat:"B",duelist:"B",support:"C"},
+"op83":{captain:"B",vice:"B",tank:"B",strat:"B",duelist:"B",support:"C"},
+"op84":{captain:"B",vice:"B",tank:"A",strat:"B",duelist:"B",support:"C"},
+"op85":{captain:"B",vice:"B",tank:"B",strat:"B",duelist:"B",support:"C"},
+"op86":{captain:"B",vice:"B",tank:"B",strat:"B",duelist:"B",support:"A"},
+"op87":{captain:"B",vice:"B",tank:"S",strat:"C",duelist:"C",support:"S"},
+"op88":{captain:"B",vice:"B",tank:"B",strat:"B",duelist:"A",support:"C"},
+"op89":{captain:"A",vice:"A",tank:"S",strat:"C",duelist:"B",support:"C"},
+"op90":{captain:"B",vice:"B",tank:"B",strat:"B",duelist:"B",support:"A"},
+"op91":{captain:"B",vice:"B",tank:"B",strat:"C",duelist:"B",support:"B"},
+"op92":{captain:"C",vice:"C",tank:"C",strat:"C",duelist:"C",support:"C"},
+"op93":{captain:"B",vice:"B",tank:"C",strat:"C",duelist:"C",support:"A"},
+"op94":{captain:"B",vice:"B",tank:"A",strat:"A",duelist:"B",support:"C"},
+"op95":{captain:"B",vice:"B",tank:"B",strat:"B",duelist:"B",support:"B"},
+"op96":{captain:"B",vice:"B",tank:"A",strat:"B",duelist:"C",support:"A"},
+"op97":{captain:"B",vice:"B",tank:"C",strat:"B",duelist:"B",support:"C"},
+"op98":{captain:"B",vice:"B",tank:"B",strat:"C",duelist:"C",support:"A"},
+"op99":{captain:"A",vice:"A",tank:"A",strat:"A",duelist:"B",support:"C"},
+"op100":{captain:"A",vice:"A",tank:"C",strat:"A",duelist:"B",support:"C"},
+"op101":{captain:"S",vice:"S",tank:"S",strat:"S",duelist:"S",support:"S"},
+"op102":{captain:"C",vice:"B",tank:"C",strat:"C",duelist:"C",support:"B"},
+"nr47":{captain:"S",vice:"S",tank:"A",strat:"A",duelist:"A",support:"S"},
+"nr48":{captain:"S",vice:"S",tank:"S",strat:"A",duelist:"S",support:"C"},
+"nr49":{captain:"A",vice:"A",tank:"C",strat:"A",duelist:"B",support:"S"},
+"nr50":{captain:"A",vice:"A",tank:"B",strat:"A",duelist:"B",support:"A"},
+"nr51":{captain:"A",vice:"A",tank:"B",strat:"B",duelist:"B",support:"A"},
+"nr52":{captain:"B",vice:"B",tank:"B",strat:"B",duelist:"C",support:"A"},
+"nr53":{captain:"B",vice:"B",tank:"B",strat:"C",duelist:"B",support:"A"},
+"nr54":{captain:"B",vice:"B",tank:"B",strat:"C",duelist:"C",support:"A"},
+"nr55":{captain:"B",vice:"B",tank:"A",strat:"C",duelist:"B",support:"A"},
+"nr56":{captain:"B",vice:"B",tank:"B",strat:"C",duelist:"B",support:"A"},
+"nr57":{captain:"B",vice:"B",tank:"C",strat:"C",duelist:"B",support:"A"},
+"nr58":{captain:"B",vice:"B",tank:"C",strat:"A",duelist:"C",support:"B"},
+"nr59":{captain:"C",vice:"C",tank:"C",strat:"C",duelist:"C",support:"B"},
+"nr60":{captain:"A",vice:"A",tank:"A",strat:"A",duelist:"B",support:"A"},
+"nr61":{captain:"C",vice:"B",tank:"C",strat:"B",duelist:"C",support:"B"},
+"nr62":{captain:"B",vice:"B",tank:"C",strat:"C",duelist:"C",support:"B"},
+"nr63":{captain:"B",vice:"B",tank:"B",strat:"C",duelist:"C",support:"B"},
+"nr64":{captain:"C",vice:"B",tank:"B",strat:"C",duelist:"C",support:"B"},
+"nr65":{captain:"B",vice:"B",tank:"C",strat:"C",duelist:"C",support:"B"},
+"nr66":{captain:"B",vice:"B",tank:"C",strat:"A",duelist:"C",support:"A"},
+"nr67":{captain:"B",vice:"B",tank:"C",strat:"C",duelist:"B",support:"A"},
+"nr68":{captain:"B",vice:"B",tank:"B",strat:"C",duelist:"B",support:"A"},
+"nr69":{captain:"C",vice:"B",tank:"C",strat:"A",duelist:"C",support:"B"},
+"nr70":{captain:"A",vice:"A",tank:"B",strat:"B",duelist:"B",support:"A"},
+"nr71":{captain:"B",vice:"B",tank:"C",strat:"C",duelist:"C",support:"C"},
+"nr72":{captain:"B",vice:"B",tank:"B",strat:"B",duelist:"B",support:"C"},
+"nr73":{captain:"B",vice:"B",tank:"C",strat:"B",duelist:"B",support:"B"},
+"nr74":{captain:"B",vice:"B",tank:"C",strat:"C",duelist:"C",support:"B"},
+"nr75":{captain:"B",vice:"B",tank:"C",strat:"B",duelist:"C",support:"B"},
+"nr76":{captain:"B",vice:"B",tank:"C",strat:"C",duelist:"C",support:"B"},
+"nr77":{captain:"C",vice:"C",tank:"C",strat:"C",duelist:"C",support:"C"},
+"nr78":{captain:"B",vice:"B",tank:"C",strat:"C",duelist:"A",support:"C"},
+"nr79":{captain:"B",vice:"B",tank:"B",strat:"A",duelist:"C",support:"C"},
+"nr80":{captain:"B",vice:"B",tank:"C",strat:"S",duelist:"C",support:"B"},
+"nr81":{captain:"B",vice:"B",tank:"B",strat:"B",duelist:"B",support:"A"},
+"nr82":{captain:"C",vice:"B",tank:"C",strat:"C",duelist:"C",support:"B"},
+"nr83":{captain:"B",vice:"B",tank:"B",strat:"B",duelist:"A",support:"C"},
+"nr84":{captain:"B",vice:"B",tank:"C",strat:"B",duelist:"B",support:"A"},
+"nr85":{captain:"B",vice:"B",tank:"B",strat:"C",duelist:"B",support:"A"},
+"nr86":{captain:"A",vice:"A",tank:"A",strat:"C",duelist:"B",support:"A"},
+"nr87":{captain:"B",vice:"B",tank:"B",strat:"B",duelist:"B",support:"A"},
+"nr88":{captain:"B",vice:"B",tank:"C",strat:"B",duelist:"C",support:"B"},
+"nr89":{captain:"B",vice:"B",tank:"C",strat:"B",duelist:"C",support:"C"},
+"nr90":{captain:"B",vice:"B",tank:"C",strat:"B",duelist:"C",support:"B"},
+"nr91":{captain:"C",vice:"C",tank:"C",strat:"C",duelist:"C",support:"C"},
+"nr92":{captain:"B",vice:"B",tank:"C",strat:"C",duelist:"C",support:"C"},
+"nr93":{captain:"B",vice:"B",tank:"C",strat:"A",duelist:"C",support:"C"},
+"nr94":{captain:"B",vice:"B",tank:"B",strat:"A",duelist:"B",support:"A"},
+"nr95":{captain:"A",vice:"A",tank:"B",strat:"B",duelist:"B",support:"A"},
+"nr96":{captain:"B",vice:"B",tank:"B",strat:"B",duelist:"B",support:"A"},
+"nr97":{captain:"S",vice:"S",tank:"A",strat:"A",duelist:"S",support:"C"},
+"nr98":{captain:"C",vice:"C",tank:"C",strat:"C",duelist:"C",support:"C"},
+"nr99":{captain:"B",vice:"B",tank:"C",strat:"B",duelist:"B",support:"A"},
+"nr100":{captain:"S",vice:"S",tank:"A",strat:"S",duelist:"A",support:"S"},
+};
+
+// Stat-based fallback weights per role
+const ROLE_STAT_W={
+  'CAPTAIN':     {atk:.30,def:.15,spd:.10,haki:.40,df:.05},
+  'VICE CAPTAIN':{atk:.25,def:.25,spd:.20,haki:.25,df:.05},
+  'TANK':        {atk:.10,def:.50,spd:.05,haki:.25,df:.10},
+  'STRATEGIST':  {atk:.05,def:.10,spd:.15,haki:.20,df:.50},
+  'DUELIST':     {atk:.35,def:.10,spd:.30,haki:.15,df:.10},
+  'SUPPORT':     {atk:.05,def:.20,spd:.20,haki:.15,df:.40}
+};
+
+function roleScore(c,role){
+  let w=ROLE_STAT_W[role];
+  let base=Math.round(c.atk*w.atk+c.def*w.def+c.spd*w.spd+c.haki*w.haki+c.df*w.df);
+  let fit=ROLE_FIT[c.id];
+  return base+(fit?fit[role]||0:0);
+}
+
+function roleFitGrade(c,role){
+  let fit=ROLE_FIT[c.id];
+  if(!fit)return{grade:'B',color:'#45B7D1',label:'DECENT'};
+  let v=fit[role]||0;
+  if(v>=25)return{grade:'S',color:'#FFD700',label:'ELITE'};
+  if(v>=15)return{grade:'A',color:'#4ECDC4',label:'GREAT'};
+  if(v>=8)return{grade:'B',color:'#45B7D1',label:'GOOD'};
+  if(v>=0)return{grade:'C',color:'#96CEB4',label:'OK'};
+  return{grade:'D',color:'#E03131',label:'POOR'};
+}
+
+// ---- Team Synergy System ----
+function calcTeamSynergy(team){
+  let chars=ROLES.map(r=>team[r]).filter(Boolean);
+  let synergies=[], totalBonus=0;
+  // 1. Same anime cohesion
+  let ac={};chars.forEach(c=>{ac[c.anime]=(ac[c.anime]||0)+1});
+  for(let a in ac){
+    if(ac[a]>=4){let b=ac[a]*2;totalBonus+=b;
+      synergies.push({name:a==='onepiece'?'CREW BOND':'VILLAGE BOND',desc:`${ac[a]} from same world fight as one`,bonus:b,color:'#FFD700'})}}
+  // 2. Rival duo
+  for(let i=0;i<chars.length;i++)for(let j=i+1;j<chars.length;j++){
+    if(isRival(chars[i],chars[j])){totalBonus+=8;
+      synergies.push({name:'RIVAL FIRE',desc:`${chars[i].name} & ${chars[j].name} push each other beyond limits`,bonus:8,color:'#FF6B6B'})}}
+  // 3. Captain-Vice willpower
+  let cap=team['CAPTAIN'],vice=team['VICE CAPTAIN'];
+  if(cap&&vice&&cap.haki+vice.haki>=170){totalBonus+=6;
+    synergies.push({name:'COMMAND DUO',desc:`${cap.name} + ${vice.name} dominate with unbreakable will`,bonus:6,color:'#4ECDC4'})}
+  // 4. Healer present
+  let healerIds=['op8','nr3','nr11','op49','nr21','nr19','nr29','op44'];
+  let healers=chars.filter(c=>healerIds.includes(c.id));
+  if(healers.length>0){let b=healers.length*5;totalBonus+=b;
+    synergies.push({name:'MEDIC ON CALL',desc:`${healers.map(h=>h.name).join(' & ')} keeps everyone standing`,bonus:b,color:'#96CEB4'})}
+  // 5. Elite strategist
+  let strat=team['STRATEGIST'];
+  if(strat){let fit=ROLE_FIT[strat.id];
+    if(fit&&fit['STRATEGIST']>=25){totalBonus+=7;
+      synergies.push({name:'MASTER PLAN',desc:`${strat.name}'s genius elevates the entire squad`,bonus:7,color:'#9B59B6'})}}
+  // 6. Tank wall
+  let tank=team['TANK'];
+  if(tank&&tank.def>=90){totalBonus+=5;
+    synergies.push({name:'IRON WALL',desc:`${tank.name}'s defense is nearly impenetrable`,bonus:5,color:'#3498DB'})}
+  // 7. Elite duelist
+  let duel=team['DUELIST'];
+  if(duel){let fit=ROLE_FIT[duel.id];
+    if(fit&&fit['DUELIST']>=25){totalBonus+=6;
+      synergies.push({name:'ACE FIGHTER',desc:`${duel.name} is an unstoppable 1v1 force`,bonus:6,color:'#E67E22'})}}
+  return{synergies,totalBonus};
+}
+
+// ---- Draft State ----
+let draft={pPool:[],cPool:[],pTeam:{},cTeam:{},drawIdx:0,skipUsed:false,phase:'drawing',currentDraw:null,bench:null};
+
+function startDraft(){
+  let chars=getActiveChars();
+  if(chars.length<14){
+    if(selectedAnimes.size===0){alert('Select an anime first!');return}
+    alert('Need at least 14 characters. Select an anime with enough fighters.');return}
+  chars=shuffle([...chars]);
+  draft={pPool:chars.slice(0,7),cPool:chars.slice(7,14),pTeam:{},cTeam:{},drawIdx:0,skipUsed:false,phase:'drawing',currentDraw:null,bench:null};
+  autoDraftCPU(draft.cPool);
+  document.getElementById('draft-modal').classList.add('open');
+  nextDraftDraw();
+}
+
+function autoDraftCPU(pool){
+  let rem=[...pool],best={};
+  for(let role of ROLES){let bi=-1,bs=-1;
+    for(let i=0;i<rem.length;i++){let s=roleScore(rem[i],role);if(s>bs){bs=s;bi=i}}
+    if(bi>=0){best[role]=rem.splice(bi,1)[0]}}
+  draft.cTeam=best;
+}
+
+function nextDraftDraw(){
+  if(draft.drawIdx>=7){
+    let filled=ROLES.filter(r=>draft.pTeam[r]).length;
+    if(filled>=6){draft.phase=draft.skipUsed?'result':'rearrange'}
+    else{draft.phase='drawing'}
+    renderDraft();return}
+  draft.currentDraw=draft.pPool[draft.drawIdx];
+  draft.phase='drawing';renderDraft();
+}
+
+function draftAssign(role){
+  let c=draft.currentDraw;if(!c||draft.pTeam[role])return;
+  draft.pTeam[role]=c;draft.drawIdx++;draft.currentDraw=null;nextDraftDraw();
+}
+
+function draftSkip(){
+  if(draft.skipUsed)return;
+  draft.skipUsed=true;draft.bench=draft.currentDraw;
+  draft.drawIdx++;draft.currentDraw=null;nextDraftDraw();
+}
+
+let rearrangeFirst=null;
+function rearrangeSelect(role){
+  if(!draft.pTeam[role])return;
+  if(!rearrangeFirst){rearrangeFirst=role;renderDraft();return}
+  if(rearrangeFirst===role){rearrangeFirst=null;renderDraft();return}
+  let tmp=draft.pTeam[rearrangeFirst];
+  draft.pTeam[rearrangeFirst]=draft.pTeam[role];
+  draft.pTeam[role]=tmp;rearrangeFirst=null;renderDraft();
+}
+function finishRearrange(){rearrangeFirst=null;draft.phase='result';renderDraft()}
+function closeDraft(){document.getElementById('draft-modal').classList.remove('open')}
+
+function renderDraft(){
+  let html='';
+  if(draft.phase==='drawing'){
+    let c=draft.currentDraw,filled=ROLES.filter(r=>draft.pTeam[r]).length;
+    let emptyRoles=ROLES.filter(r=>!draft.pTeam[r]);
+    html+=`<div class="dr-header"><h2>\u{1F465} TEAM DRAFT</h2>
+      <div class="dr-round">DRAW ${draft.drawIdx+1}/7 \u00b7 ${filled}/6 SLOTS${draft.skipUsed?' \u00b7 SKIP USED':' \u00b7 1 SKIP'}</div></div>`;
+    if(c){
+      let tc=TC[c.tier];
+      html+=`<div class="dr-draw-area">
+        <div class="dr-drawn-card" style="border-color:${c.color}88">
+          <div class="dr-drawn-img" style="background:linear-gradient(180deg,${c.color}20,#0f0f1a)">
+            <div class="dr-big-em">${c.emoji}</div><img id="dr-draw-img" alt="" style="opacity:0"></div>
+          <div class="dr-drawn-info">
+            <div class="dr-drawn-name">${c.name}</div>
+            <div class="dr-drawn-title" style="color:${c.color}">${c.title}</div>
+            <div class="dr-drawn-pwr">PWR <span style="color:${tc}">${getEP(c)}</span></div>
+            <div style="font-family:'Chakra Petch',sans-serif;font-size:7px;color:#888;margin-top:4px;letter-spacing:.5px;line-height:1.8">
+              ${ROLES.map(r=>{let fg=roleFitGrade(c,r);return `<span style="color:${fg.color}">${ROLE_ICONS[r]}${r.split(' ')[0]} ${roleScore(c,r)} <b>${fg.grade}</b></span>`}).join(' \u00b7 ')}
+            </div></div></div>
+        <div class="dr-actions">
+          ${emptyRoles.map(r=>{let fg=roleFitGrade(c,r);
+            return `<button class="dr-action-btn" onclick="draftAssign('${r}')" style="border-color:${fg.color}55"><span style="color:${fg.color};font-weight:700">${fg.grade}</span> ${ROLE_ICONS[r]} ${r}</button>`}).join('')}
+          ${emptyRoles.length===0?'<div style="font-family:\'Chakra Petch\',sans-serif;font-size:9px;color:#E03131;margin:4px 0">All slots full! You must skip.</div>':''}
+          <button class="dr-action-btn dr-skip" onclick="draftSkip()" ${draft.skipUsed?'disabled':''}>SKIP</button>
+        </div></div>`;
+    }
+  } else if(draft.phase==='rearrange'){
+    html+=`<div class="dr-header"><h2>\u{1F504} REARRANGE</h2>
+      <div class="dr-round">You didn't use your skip! Tap two roles to swap characters between them.</div></div>
+      <div style="text-align:center;max-width:400px;margin:0 auto 12px">
+      <div class="dr-slots">${renderTeamSlotsInteractive(draft.pTeam)}</div>
+      <div style="margin-top:12px"><button class="btn-battle" onclick="finishRearrange()">LOCK TEAM</button></div></div>`;
+  } else {
+    // RESULT
+    let pSyn=calcTeamSynergy(draft.pTeam),cSyn=calcTeamSynergy(draft.cTeam);
+    let pTotal=0,cTotal=0,rows=[];
+    for(let r of ROLES){
+      let pc=draft.pTeam[r],cc=draft.cTeam[r];
+      let ps=pc?roleScore(pc,r):0,cs=cc?roleScore(cc,r):0;
+      pTotal+=ps;cTotal+=cs;
+      let pw=ps>cs,cw=cs>ps;
+      let pfg=pc?roleFitGrade(pc,r):{grade:'-',color:'#444'},cfg=cc?roleFitGrade(cc,r):{grade:'-',color:'#444'};
+      rows.push(`<div class="dr-role-row">
+        <span class="rr-role">${ROLE_ICONS[r]} ${r}</span>
+        <span class="rr-left" style="color:${pw?'#4ECDC4':'#666'}">${pc?pc.emoji+' '+pc.name:'---'} <span style="color:${pfg.color};font-size:7px;font-weight:700">${pfg.grade}</span> (${ps})</span>
+        <span class="rr-vs">${pw?'\u{2705}':cw?'\u{274C}':'\u{2796}'}</span>
+        <span class="rr-right" style="color:${cw?'#E07070':'#666'}">${cc?cc.emoji+' '+cc.name:'---'} <span style="color:${cfg.color};font-size:7px;font-weight:700">${cfg.grade}</span> (${cs})</span>
+      </div>`);
+    }
+    pTotal+=pSyn.totalBonus;cTotal+=cSyn.totalBonus;
+    let won=pTotal>cTotal,tied=pTotal===cTotal;
+    html+=`<div class="dr-result">
+      <div style="font-family:'Chakra Petch',sans-serif;font-size:11px;color:#666;letter-spacing:3px;margin-bottom:4px">TEAM BATTLE</div>
+      <div class="dr-result-title" style="color:${won?'#FFD700':tied?'#aaa':'#E03131'};text-shadow:${won?'0 0 30px #FFD70044':'none'}">${won?'VICTORY':tied?'DRAW':'DEFEAT'}</div>
+      <div class="dr-total-row"><span style="color:#4ECDC4">${pTotal}</span> <span style="color:#444">vs</span> <span style="color:#E07070">${cTotal}</span></div>
+      <div class="dr-role-results">${rows.join('')}</div>`;
+    // Synergies
+    let synHTML=(label,syn,col)=>{
+      if(!syn.synergies.length)return '';
+      return `<div style="margin-top:10px;font-family:'Bebas Neue',sans-serif;font-size:12px;color:${col};letter-spacing:2px">${label} (+${syn.totalBonus})</div>`+
+        syn.synergies.map(s=>`<div style="font-family:'Chakra Petch',sans-serif;font-size:8px;color:${s.color};letter-spacing:.5px;margin:2px 0">${s.name} +${s.bonus} \u2014 ${s.desc}</div>`).join('');
+    };
+    html+=synHTML('YOUR SYNERGIES',pSyn,'#4ECDC4')+synHTML('ENEMY SYNERGIES',cSyn,'#E07070');
+    html+=`<div style="margin-top:16px">
+        <button class="btn-battle" onclick="startDraft()">REDRAFT</button>
+        <button class="btn-ghost" onclick="closeDraft()" style="margin-top:8px">MENU</button></div></div>`;
+  }
+  if(draft.phase==='drawing'){
+    html+=`<div class="dr-teams">
+      <div class="dr-team"><div class="dr-team-title" style="color:#4ECDC4">YOUR TEAM</div><div class="dr-slots">${renderTeamSlots(draft.pTeam,true)}</div></div>
+      <div class="dr-team"><div class="dr-team-title" style="color:#E07070">ENEMY TEAM</div><div class="dr-slots">${renderTeamSlots(draft.cTeam,false)}</div></div></div>`;
+  }
+  html+=`<div style="text-align:center;margin-top:12px"><button class="btn-ghost" onclick="closeDraft()">CLOSE</button></div>`;
+  document.getElementById('draft-content').innerHTML=html;
+  if(draft.phase==='drawing'&&draft.currentDraw){
+    let img=document.getElementById('dr-draw-img'),em=document.querySelector('.dr-big-em'),url=CHAR_IMGS[draft.currentDraw.id];
+    if(img&&url){img.src=url;img.onload=()=>{img.style.opacity='1';if(em)em.style.opacity='0'}}}
+  loadDraftTeamImages();
+}
+
+function renderTeamSlots(team,isPlayer){
+  return ROLES.map(r=>{
+    let c=team[r],hidden=!isPlayer&&draft.phase==='drawing';
+    if(!c) return `<div class="dr-slot dr-slot-empty"><div class="dr-slot-role">${ROLE_ICONS[r]} ${r}</div><div class="dr-slot-info"><div class="dr-slot-name" style="color:#444">EMPTY</div></div></div>`;
+    if(hidden) return `<div class="dr-slot" style="border-color:#E0707033"><div class="dr-slot-role">${ROLE_ICONS[r]} ${r}</div><div class="dr-slot-info"><div class="dr-slot-name" style="color:#E07070">???</div></div></div>`;
+    let fg=roleFitGrade(c,r);
+    return `<div class="dr-slot" style="border-color:${c.color}44">
+      <div class="dr-slot-role">${ROLE_ICONS[r]} ${r}</div>
+      <div class="dr-slot-thumb"><div class="dr-em">${c.emoji}</div><img data-drt="${c.id}" alt="" style="opacity:0"></div>
+      <div class="dr-slot-info"><div class="dr-slot-name">${c.name}</div>
+        <div class="dr-slot-score" style="color:${fg.color}">${fg.label} ${fg.grade} (${roleScore(c,r)})</div></div></div>`}).join('');
+}
+
+function renderTeamSlotsInteractive(team){
+  return ROLES.map(r=>{
+    let c=team[r];if(!c)return '';
+    let fg=roleFitGrade(c,r),sel=rearrangeFirst===r;
+    return `<div class="dr-slot" style="border-color:${sel?'#FFD700':c.color+'44'};${sel?'box-shadow:0 0 15px #FFD70044;background:#1a1a2e':''};cursor:pointer" onclick="rearrangeSelect('${r}')">
+      <div class="dr-slot-role">${ROLE_ICONS[r]} ${r}</div>
+      <div class="dr-slot-thumb"><div class="dr-em">${c.emoji}</div><img data-drt="${c.id}" alt="" style="opacity:0"></div>
+      <div class="dr-slot-info"><div class="dr-slot-name">${c.name}</div>
+        <div class="dr-slot-score" style="color:${fg.color}">${fg.label} ${fg.grade} (${roleScore(c,r)})</div></div></div>`}).join('');
+}
+
+function loadDraftTeamImages(){
+  document.querySelectorAll('#draft-content img[data-drt]').forEach(img=>{
+    let cid=img.dataset.drt,url=CHAR_IMGS[cid];if(!url)return;
+    let em=img.closest('.dr-slot-thumb')?.querySelector('.dr-em');
+    img.src=url;img.onload=()=>{img.style.opacity='1';if(em)em.style.opacity='0'}});
+}
+
+
+</script>
+<script>
+// PWA: Service Worker Registration
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').then(r=>{
+      console.log('SW registered, scope:',r.scope);
+    }).catch(e=>console.log('SW registration failed:',e));
+  });
+}
+
+// PWA: Install Prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  // Show install button after a short delay
+  setTimeout(()=>{
+    const btn=document.createElement('button');
+    btn.className='btn-ghost';
+    btn.style.cssText='position:fixed;bottom:16px;right:16px;z-index:9999;background:#1a1a2e;border:1px solid #E03131;color:#E03131;padding:8px 16px;border-radius:8px;font-size:11px;letter-spacing:1px;cursor:pointer;opacity:0.9;';
+    btn.textContent='INSTALL APP';
+    btn.onclick=async()=>{
+      deferredPrompt.prompt();
+      const{outcome}=await deferredPrompt.userChoice;
+      deferredPrompt=null;
+      btn.remove();
+    };
+    document.body.appendChild(btn);
+  },3000);
+});
+
+window.addEventListener('appinstalled',()=>{
+  console.log('Anime War installed!');
+  deferredPrompt=null;
+});
+</script>
+</body>
+</html>
