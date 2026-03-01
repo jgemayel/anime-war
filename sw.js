@@ -1,7 +1,9 @@
-const CACHE_NAME = 'anime-war-v1';
+const CACHE_NAME = 'anime-war-v2';
 const ASSETS = [
   './',
   './index.html',
+  './moves.js',
+  './battle.js',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
@@ -247,7 +249,9 @@ self.addEventListener('fetch', e => {
       }).catch(() => {
         // Offline fallback for navigation
         if (e.request.mode === 'navigate') {
-          return caches.match('./index.html');
+          return caches.match('./index.html',
+  './moves.js',
+  './battle.js');
         }
       });
     })

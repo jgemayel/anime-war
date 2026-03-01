@@ -112,6 +112,113 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
 .roster-anime-tag{font-family:'Chakra Petch',sans-serif;font-size:6px;letter-spacing:.8px;padding:1px 4px;border-radius:2px;font-weight:700}
 .roster-rival{font-family:'Chakra Petch',sans-serif;color:#E03131;font-size:6px;letter-spacing:.6px;margin-top:2px}
 .roster-advs{font-family:'Chakra Petch',sans-serif;color:#4ECDC4;font-size:5.5px;letter-spacing:.4px;margin-top:1px;line-height:1.3}
+
+/* ===== BATTLE MODE STYLES ===== */
+#battleSetup,#battleArena,#collectionScreen{position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0a0f;z-index:9999;overflow-y:auto;display:none;flex-direction:column}
+#battleSetup{padding:20px}
+#battleSetup h2{text-align:center;font-family:'Bebas Neue',sans-serif;font-size:28px;color:#FFD700;letter-spacing:3px;margin-bottom:15px}
+.diff-row{display:flex;gap:8px;justify-content:center;margin-bottom:15px}
+.diff-btn{padding:8px 18px;border:2px solid #333;background:#111;color:#aaa;border-radius:8px;cursor:pointer;font-family:'Chakra Petch',sans-serif;font-size:13px;transition:all .2s}
+.diff-btn.diff-active{border-color:#FFD700;color:#FFD700;background:#1a1a00}
+.diff-btn[data-diff="easy"].diff-active{border-color:#4CAF50;color:#4CAF50;background:#0a1a0a}
+.diff-btn[data-diff="hard"].diff-active{border-color:#f44;color:#f44;background:#1a0a0a}
+#battleTeamGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;max-height:55vh;overflow-y:auto;padding:10px;margin-bottom:10px}
+.bt-char{position:relative;border:2px solid #222;border-radius:8px;overflow:hidden;cursor:pointer;transition:all .2s}
+.bt-char img{width:100%;aspect-ratio:5/6;object-fit:cover}
+.bt-char-name{font-size:9px;text-align:center;padding:2px;color:#ccc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Chakra Petch',sans-serif}
+.bt-char-tier{position:absolute;top:2px;right:2px;font-size:9px;padding:1px 4px;border-radius:3px;font-weight:bold}
+.bt-selected{border-color:#FFD700!important;box-shadow:0 0 10px #FFD70055}
+.tier-Sp{background:#ff006640;color:#ff0066}.tier-S{background:#FFD70040;color:#FFD700}.tier-A{background:#9c27b040;color:#ce93d8}.tier-B{background:#2196F340;color:#64B5F6}.tier-C{background:#60606040;color:#999}
+.team-count{text-align:center;color:#FFD700;font-family:'Bebas Neue',sans-serif;font-size:22px;margin:8px 0}
+#btnBattleStart{display:block;margin:0 auto;padding:12px 40px;font-size:18px;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;background:linear-gradient(135deg,#FFD700,#FF8C00);color:#000;border:none;border-radius:10px;cursor:pointer;transition:all .2s}
+#btnBattleStart:disabled{opacity:.3;cursor:not-allowed}
+.bt-back{display:block;margin:10px auto 0;background:none;border:1px solid #444;color:#888;padding:6px 20px;border-radius:6px;cursor:pointer;font-size:12px}
+
+/* Battle Arena */
+#battleArena{display:none;flex-direction:column;padding:10px}
+.arena-top{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 10px}
+.arena-mid{display:flex;justify-content:space-around;align-items:center;flex:1;min-height:200px}
+.fighter-card{text-align:center;width:140px}
+.fighter-card img{width:120px;height:144px;object-fit:cover;border-radius:10px;border:2px solid #333}
+.fighter-card.player-card img{border-color:#4CAF50}
+.fighter-card.enemy-card img{border-color:#f44336}
+.fighter-name{font-family:'Bebas Neue',sans-serif;font-size:16px;color:#fff;margin-top:4px}
+.hp-bar-bg{width:120px;height:10px;background:#222;border-radius:5px;margin:4px auto;overflow:hidden}
+.hp-fill{height:100%;border-radius:5px;transition:width .5s}
+.hp-green{background:linear-gradient(90deg,#4CAF50,#8BC34A)}
+.hp-yellow{background:linear-gradient(90deg,#FF9800,#FFC107)}
+.hp-red{background:linear-gradient(90deg,#f44336,#FF5722)}
+.hp-text{font-size:11px;color:#888;font-family:'Chakra Petch',sans-serif}
+.status-icons{font-size:14px;min-height:18px}
+.team-dots{display:flex;gap:4px;justify-content:center;margin-top:4px}
+.team-dot{width:10px;height:10px;border-radius:50%}
+.dot-alive{background:#4CAF50}.dot-dead{background:#444}
+.vs-text{font-family:'Bebas Neue',sans-serif;font-size:24px;color:#FFD70066}
+
+/* Moves */
+.move-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px}
+.move-btn{padding:10px 6px;border:2px solid #333;background:#111;border-radius:8px;cursor:pointer;text-align:left;transition:all .2s}
+.move-btn:hover:not(:disabled){border-color:#FFD700;background:#1a1a00}
+.move-btn:disabled{opacity:.3;cursor:not-allowed}
+.move-name{display:block;font-family:'Bebas Neue',sans-serif;font-size:14px;color:#fff;letter-spacing:1px}
+.move-info{display:block;font-size:9px;color:#777;font-family:'Chakra Petch',sans-serif;margin-top:2px}
+.move-physical,.move-taijutsu{border-left:3px solid #f44336}
+.move-haki,.move-ninjutsu{border-left:3px solid #9C27B0}
+.move-df,.move-genjutsu{border-left:3px solid #2196F3}
+.move-sword,.move-kenjutsu{border-left:3px solid #FF9800}
+.move-special{border-left:3px solid #FFD700}
+.battle-bottom-btns{display:flex;gap:8px;padding:0 8px 8px;justify-content:center}
+.switch-btn,.forfeit-btn,.back-btn{padding:8px 20px;border:1px solid #444;background:#111;color:#aaa;border-radius:6px;cursor:pointer;font-size:12px}
+.switch-btn:hover{border-color:#4CAF50;color:#4CAF50}
+.forfeit-btn:hover{border-color:#f44;color:#f44}
+
+/* Switch menu */
+.switch-prompt{text-align:center;color:#FFD700;font-family:'Bebas Neue',sans-serif;font-size:18px;padding:10px}
+.switch-grid{display:flex;gap:8px;justify-content:center;padding:8px;flex-wrap:wrap}
+.switch-char-btn{display:flex;align-items:center;gap:8px;padding:8px 12px;border:2px solid #333;background:#111;border-radius:8px;cursor:pointer;color:#fff;min-width:150px}
+.switch-char-btn img{width:40px;height:48px;object-fit:cover;border-radius:6px}
+.switch-char-btn:hover{border-color:#4CAF50}
+.switch-hp{font-size:10px;color:#4CAF50;margin-left:auto}
+
+/* Battle log */
+#battleLog{max-height:100px;overflow-y:auto;padding:5px 10px;border-top:1px solid #222;font-size:11px;color:#aaa;font-family:'Chakra Petch',sans-serif}
+.log-line{padding:2px 0;border-bottom:1px solid #111}
+.log-new{animation:logFade .3s ease}
+@keyframes logFade{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+
+/* Battle result */
+.battle-result{text-align:center;padding:30px}
+.battle-result h2{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:3px}
+.battle-result.won h2{color:#FFD700}
+.battle-result.lost h2{color:#f44}
+.reward-text{color:#4CAF50;font-size:18px;margin:10px 0;font-family:'Chakra Petch',sans-serif}
+.result-btns{display:flex;gap:10px;justify-content:center;margin-top:20px}
+.result-btns button{padding:10px 24px;border:2px solid #FFD700;background:#111;color:#FFD700;border-radius:8px;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:16px}
+
+/* ===== COLLECTION STYLES ===== */
+#collectionScreen{padding:15px}
+.coll-header{text-align:center;margin-bottom:15px}
+.coll-header h2{font-family:'Bebas Neue',sans-serif;font-size:28px;color:#FFD700;letter-spacing:3px}
+.coll-stats{display:flex;gap:15px;justify-content:center;font-size:12px;color:#888;font-family:'Chakra Petch',sans-serif;margin-top:8px}
+.coll-coins{color:#FFD700;font-size:16px;font-weight:bold}
+.coll-filters{display:flex;gap:6px;justify-content:center;margin-bottom:12px;flex-wrap:wrap}
+.coll-filter-btn{padding:5px 14px;border:1px solid #333;background:#111;color:#888;border-radius:20px;cursor:pointer;font-size:11px}
+.coll-filter-btn.filter-active{border-color:#FFD700;color:#FFD700;background:#1a1a00}
+#collGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;max-height:65vh;overflow-y:auto;padding:5px}
+.coll-card{border:2px solid #222;border-radius:8px;overflow:hidden;text-align:center;transition:all .3s;position:relative}
+.coll-unlocked{border-color:#333}
+.coll-locked{border-color:#111;cursor:pointer}
+.coll-locked:hover{border-color:#FFD70066}
+.coll-img-wrap{position:relative}
+.coll-img-wrap img{width:100%;aspect-ratio:5/6;object-fit:cover}
+.coll-silhouette{filter:brightness(0) saturate(0)}
+.coll-cost{position:absolute;bottom:0;left:0;right:0;background:#000a;font-size:10px;color:#FFD700;padding:3px;font-family:'Chakra Petch',sans-serif}
+.coll-cost.can-afford{color:#4CAF50}
+.coll-name{font-size:9px;color:#ccc;padding:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Chakra Petch',sans-serif}
+.coll-tier{font-size:9px;padding:1px 4px;font-weight:bold}
+.coll-just-unlocked{animation:unlockFlash 1s ease}
+@keyframes unlockFlash{0%{box-shadow:0 0 20px #FFD700}100%{box-shadow:none}}
+.coll-back{display:block;margin:10px auto 0;background:none;border:1px solid #444;color:#888;padding:6px 20px;border-radius:6px;cursor:pointer;font-size:12px}
 </style>
 </head>
 <body>
@@ -132,6 +239,10 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
   <div style="display:flex;gap:6px;margin-top:10px;z-index:2">
     <button class="btn-ghost" onclick="openRoster()">VIEW ALL FIGHTERS</button>
     <button class="btn-ghost" onclick="openSandbox()" style="color:#FFD700;border-color:#FFD70044">⚔️ 1v1 SANDBOX</button>
+
+    <button class="btn-ghost" onclick="showBattleSetup()" style="color:#FF6B35;border-color:#FF6B3544">BATTLE MODE</button>
+    <button class="btn-ghost" onclick="showCollection()" style="color:#4CAF50;border-color:#4CAF5044">COLLECTION</button>
+
   </div>
   <div style="margin-top:28px;font-size:9px;color:#383838;font-family:'Chakra Petch',sans-serif;letter-spacing:1.5px;text-align:center;line-height:1.8;max-width:340px;z-index:2">
     104 CHARACTERS · 130+ MATCHUP ADVANTAGES · CROSS-ANIME BATTLES
@@ -1682,5 +1793,67 @@ window.addEventListener('appinstalled',()=>{
   deferredPrompt=null;
 });
 </script>
+
+<!-- ===== BATTLE MODE SETUP ===== -->
+<div id="battleSetup">
+  <h2>BATTLE MODE</h2>
+  <div class="diff-row">
+    <button class="diff-btn" data-diff="easy" onclick="setDifficulty('easy')">EASY</button>
+    <button class="diff-btn diff-active" data-diff="medium" onclick="setDifficulty('medium')">MEDIUM</button>
+    <button class="diff-btn" data-diff="hard" onclick="setDifficulty('hard')">HARD</button>
+  </div>
+  <div class="team-count">SELECT YOUR TEAM: <span id="battleTeamCount">0/3</span></div>
+  <div id="battleTeamGrid"></div>
+  <button id="btnBattleStart" disabled onclick="startBattleFight()">FIGHT!</button>
+  <button class="bt-back" onclick="closeBattle()">Back</button>
+</div>
+
+<!-- ===== BATTLE ARENA ===== -->
+<div id="battleArena">
+  <div class="arena-top">
+    <div class="fighter-card enemy-card">
+      <div class="fighter-name" id="eName"></div>
+      <img id="eImg" src="">
+      <div class="hp-bar-bg"><div class="hp-fill hp-green" id="eHPBar" style="width:100%"></div></div>
+      <div class="hp-text" id="eHPText"></div>
+      <div class="status-icons" id="eStatus"></div>
+      <div class="team-dots" id="eTeamDots"></div>
+    </div>
+    <div class="vs-text">VS</div>
+    <div class="fighter-card player-card">
+      <div class="fighter-name" id="pName"></div>
+      <img id="pImg" src="">
+      <div class="hp-bar-bg"><div class="hp-fill hp-green" id="pHPBar" style="width:100%"></div></div>
+      <div class="hp-text" id="pHPText"></div>
+      <div class="status-icons" id="pStatus"></div>
+      <div class="team-dots" id="pTeamDots"></div>
+    </div>
+  </div>
+  <div id="battleActions"></div>
+  <div id="battleLog"></div>
+</div>
+
+<!-- ===== COLLECTION SCREEN ===== -->
+<div id="collectionScreen">
+  <div class="coll-header">
+    <h2>COLLECTION</h2>
+    <div class="coll-stats">
+      <span class="coll-coins">Coins: <span id="collCoins">0</span></span>
+      <span>Unlocked: <span id="collUnlocked">0</span>/<span id="collTotal">202</span></span>
+      <span>Wins: <span id="collWins">0</span></span>
+    </div>
+  </div>
+  <div class="coll-filters">
+    <button class="coll-filter-btn filter-active" data-filter="all" onclick="setCollFilter('all')">All</button>
+    <button class="coll-filter-btn" data-filter="onepiece" onclick="setCollFilter('onepiece')">One Piece</button>
+    <button class="coll-filter-btn" data-filter="naruto" onclick="setCollFilter('naruto')">Naruto</button>
+    <button class="coll-filter-btn" data-filter="locked" onclick="setCollFilter('locked')">Locked</button>
+  </div>
+  <div id="collGrid"></div>
+  <button class="coll-back" onclick="closeCollection()">Back to Menu</button>
+</div>
+
+<script src="moves.js"></script>
+<script src="battle.js"></script>
 </body>
 </html>
