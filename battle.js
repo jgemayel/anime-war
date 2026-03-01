@@ -34,6 +34,100 @@ function unlockChar(id){
 }
 function addCoins(n){saveData.coins+=n;saveSave();}
 
+
+// ---- TYPE EFFECTIVENESS ----
+// physical/taijutsu beats: sword/kenjutsu (brute force overwhelms)
+// sword/kenjutsu beats: special/df/ninjutsu (precise cuts)
+// haki/genjutsu beats: df/ninjutsu (willpower/illusion disrupts)
+// df/ninjutsu beats: physical/taijutsu (powers overwhelm muscle)
+// special beats: haki/genjutsu (raw power transcends)
+const TYPE_CHART = {
+  physical: {sword:1.3,kenjutsu:1.3,df:0.8,ninjutsu:0.8,genjutsu:1.0,haki:1.0,physical:1.0,taijutsu:1.0,special:0.9},
+  taijutsu: {sword:1.3,kenjutsu:1.3,df:0.8,ninjutsu:0.8,genjutsu:1.0,haki:1.0,physical:1.0,taijutsu:1.0,special:0.9},
+  sword:    {special:1.3,df:1.2,ninjutsu:1.2,physical:0.8,taijutsu:0.8,haki:0.9,sword:1.0,kenjutsu:1.0,genjutsu:1.0},
+  kenjutsu: {special:1.3,df:1.2,ninjutsu:1.2,physical:0.8,taijutsu:0.8,haki:0.9,sword:1.0,kenjutsu:1.0,genjutsu:1.0},
+  haki:     {df:1.3,ninjutsu:1.2,special:0.8,physical:1.0,taijutsu:1.0,sword:1.1,kenjutsu:1.1,haki:1.0,genjutsu:1.0},
+  genjutsu: {df:1.3,ninjutsu:1.3,taijutsu:1.2,physical:1.2,special:0.8,haki:0.8,genjutsu:1.0,sword:1.0,kenjutsu:1.0},
+  df:       {physical:1.3,taijutsu:1.3,haki:0.8,genjutsu:0.8,sword:0.9,kenjutsu:0.9,df:1.0,ninjutsu:1.0,special:1.0},
+  ninjutsu: {physical:1.3,taijutsu:1.3,haki:0.8,genjutsu:0.8,sword:0.9,kenjutsu:0.9,df:1.0,ninjutsu:1.0,special:1.0},
+  special:  {haki:1.2,genjutsu:1.2,sword:0.8,kenjutsu:0.8,physical:1.1,taijutsu:1.1,df:1.0,ninjutsu:1.0,special:1.0}
+};
+
+function getTypeMultiplier(moveType, defenderMoves) {
+  // Defender's "type" is based on their most-used move type
+  if(!defenderMoves||!defenderMoves.length) return 1.0;
+  const defType = defenderMoves[0].type; // Primary type
+  const chart = TYPE_CHART[moveType];
+  return chart ? (chart[defType] || 1.0) : 1.0;
+}
+
+// ---- SOUND EFFECTS (Web Audio API) ----
+let audioCtx = null;
+function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
+
+function playSound(type) {
+  try {
+    initAudio();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    gain.gain.value = 0.15;
+
+    if(type === 'hit') {
+      osc.type = 'sawtooth'; osc.frequency.value = 200;
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+    } else if(type === 'crit') {
+      osc.type = 'square'; osc.frequency.value = 400;
+      gain.gain.value = 0.2;
+      osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+    } else if(type === 'faint') {
+      osc.type = 'sine'; osc.frequency.value = 500;
+      osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.5);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+    } else if(type === 'supereffective') {
+      osc.type = 'triangle'; osc.frequency.value = 600;
+      gain.gain.value = 0.2;
+      osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.15);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+    } else if(type === 'miss') {
+      osc.type = 'sine'; osc.frequency.value = 300;
+      osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.2);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+    } else if(type === 'heal') {
+      osc.type = 'sine'; osc.frequency.value = 400;
+      osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 0.3);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+    } else if(type === 'win') {
+      osc.type = 'square'; osc.frequency.value = 523;
+      gain.gain.value = 0.12;
+      setTimeout(() => { try{const o2=audioCtx.createOscillator();const g2=audioCtx.createGain();o2.connect(g2);g2.connect(audioCtx.destination);o2.type='square';o2.frequency.value=659;g2.gain.value=0.12;g2.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+0.3);o2.start();o2.stop(audioCtx.currentTime+0.3);}catch(e){} }, 150);
+      setTimeout(() => { try{const o3=audioCtx.createOscillator();const g3=audioCtx.createGain();o3.connect(g3);g3.connect(audioCtx.destination);o3.type='square';o3.frequency.value=784;g3.gain.value=0.15;g3.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+0.5);o3.start();o3.stop(audioCtx.currentTime+0.5);}catch(e){} }, 300);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+    }
+  } catch(e) {}
+}
+
+// ---- SCREEN SHAKE ----
+function shakeScreen(intensity) {
+  const arena = document.getElementById('battleArena');
+  if(!arena) return;
+  arena.style.animation = 'none';
+  arena.offsetHeight; // reflow
+  arena.style.animation = intensity === 'big'
+    ? 'bigShake 0.4s ease' : 'smallShake 0.2s ease';
+  setTimeout(() => arena.style.animation = 'none', 500);
+}
+
+
 // ---- HP & DAMAGE CALCULATIONS ----
 function calcMaxHP(ch){
   return Math.floor((ch.def*2.5+150)*(TIER_MULT[ch.tier]||1));
@@ -45,11 +139,13 @@ function calcDamage(atk,def,move){
   const base=((move.power*(atkStat/50))*(50/(50+defStat)))+2;
   const variance=0.85+Math.random()*0.15;
   const spdBonus=atk.spd>def.spd?1.05:1.0;
-  let dmg=Math.floor(base*variance*spdBonus);
+  // Type effectiveness
+  const typeMult=getTypeMultiplier(move.type, def._moves||[]);
+  let dmg=Math.floor(base*variance*spdBonus*typeMult);
   // Crit: 6.25% chance, 1.5x
   const crit=Math.random()<0.0625;
   if(crit) dmg=Math.floor(dmg*1.5);
-  return {dmg:Math.max(1,dmg),crit};
+  return {dmg:Math.max(1,dmg),crit,typeMult};
 }
 
 // ---- BATTLE STATE ----
@@ -69,6 +165,7 @@ class BattleChar{
     this.status=[];
     this.statMod={atk:0,def:0,spd:0};
     this.fainted=false;
+    this._moves=this.moves; // ref for type chart
   }
 }
 
@@ -125,14 +222,17 @@ class Battle{
     move.curPP--;
     // Accuracy
     if(Math.random()*100>move.acc){
-      this.addLog(`${atk.name} used ${move.name}... Miss!`);return;
+      this.addLog(`${atk.name} used ${move.name}... Miss!`);playSound('miss');return;
     }
-    const {dmg,crit}=calcDamage(atk,def,move);
+    const {dmg,crit,typeMult}=calcDamage(atk,def,move);
     def.hp=Math.max(0,def.hp-dmg);
     let msg=`${atk.name} used ${move.name}! ${dmg} dmg!`;
-    if(crit) msg+=` Critical hit!`;
+    if(typeMult>1.1){msg+=` Super effective!`;playSound('supereffective');}
+    else if(typeMult<0.9){msg+=` Not very effective...`;}
+    if(crit){msg+=` Critical hit!`;playSound('crit');shakeScreen('big');}
+    else{playSound('hit');shakeScreen('small');}
     this.addLog(msg);
-    if(def.hp<=0){def.fainted=true;this.addLog(`${def.name} fainted!`);}
+    if(def.hp<=0){def.fainted=true;this.addLog(`${def.name} fainted!`);playSound('faint');shakeScreen('big');}
     // Effect
     if(move.effect&&!def.fainted) this.applyEffect(atk,def,move.effect);
   }
@@ -148,7 +248,7 @@ class Battle{
       const pct=parseInt(eff.split(':')[1]);
       const heal=Math.floor(atk.maxHP*pct/100);
       atk.hp=Math.min(atk.maxHP,atk.hp+heal);
-      this.addLog(`${atk.name} recovered ${heal} HP!`);
+      this.addLog(`${atk.name} recovered ${heal} HP!`);playSound('heal');
     }else if(eff.startsWith('buff_')){
       const st=eff.replace('buff_','');
       atk.statMod[st]=Math.min(3,(atk.statMod[st]||0)+1);
@@ -225,7 +325,7 @@ class Battle{
 
 // ---- AI TEAM SELECTION ----
 function aiSelectTeam(diff){
-  let pool=[...ALL_CHARS];
+  let pool=typeof globalAnimeFilter!=='undefined'&&globalAnimeFilter!=='both'?ALL_CHARS.filter(c=>c.anime===globalAnimeFilter):[...ALL_CHARS];
   if(diff==='easy') pool=pool.filter(c=>c.tier==='B'||c.tier==='C');
   else if(diff==='medium') pool=pool.filter(c=>c.tier==='A'||c.tier==='B'||c.tier==='S');
   else pool=pool.filter(c=>c.tier==='S+'||c.tier==='S'||c.tier==='A');
@@ -248,7 +348,8 @@ function showBattleSetup(){
 
 function renderBattleSetup(){
   const grid=document.getElementById('battleTeamGrid');
-  const unlocked=ALL_CHARS.filter(c=>isUnlocked(c.id));
+  let unlocked=ALL_CHARS.filter(c=>isUnlocked(c.id));
+  if(typeof globalAnimeFilter!=='undefined'&&globalAnimeFilter!=='both') unlocked=unlocked.filter(c=>c.anime===globalAnimeFilter);
   grid.innerHTML=unlocked.map(c=>{
     const sel=selectedBattleTeam.includes(c.id);
     return `<div class="bt-char ${sel?'bt-selected':''}" onclick="toggleBattleChar('${c.id}')">
@@ -346,7 +447,7 @@ function renderBattle(){
   }else if(b.phase==='won'||b.phase==='lost'){
     const reward=b.phase==='won'?DIFF_REWARDS[b.diff]:0;
     const bonus=b.phase==='won'?DIFF_BONUS_WIN[b.diff]:0;
-    if(b.phase==='won'){saveData.wins++;addCoins(reward+bonus);}
+    if(b.phase==='won'){saveData.wins++;addCoins(reward+bonus);playSound('win');}
     else{saveData.losses++;saveSave();}
     actDiv.innerHTML=`<div class="battle-result ${b.phase}">
       <h2>${b.phase==='won'?'VICTORY!':'DEFEAT'}</h2>
@@ -474,7 +575,7 @@ function renderCollection(){
     const unlocked=isUnlocked(c.id);
     const cost=TIER_COSTS[c.tier]||800;
     const canAfford=saveData.coins>=cost;
-    return `<div class="coll-card ${unlocked?'coll-unlocked':'coll-locked'}" ${!unlocked&&canAfford?`onclick="tryUnlock('${c.id}')"`:''}>
+    return `<div class="coll-card ${unlocked?'coll-unlocked':'coll-locked'}" onclick="${unlocked?`showCharDetail('${c.id}')`:(canAfford?`tryUnlock('${c.id}')`:'')}">
       <div class="coll-img-wrap">
         <img src="${CHAR_IMGS[c.id]||'images/'+c.id+'.jpg'}" class="${unlocked?'':'coll-silhouette'}">
         ${!unlocked?`<div class="coll-cost ${canAfford?'can-afford':''}">${cost} coins</div>`:''}
@@ -503,3 +604,212 @@ function closeCollection(){
   document.getElementById('collectionScreen').style.display='none';
   document.getElementById('title-screen').style.display='flex';
 }
+
+
+// ===== CHARACTER DETAIL PAGE =====
+function showCharDetail(id) {
+  const ch = ALL_CHARS.find(c => c.id === id);
+  if(!ch) return;
+  const moves = BATTLE_MOVES[id] || [];
+  const unlocked = isUnlocked(id);
+  const upgrades = getCharUpgrades(id);
+  const currentLevel = getUpgradeLevel(id);
+  const maxHP = calcMaxHP(ch);
+
+  // Stat bar helper
+  function statBar(val, max, color) {
+    const pct = Math.min(100, val/max*100);
+    return `<div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${pct}%;background:${color}"></div></div>`;
+  }
+
+  const modal = document.getElementById('charDetailModal');
+  modal.innerHTML = `
+    <div class="detail-card">
+      <button class="detail-close" onclick="closeCharDetail()">✕</button>
+      <div class="detail-top">
+        <div class="detail-img-wrap">
+          <img src="${CHAR_IMGS[id]||'images/'+id+'.jpg'}" class="detail-img ${unlocked?'':'coll-silhouette'}">
+          <div class="detail-tier tier-${ch.tier.replace('+','p')}">${ch.tier}</div>
+        </div>
+        <div class="detail-info">
+          <div class="detail-name">${ch.name}</div>
+          <div class="detail-title">${ch.title||''}</div>
+          <div class="detail-anime">${ch.anime==='onepiece'?'☠️ One Piece':'🍥 Naruto'}</div>
+          <div class="detail-hp">HP: ${maxHP}</div>
+          ${unlocked?`<div class="detail-level">Battle Level: ${currentLevel}/${upgrades.length}</div>`:''}
+        </div>
+      </div>
+      <div class="detail-stats">
+        <div class="stat-row"><span class="stat-label">ATK</span><span class="stat-val">${ch.atk}</span>${statBar(ch.atk,100,'#f44336')}</div>
+        <div class="stat-row"><span class="stat-label">DEF</span><span class="stat-val">${ch.def}</span>${statBar(ch.def,100,'#2196F3')}</div>
+        <div class="stat-row"><span class="stat-label">SPD</span><span class="stat-val">${ch.spd}</span>${statBar(ch.spd,100,'#4CAF50')}</div>
+        <div class="stat-row"><span class="stat-label">${ch.anime==='onepiece'?'HAKI':'HAKI'}</span><span class="stat-val">${ch.haki||0}</span>${statBar(ch.haki||0,100,'#9C27B0')}</div>
+        <div class="stat-row"><span class="stat-label">${ch.anime==='onepiece'?'DF':'JUTSU'}</span><span class="stat-val">${ch.df||0}</span>${statBar(ch.df||0,100,'#FF9800')}</div>
+      </div>
+      <div class="detail-moves-title">MOVES</div>
+      <div class="detail-moves">${moves.map(m => `
+        <div class="detail-move move-${m.type}">
+          <div class="dm-name">${m.name}</div>
+          <div class="dm-stats">
+            <span class="dm-type">${m.type}</span>
+            <span>Pwr: ${m.power}</span>
+            <span>Acc: ${m.acc}%</span>
+            <span>PP: ${m.pp}</span>
+            ${m.effect?`<span class="dm-effect">${m.effect}</span>`:''}
+          </div>
+        </div>
+      `).join('')}</div>
+      ${unlocked ? renderUpgradeSection(id, ch, currentLevel, upgrades) : `
+        <div class="detail-locked-msg">
+          <div>🔒 Unlock this character to use in Battle Mode</div>
+          <div class="detail-cost">Cost: ${TIER_COSTS[ch.tier]||800} coins</div>
+        </div>
+      `}
+    </div>
+  `;
+  modal.style.display = 'flex';
+}
+
+function closeCharDetail() {
+  document.getElementById('charDetailModal').style.display = 'none';
+}
+
+// ===== UPGRADE / TRANSFORMATION SYSTEM =====
+// Upgrades are per-character. Each has up to 3 tiers with lore-accurate names.
+// Stored in localStorage. Only affects battle mode.
+
+const UPGRADE_KEY = 'animewar_upgrades';
+let upgradeData = loadUpgrades();
+
+function loadUpgrades(){
+  try{const s=localStorage.getItem(UPGRADE_KEY);if(s) return JSON.parse(s);}catch(e){}
+  return {};
+}
+function saveUpgrades(){localStorage.setItem(UPGRADE_KEY,JSON.stringify(upgradeData));}
+function getUpgradeLevel(id){return upgradeData[id]||0;}
+
+// Generic upgrade tiers per tier rank
+const UPGRADE_TEMPLATES = {
+  'S+': [
+    {cost:2000,atkBoost:5,defBoost:5,spdBoost:5,label:'Awakened'},
+    {cost:4000,atkBoost:10,defBoost:8,spdBoost:8,label:'Transcended'},
+    {cost:8000,atkBoost:15,defBoost:12,spdBoost:12,label:'Ultimate Form'}
+  ],
+  'S': [
+    {cost:1500,atkBoost:5,defBoost:4,spdBoost:4,label:'Awakened'},
+    {cost:3000,atkBoost:10,defBoost:8,spdBoost:7,label:'Ascended'},
+    {cost:6000,atkBoost:14,defBoost:11,spdBoost:10,label:'Final Form'}
+  ],
+  'A': [
+    {cost:1000,atkBoost:5,defBoost:4,spdBoost:4,label:'Enhanced'},
+    {cost:2000,atkBoost:9,defBoost:7,spdBoost:6,label:'Awakened'},
+    {cost:4000,atkBoost:13,defBoost:10,spdBoost:9,label:'Peak Form'}
+  ],
+  'B': [
+    {cost:600,atkBoost:4,defBoost:3,spdBoost:3,label:'Trained'},
+    {cost:1200,atkBoost:8,defBoost:6,spdBoost:5,label:'Enhanced'},
+    {cost:2500,atkBoost:12,defBoost:9,spdBoost:8,label:'Awakened'}
+  ],
+  'C': [
+    {cost:300,atkBoost:3,defBoost:2,spdBoost:2,label:'Trained'},
+    {cost:700,atkBoost:6,defBoost:5,spdBoost:4,label:'Enhanced'},
+    {cost:1500,atkBoost:10,defBoost:8,spdBoost:7,label:'Peak Form'}
+  ]
+};
+
+// Lore-accurate transformation names for key characters
+const CHAR_UPGRADES = {
+  op1:[{cost:2000,label:'Gear Second'},{cost:4000,label:'Gear Fourth'},{cost:8000,label:'Gear 5 - Sun God Nika'}],
+  op2:[{cost:2000,label:'Ashura Form'},{cost:4000,label:'King of Hell'},{cost:8000,label:'World\'s Greatest Swordsman'}],
+  op3:[{cost:2000,label:'Diable Jambe'},{cost:4000,label:'Ifrit Jambe'},{cost:8000,label:'Germa Awakening'}],
+  op11:[{cost:1500,label:'Room Mastery'},{cost:3000,label:'K-Room'},{cost:6000,label:'Awakening'}],
+  op13:[{cost:2000,label:'Hybrid Form'},{cost:4000,label:'Flame Dragon'},{cost:8000,label:'Flaming Drum Dragon'}],
+  op19:[{cost:2000,label:'Yami Yami Mastery'},{cost:4000,label:'Gura Gura Power'},{cost:8000,label:'Double Devil Fruit Awakening'}],
+  op20:[{cost:2000,label:'Conqueror\'s Coating'},{cost:4000,label:'Divine Departure'},{cost:8000,label:'Film of Flames'}],
+  op33:[{cost:2000,label:'Roger\'s Haki'},{cost:4000,label:'Pirate King\'s Will'},{cost:8000,label:'King of the Pirates'}],
+  op47:[{cost:1500,label:'Oden Two-Sword'},{cost:3000,label:'Togen Totsuka'},{cost:6000,label:'Oden\'s Will'}],
+  nr1:[{cost:2000,label:'Sage Mode'},{cost:4000,label:'Kurama Chakra Mode'},{cost:8000,label:'Baryon Mode'}],
+  nr2:[{cost:2000,label:'Mangekyo Sharingan'},{cost:4000,label:'Eternal Mangekyo'},{cost:8000,label:'Rinnegan Awakening'}],
+  nr4:[{cost:1500,label:'Mangekyo Sharingan'},{cost:3000,label:'Kamui Mastery'},{cost:6000,label:'Double Mangekyo Susanoo'}],
+  nr5:[{cost:1500,label:'Mangekyo Awakened'},{cost:3000,label:'Susanoo'},{cost:6000,label:'Totsuka Blade + Yata Mirror'}],
+  nr6:[{cost:2000,label:'Eternal Mangekyo'},{cost:4000,label:'Rinnegan'},{cost:8000,label:'Six Paths Madara'}],
+  nr7:[{cost:2000,label:'Sage Mode'},{cost:4000,label:'Wood Golem'},{cost:8000,label:'Shin Susenju'}],
+  nr8:[{cost:2000,label:'Mangekyo Kamui'},{cost:4000,label:'Rinnegan'},{cost:8000,label:'Ten Tails Jinchuriki'}],
+  nr9:[{cost:1500,label:'Six Paths of Pain'},{cost:3000,label:'Chibaku Tensei'},{cost:6000,label:'Planetary Devastation'}],
+  nr14:[{cost:1500,label:'Six Gates'},{cost:3000,label:'Seventh Gate'},{cost:6000,label:'Eight Gates - Night Guy'}],
+  nr33:[{cost:2000,label:'Byakugan Mastery'},{cost:4000,label:'Rinne Sharingan'},{cost:8000,label:'Infinite Tsukuyomi'}],
+};
+
+function getCharUpgrades(id) {
+  if(CHAR_UPGRADES[id]) {
+    const base = UPGRADE_TEMPLATES[ALL_CHARS.find(c=>c.id===id)?.tier||'B'] || UPGRADE_TEMPLATES['B'];
+    return CHAR_UPGRADES[id].map((u,i) => ({...base[i], ...u}));
+  }
+  const ch = ALL_CHARS.find(c=>c.id===id);
+  return UPGRADE_TEMPLATES[ch?.tier||'B'] || UPGRADE_TEMPLATES['B'];
+}
+
+function getUpgradeBoosts(id) {
+  const level = getUpgradeLevel(id);
+  if(level === 0) return {atk:0,def:0,spd:0};
+  const upgrades = getCharUpgrades(id);
+  const u = upgrades[level-1];
+  return {atk:u.atkBoost||0, def:u.defBoost||0, spd:u.spdBoost||0};
+}
+
+function purchaseUpgrade(id) {
+  const level = getUpgradeLevel(id);
+  const upgrades = getCharUpgrades(id);
+  if(level >= upgrades.length) return false;
+  const next = upgrades[level];
+  if(saveData.coins < next.cost) return false;
+  saveData.coins -= next.cost;
+  upgradeData[id] = level + 1;
+  saveSave(); saveUpgrades();
+  showCharDetail(id); // refresh
+  if(typeof renderCollection === 'function') renderCollection();
+  return true;
+}
+
+function renderUpgradeSection(id, ch, currentLevel, upgrades) {
+  let html = '<div class="upgrade-section"><div class="upgrade-title">UPGRADES (Battle Mode)</div>';
+  upgrades.forEach((u, i) => {
+    const owned = currentLevel > i;
+    const available = currentLevel === i;
+    const canAfford = saveData.coins >= u.cost;
+    html += `<div class="upgrade-row ${owned?'upgrade-owned':available?'upgrade-available':'upgrade-locked'}">
+      <div class="upgrade-label">${owned?'✅':available?'➡️':'🔒'} Lv.${i+1}: ${u.label}</div>
+      <div class="upgrade-stats">+${u.atkBoost} ATK, +${u.defBoost} DEF, +${u.spdBoost} SPD</div>
+      ${available && !owned ? `<button class="upgrade-btn ${canAfford?'':'upgrade-cant'}" onclick="purchaseUpgrade('${id}')" ${canAfford?'':'disabled'}>${u.cost} coins</button>` : ''}
+      ${owned ? '<span class="upgrade-owned-tag">OWNED</span>' : ''}
+    </div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+// ===== Apply upgrades to BattleChar (battle mode only) =====
+const _origBattleCharInit = BattleChar.prototype.constructor;
+const _origInitBattleChar = Battle.prototype.pTeam; // just need to override BattleChar
+// Override BattleChar to apply upgrades
+const OrigBattleChar = BattleChar;
+
+// Patch: apply upgrade boosts in battle mode
+(function() {
+  const origCalcMaxHP = calcMaxHP;
+  window.calcMaxHP = function(ch) {
+    // In battle mode, apply upgrade boosts
+    const boosts = getUpgradeBoosts(ch.id);
+    const boosted = {...ch, def: ch.def + boosts.def};
+    return origCalcMaxHP(boosted);
+  };
+
+  const origCalcDamage = calcDamage;
+  window.calcDamage = function(atk, def, move) {
+    const atkBoosts = getUpgradeBoosts(atk.id);
+    const defBoosts = getUpgradeBoosts(def.id);
+    const boostedAtk = {...atk, atk: atk.atk + atkBoosts.atk, spd: atk.spd + atkBoosts.spd};
+    const boostedDef = {...def, def: def.def + defBoosts.def, spd: def.spd + defBoosts.spd};
+    return origCalcDamage(boostedAtk, boostedDef, move);
+  };
+})();

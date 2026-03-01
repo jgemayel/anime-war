@@ -219,6 +219,81 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
 .coll-just-unlocked{animation:unlockFlash 1s ease}
 @keyframes unlockFlash{0%{box-shadow:0 0 20px #FFD700}100%{box-shadow:none}}
 .coll-back{display:block;margin:10px auto 0;background:none;border:1px solid #444;color:#888;padding:6px 20px;border-radius:6px;cursor:pointer;font-size:12px}
+
+/* ===== REDESIGNED MENU ===== */
+.mode-section{margin-top:18px;z-index:2;width:100%;max-width:400px}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 10px}
+.mode-card{display:flex;flex-direction:column;align-items:center;padding:14px 8px;border:2px solid #222;background:#0d0d14;border-radius:12px;cursor:pointer;transition:all .3s;text-align:center}
+.mode-card:hover{transform:translateY(-2px);box-shadow:0 4px 15px #0005}
+.mode-icon{font-size:28px;margin-bottom:6px}
+.mode-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:#fff;margin-bottom:4px}
+.mode-desc{font-size:9px;color:#666;font-family:'Chakra Petch',sans-serif;line-height:1.3}
+.mode-battle{border-color:#FF6B3544;background:linear-gradient(135deg,#1a0a00,#0d0d14)}.mode-battle:hover{border-color:#FF6B35;box-shadow:0 0 15px #FF6B3522}
+.mode-battle .mode-title{color:#FF6B35}
+.mode-card-battle{border-color:#E0313144;background:linear-gradient(135deg,#1a0005,#0d0d14)}.mode-card-battle:hover{border-color:#E03131;box-shadow:0 0 15px #E0313122}
+.mode-card-battle .mode-title{color:#E03131}
+.mode-draft{border-color:#4ECDC444;background:linear-gradient(135deg,#001a18,#0d0d14)}.mode-draft:hover{border-color:#4ECDC4;box-shadow:0 0 15px #4ECDC422}
+.mode-draft .mode-title{color:#4ECDC4}
+.mode-sandbox{border-color:#FFD70044;background:linear-gradient(135deg,#1a1a00,#0d0d14)}.mode-sandbox:hover{border-color:#FFD700;box-shadow:0 0 15px #FFD70022}
+.mode-sandbox .mode-title{color:#FFD700}
+.bottom-links{display:flex;gap:6px;margin-top:12px;z-index:2;flex-wrap:wrap;justify-content:center}
+.anime-btn.selected{border-color:var(--ac)!important;background:color-mix(in srgb,var(--ac) 15%,#0a0a0f)!important;color:var(--ac)!important}
+
+/* Screen shake animations */
+@keyframes smallShake{0%{transform:translateX(0)}25%{transform:translateX(-3px)}50%{transform:translateX(3px)}75%{transform:translateX(-2px)}100%{transform:translateX(0)}}
+@keyframes bigShake{0%{transform:translate(0,0)}10%{transform:translate(-6px,-3px)}20%{transform:translate(6px,3px)}30%{transform:translate(-5px,-2px)}40%{transform:translate(5px,2px)}50%{transform:translate(-3px,-1px)}60%{transform:translate(3px,1px)}70%{transform:translate(-2px,0)}80%{transform:translate(2px,0)}100%{transform:translate(0,0)}}
+/* Super effective flash */
+.type-flash{animation:typeFlash 0.3s ease}
+@keyframes typeFlash{0%{filter:brightness(1)}50%{filter:brightness(2)}100%{filter:brightness(1)}}
+
+/* ===== CHARACTER DETAIL MODAL ===== */
+#charDetailModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000c;z-index:10001;justify-content:center;align-items:flex-start;padding:20px;overflow-y:auto}
+.detail-card{background:#111;border:2px solid #222;border-radius:16px;max-width:380px;width:100%;padding:20px;position:relative}
+.detail-close{position:absolute;top:10px;right:14px;background:none;border:none;color:#666;font-size:20px;cursor:pointer}
+.detail-close:hover{color:#fff}
+.detail-top{display:flex;gap:15px;margin-bottom:15px}
+.detail-img-wrap{position:relative;flex-shrink:0}
+.detail-img{width:100px;height:120px;object-fit:cover;border-radius:10px;border:2px solid #333}
+.detail-tier{position:absolute;top:4px;right:4px;font-size:11px;padding:2px 6px;border-radius:4px;font-weight:bold}
+.detail-info{flex:1}
+.detail-name{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#fff;letter-spacing:1px}
+.detail-title{font-size:10px;color:#666;font-family:'Chakra Petch',sans-serif;margin-top:2px}
+.detail-anime{font-size:11px;color:#888;margin-top:4px}
+.detail-hp{font-size:12px;color:#4CAF50;margin-top:6px;font-family:'Chakra Petch',sans-serif}
+.detail-level{font-size:11px;color:#FFD700;margin-top:3px;font-family:'Chakra Petch',sans-serif}
+.detail-stats{margin-bottom:15px}
+.stat-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.stat-label{width:38px;font-size:10px;color:#888;font-family:'Chakra Petch',sans-serif;text-align:right}
+.stat-val{width:24px;font-size:12px;color:#fff;font-family:'Chakra Petch',sans-serif;text-align:right}
+.stat-bar-bg{flex:1;height:8px;background:#222;border-radius:4px;overflow:hidden}
+.stat-bar-fill{height:100%;border-radius:4px;transition:width .5s}
+.detail-moves-title{font-family:'Bebas Neue',sans-serif;font-size:16px;color:#FFD700;letter-spacing:2px;margin-bottom:8px}
+.detail-moves{display:flex;flex-direction:column;gap:6px;margin-bottom:15px}
+.detail-move{padding:8px 10px;border:1px solid #222;border-radius:8px;background:#0a0a0f}
+.dm-name{font-family:'Bebas Neue',sans-serif;font-size:14px;color:#fff;letter-spacing:1px}
+.dm-stats{display:flex;gap:8px;font-size:9px;color:#888;font-family:'Chakra Petch',sans-serif;margin-top:3px;flex-wrap:wrap}
+.dm-type{text-transform:uppercase;font-weight:bold}
+.dm-effect{color:#FF9800;font-weight:bold}
+.detail-move.move-physical,.detail-move.move-taijutsu{border-left:3px solid #f44336}
+.detail-move.move-haki,.detail-move.move-ninjutsu{border-left:3px solid #9C27B0}
+.detail-move.move-df,.detail-move.move-genjutsu{border-left:3px solid #2196F3}
+.detail-move.move-sword,.detail-move.move-kenjutsu{border-left:3px solid #FF9800}
+.detail-move.move-special{border-left:3px solid #FFD700}
+.detail-locked-msg{text-align:center;padding:15px;color:#666;font-size:12px}
+.detail-cost{color:#FFD700;font-size:14px;margin-top:5px}
+/* Upgrade section */
+.upgrade-section{border-top:1px solid #222;padding-top:12px}
+.upgrade-title{font-family:'Bebas Neue',sans-serif;font-size:16px;color:#FF6B35;letter-spacing:2px;margin-bottom:8px}
+.upgrade-row{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid #222;border-radius:8px;margin-bottom:5px;flex-wrap:wrap}
+.upgrade-owned{border-color:#4CAF5044;background:#0a1a0a}
+.upgrade-available{border-color:#FFD70044;background:#1a1a00}
+.upgrade-locked{opacity:.5}
+.upgrade-label{font-family:'Chakra Petch',sans-serif;font-size:12px;color:#fff;flex:1;min-width:120px}
+.upgrade-stats{font-size:10px;color:#4CAF50;font-family:'Chakra Petch',sans-serif}
+.upgrade-btn{padding:4px 12px;border:1px solid #FFD700;background:#1a1a00;color:#FFD700;border-radius:6px;cursor:pointer;font-size:11px;font-family:'Chakra Petch',sans-serif}
+.upgrade-btn:hover{background:#332a00}
+.upgrade-cant{opacity:.4;cursor:not-allowed;border-color:#666;color:#666}
+.upgrade-owned-tag{font-size:9px;color:#4CAF50;font-family:'Chakra Petch',sans-serif}
 </style>
 </head>
 <body>
@@ -227,27 +302,45 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
   <div class="title-main">ANIME WAR</div>
   <div class="ck" style="font-size:11px;color:#555;letter-spacing:4px;margin-top:4px;z-index:1">SELECT YOUR ANIME</div>
   <div class="anime-select">
-    <button class="anime-btn" data-anime="onepiece" onclick="toggleAnime(this)" style="--ac:#E03131">☠️ ONE PIECE<span class="tag" style="color:#E03131">58</span></button>
-    <button class="anime-btn" data-anime="naruto" onclick="toggleAnime(this)" style="--ac:#FF7B00">🍥 NARUTO<span class="tag" style="color:#FF7B00">46</span></button>
+    <button class="anime-btn selected" data-anime="both" onclick="setAnimeFilter('both',this)" style="--ac:#FFD700">🌀 BOTH<span class="tag" style="color:#FFD700">202</span></button>
+    <button class="anime-btn" data-anime="onepiece" onclick="setAnimeFilter('onepiece',this)" style="--ac:#E03131">☠️ ONE PIECE<span class="tag" style="color:#E03131">102</span></button>
+    <button class="anime-btn" data-anime="naruto" onclick="setAnimeFilter('naruto',this)" style="--ac:#FF7B00">🍥 NARUTO<span class="tag" style="color:#FF7B00">100</span></button>
   </div>
-  <div class="ck" style="font-size:9px;color:#444;letter-spacing:2px;margin-top:14px;z-index:1" id="select-info">Select one anime to battle</div>
-  <div class="ck" style="font-size:10px;color:#666;letter-spacing:3px;margin-top:18px;z-index:1">CHOOSE MODE</div>
-  <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:8px;z-index:2;max-width:380px" id="mode-buttons">
-    <button class="btn-battle" id="btn-start" onclick="startGame()" disabled style="font-size:18px;padding:10px 28px">⚔️ CARD BATTLE</button>
-    <button class="btn-battle" onclick="startDraft()" disabled style="font-size:18px;padding:10px 28px;background:linear-gradient(135deg,#4ECDC4,#36B5AC)" id="btn-draft">👥 TEAM DRAFT</button>
-  </div>
-  <div style="display:flex;gap:6px;margin-top:10px;z-index:2">
-    <button class="btn-ghost" onclick="openRoster()">VIEW ALL FIGHTERS</button>
-    <button class="btn-ghost" onclick="openSandbox()" style="color:#FFD700;border-color:#FFD70044">⚔️ 1v1 SANDBOX</button>
 
-    <button class="btn-ghost" onclick="showBattleSetup()" style="color:#FF6B35;border-color:#FF6B3544">BATTLE MODE</button>
-    <button class="btn-ghost" onclick="showCollection()" style="color:#4CAF50;border-color:#4CAF5044">COLLECTION</button>
+  <div class="mode-section">
+    <div class="mode-grid">
+      <button class="mode-card mode-battle" onclick="showBattleSetup()">
+        <div class="mode-icon">⚔️</div>
+        <div class="mode-title">BATTLE MODE</div>
+        <div class="mode-desc">Pokemon-style 3v3 turn-based combat with moves, HP and PP</div>
+      </button>
+      <button class="mode-card mode-card-battle" id="btn-start" onclick="startGame()">
+        <div class="mode-icon">🃏</div>
+        <div class="mode-title">CARD BATTLE</div>
+        <div class="mode-desc">Quick stat comparison card fights, best of rounds</div>
+      </button>
+      <button class="mode-card mode-draft" id="btn-draft" onclick="startDraft()">
+        <div class="mode-icon">👥</div>
+        <div class="mode-title">TEAM DRAFT</div>
+        <div class="mode-desc">Draft a 5-man squad with roles and synergy bonuses</div>
+      </button>
+      <button class="mode-card mode-sandbox" onclick="openSandbox()">
+        <div class="mode-icon">🎯</div>
+        <div class="mode-title">1v1 SANDBOX</div>
+        <div class="mode-desc">Pick any two fighters and simulate a head-to-head</div>
+      </button>
+    </div>
+  </div>
 
+  <div class="bottom-links">
+    <button class="btn-ghost" onclick="showCollection()" style="color:#4CAF50;border-color:#4CAF5044">📦 COLLECTION (<span id="menuUnlockCount">20</span>/202)</button>
+    <button class="btn-ghost" onclick="openRoster()">📋 VIEW ALL FIGHTERS</button>
   </div>
-  <div style="margin-top:28px;font-size:9px;color:#383838;font-family:'Chakra Petch',sans-serif;letter-spacing:1.5px;text-align:center;line-height:1.8;max-width:340px;z-index:2">
-    104 CHARACTERS · 130+ MATCHUP ADVANTAGES · CROSS-ANIME BATTLES
+  <div style="margin-top:18px;font-size:9px;color:#383838;font-family:'Chakra Petch',sans-serif;letter-spacing:1.5px;text-align:center;line-height:1.8;max-width:340px;z-index:2">
+    202 CHARACTERS · 808 MOVES · 262 MATCHUPS · POKEMON-STYLE BATTLES
   </div>
-</div>
+
+
 <div id="game-screen" class="screen">
   <div class="scoreboard">
     <div class="score-block"><div class="score-num" id="p-score" style="color:#4ECDC4">0</div><div class="score-label" style="color:#4ECDC488">YOU</div></div>
@@ -1855,5 +1948,44 @@ window.addEventListener('appinstalled',()=>{
 
 <script src="moves.js"></script>
 <script src="battle.js"></script>
+
+<script>
+// ===== GLOBAL ANIME FILTER =====
+let globalAnimeFilter = 'both';
+function setAnimeFilter(filter, btn) {
+  globalAnimeFilter = filter;
+  // Update button states
+  document.querySelectorAll('.anime-select .anime-btn').forEach(b => b.classList.remove('selected'));
+  if(btn) btn.classList.add('selected');
+  // Legacy compat: also set selectedAnime for card battle/draft modes
+  if(filter === 'onepiece') { selectedAnime = 'onepiece'; }
+  else if(filter === 'naruto') { selectedAnime = 'naruto'; }
+  else { selectedAnime = null; }
+  // Enable/disable mode buttons
+  const starts = document.querySelectorAll('#btn-start, #btn-draft');
+  starts.forEach(b => b.disabled = false);
+  // Update collection count on menu
+  updateMenuStats();
+}
+function updateMenuStats() {
+  try {
+    const el = document.getElementById('menuUnlockCount');
+    if(el && typeof saveData !== 'undefined') el.textContent = saveData.unlocked.length;
+  } catch(e) {}
+}
+function getFilteredChars() {
+  if(globalAnimeFilter === 'onepiece') return ALL_CHARS.filter(c => c.anime === 'onepiece');
+  if(globalAnimeFilter === 'naruto') return ALL_CHARS.filter(c => c.anime === 'naruto');
+  return ALL_CHARS;
+}
+// Override battle setup to respect anime filter
+const _origRenderBattleSetup = typeof renderBattleSetup === 'function' ? renderBattleSetup : null;
+document.addEventListener('DOMContentLoaded', function() {
+  // Auto-select 'both' on load
+  setAnimeFilter('both', document.querySelector('.anime-btn[data-anime="both"]'));
+});
+</script>
+
+<div id="charDetailModal"></div>
 </body>
 </html>
