@@ -390,12 +390,14 @@ function renderBattleSetup(){
   // Bet buttons
   const betRow = document.getElementById('betRow');
   if(betRow) {
-    betRow.innerHTML = BET_OPTIONS.map(amt => {
-      const canAfford = amt <= saveData.coins;
+    const betOpts = getBetOptions();
+    betRow.innerHTML = betOpts.map(amt => {
       const selected = currentBet === amt;
-      return `<button class="bet-btn ${selected?'bet-active':''} ${!canAfford&&amt>0?'bet-disabled':''}"
-        onclick="${canAfford?`setBet(${amt})`:''}" ${!canAfford&&amt>0?'disabled':''}>
-        ${amt === 0 ? 'NONE' : amt.toLocaleString()}
+      const isAllIn = amt > 0 && amt === saveData.coins;
+      const label = amt === 0 ? 'NONE' : (isAllIn ? `ALL IN (${amt.toLocaleString()})` : amt.toLocaleString());
+      return `<button class="bet-btn ${selected?'bet-active':''} ${isAllIn?'bet-allin':''}"
+        onclick="setBet(${amt})">
+        ${label}
       </button>`;
     }).join('');
   }
@@ -421,7 +423,15 @@ function toggleBattleChar(id){
 function setDifficulty(d){selectedDifficulty=d;renderBattleSetup();}
 
 let currentBet = 0;
-const BET_OPTIONS = [0, 100, 250, 500, 1000, 2500];
+function getBetOptions() {
+  const coins = saveData.coins || 0;
+  const opts = [0];
+  for(const amt of [100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000]) {
+    if(amt <= coins) opts.push(amt);
+  }
+  if(coins > 0 && opts[opts.length-1] !== coins) opts.push(coins);
+  return opts;
+}
 
 function setBet(amount) {
   if(amount > saveData.coins) return;
