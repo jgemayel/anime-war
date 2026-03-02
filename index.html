@@ -281,19 +281,86 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
 .detail-move.move-special{border-left:3px solid #FFD700}
 .detail-locked-msg{text-align:center;padding:15px;color:#666;font-size:12px}
 .detail-cost{color:#FFD700;font-size:14px;margin-top:5px}
-/* Upgrade section */
-.upgrade-section{border-top:1px solid #222;padding-top:12px}
-.upgrade-title{font-family:'Bebas Neue',sans-serif;font-size:16px;color:#FF6B35;letter-spacing:2px;margin-bottom:8px}
-.upgrade-row{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid #222;border-radius:8px;margin-bottom:5px;flex-wrap:wrap}
-.upgrade-owned{border-color:#4CAF5044;background:#0a1a0a}
-.upgrade-available{border-color:#FFD70044;background:#1a1a00}
-.upgrade-locked{opacity:.5}
-.upgrade-label{font-family:'Chakra Petch',sans-serif;font-size:12px;color:#fff;flex:1;min-width:120px}
-.upgrade-stats{font-size:10px;color:#4CAF50;font-family:'Chakra Petch',sans-serif}
-.upgrade-btn{padding:4px 12px;border:1px solid #FFD700;background:#1a1a00;color:#FFD700;border-radius:6px;cursor:pointer;font-size:11px;font-family:'Chakra Petch',sans-serif}
-.upgrade-btn:hover{background:#332a00}
-.upgrade-cant{opacity:.4;cursor:not-allowed;border-color:#666;color:#666}
-.upgrade-owned-tag{font-size:9px;color:#4CAF50;font-family:'Chakra Petch',sans-serif}
+/* Upgrade section - redesigned */
+.upgrade-section{border-top:1px solid #222;padding-top:15px;margin-top:5px}
+.upgrade-header{margin-bottom:10px}
+.upgrade-title{font-family:'Bebas Neue',sans-serif;font-size:18px;color:#FF6B35;letter-spacing:3px}
+.upgrade-subtitle{font-size:9px;color:#666;font-family:'Chakra Petch',sans-serif;letter-spacing:1px;margin-top:2px}
+.upg-current-boost{font-size:11px;color:#4CAF50;font-family:'Chakra Petch',sans-serif;padding:6px 10px;background:#4CAF5010;border:1px solid #4CAF5033;border-radius:8px;margin-bottom:10px;text-align:center}
+.upgrade-track{display:flex;flex-direction:column;gap:0;position:relative;padding-left:20px}
+.upgrade-track::before{content:'';position:absolute;left:14px;top:16px;bottom:16px;width:2px;background:#222}
+.upg-step{display:flex;gap:10px;align-items:flex-start;padding:6px 0;position:relative}
+.upg-step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;font-family:'Chakra Petch',sans-serif;flex-shrink:0;position:relative;z-index:1}
+.upg-owned .upg-step-dot{background:#4CAF50;color:#fff;border:2px solid #4CAF50}
+.upg-next .upg-step-dot{background:#1a1a00;color:#FFD700;border:2px solid #FFD700;animation:upgPulse 2s infinite}
+.upg-future .upg-step-dot{background:#1a1a1a;color:#555;border:2px solid #333}
+@keyframes upgPulse{0%,100%{box-shadow:0 0 0 0 #FFD70044}50%{box-shadow:0 0 0 6px #FFD70000}}
+.upg-step-body{flex:1;min-width:0}
+.upg-step-name{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px}
+.upg-owned .upg-step-name{color:#4CAF50}
+.upg-next .upg-step-name{color:#FFD700}
+.upg-future .upg-step-name{color:#555}
+.upg-step-stats{display:flex;gap:6px;margin-top:2px;flex-wrap:wrap}
+.upg-stat{font-size:9px;font-family:'Chakra Petch',sans-serif;padding:1px 6px;border-radius:4px}
+.upg-atk{color:#f44336;background:#f4433610}.upg-def{color:#2196F3;background:#2196F310}.upg-spd{color:#4CAF50;background:#4CAF5010}
+.upg-step-badge{font-size:8px;color:#4CAF50;letter-spacing:2px;font-family:'Chakra Petch',sans-serif;margin-top:3px}
+.upg-buy-btn{margin-top:5px;padding:6px 16px;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-family:'Chakra Petch',sans-serif;font-weight:bold;letter-spacing:1px;transition:all .2s}
+.upg-can-buy{background:linear-gradient(135deg,#FFD700,#FF8C00);color:#000}.upg-can-buy:hover{transform:scale(1.02);box-shadow:0 0 12px #FFD70044}
+.upg-no-buy{background:#222;color:#555;cursor:not-allowed}
+.upg-step-cost{font-size:9px;color:#444;font-family:'Chakra Petch',sans-serif;margin-top:2px}
+
+/* Character detail hero redesign */
+.detail-hero{position:relative;width:100%;height:180px;overflow:hidden;border-radius:14px 14px 0 0;margin:-20px -20px 0 -20px;width:calc(100% + 40px)}
+.detail-hero-img{width:100%;height:100%;object-fit:cover;object-position:center top}
+.detail-hero-overlay{position:absolute;bottom:0;left:0;right:0;padding:12px 16px;background:linear-gradient(transparent,#111e)}
+.detail-hero-info{margin-top:4px}
+.detail-hero .detail-tier{position:absolute;top:10px;right:10px}
+.detail-hero .detail-name{font-size:24px;text-shadow:0 2px 8px #000}
+.detail-hero .detail-title{font-size:9px;color:#aaa}
+.detail-anime-tag{font-size:10px;color:#888;margin-top:2px}
+.detail-form-tag{text-align:center;font-family:'Chakra Petch',sans-serif;font-size:10px;letter-spacing:2px;color:#FFD700;padding:6px;background:#FFD70010;border:1px solid #FFD70033;border-radius:6px;margin:12px 0 4px}
+.detail-quick-stats{display:flex;justify-content:space-around;padding:12px 0;border-bottom:1px solid #222;margin-bottom:12px}
+.dqs{text-align:center}.dqs-val{display:block;font-family:'Bebas Neue',sans-serif;font-size:20px;color:#fff}
+.dqs-val small{font-size:12px;color:#4CAF50}
+.dqs-lbl{font-size:8px;color:#666;letter-spacing:2px;font-family:'Chakra Petch',sans-serif}
+.stat-boost{color:#4CAF50;font-size:10px;margin-left:2px}
+.stat-bar-bg{position:relative;flex:1;height:8px;background:#222;border-radius:4px;overflow:hidden}
+.stat-bar-fill{height:100%;border-radius:4px;transition:width .5s;position:absolute;top:0;left:0}
+.stat-bar-base{z-index:1}
+.detail-section-title{font-family:'Bebas Neue',sans-serif;font-size:16px;color:#FFD700;letter-spacing:2px;margin-bottom:8px}
+.dm-top{display:flex;justify-content:space-between;align-items:center}
+.dm-pwr{font-family:'Bebas Neue',sans-serif;font-size:13px;color:#FFD700}
+
+/* Betting system */
+.bet-section{margin-top:12px;text-align:center}
+.bet-label{font-family:'Bebas Neue',sans-serif;font-size:16px;color:#FF6B35;letter-spacing:2px;margin-bottom:6px}
+.bet-sublabel{font-size:9px;color:#666;font-family:'Chakra Petch',sans-serif;margin-bottom:8px}
+#betRow{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:6px}
+.bet-btn{padding:6px 14px;border:2px solid #333;background:#111;color:#aaa;border-radius:8px;cursor:pointer;font-family:'Chakra Petch',sans-serif;font-size:12px;font-weight:bold;transition:all .2s}
+.bet-btn.bet-active{border-color:#FF6B35;color:#FF6B35;background:#1a0800;box-shadow:0 0 8px #FF6B3522}
+.bet-btn.bet-disabled{opacity:.3;cursor:not-allowed}
+.bet-btn:hover:not(.bet-disabled):not(.bet-active){border-color:#555}
+#betPotential{font-size:10px;color:#4CAF50;font-family:'Chakra Petch',sans-serif;min-height:16px}
+.setup-coins{text-align:center;font-family:'Chakra Petch',sans-serif;font-size:14px;color:#FFD700;margin-bottom:10px}
+.bt-char-lvl{position:absolute;bottom:22px;left:2px;font-size:8px;padding:1px 4px;background:#FFD700;color:#000;border-radius:3px;font-weight:bold;font-family:'Chakra Petch',sans-serif}
+
+/* Battle result redesign */
+.reward-breakdown{margin:12px 0;padding:10px;background:#111;border:1px solid #222;border-radius:8px;text-align:center}
+.reward-line{font-size:12px;color:#888;font-family:'Chakra Petch',sans-serif;padding:3px 0}
+.reward-bet{color:#FF6B35;font-weight:bold}
+.reward-total{font-size:16px;color:#4CAF50;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;margin-top:6px;padding-top:6px;border-top:1px solid #222}
+.reward-breakdown.loss .reward-line{color:#f44}
+
+/* Dashboard polish */
+.mode-card{position:relative;overflow:hidden}
+.mode-card::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,#fff05 60%,transparent);opacity:0;transition:opacity .3s}
+.mode-card:hover::after{opacity:1}
+.mode-card .mode-icon{transition:transform .3s}.mode-card:hover .mode-icon{transform:scale(1.15)}
+.setup-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.setup-header h2{margin:0}
+
+.diff-reward{display:block;font-size:9px;color:#4CAF50;margin-top:2px;font-weight:normal;opacity:.7}
+.diff-btn.diff-active .diff-reward{opacity:1}
 </style>
 </head>
 <body>
@@ -1889,14 +1956,23 @@ window.addEventListener('appinstalled',()=>{
 
 <!-- ===== BATTLE MODE SETUP ===== -->
 <div id="battleSetup">
-  <h2>BATTLE MODE</h2>
+  <div class="setup-header">
+    <h2>BATTLE MODE</h2>
+    <div class="setup-coins">💰 <span id="setupCoins">0</span></div>
+  </div>
   <div class="diff-row">
-    <button class="diff-btn" data-diff="easy" onclick="setDifficulty('easy')">EASY</button>
-    <button class="diff-btn diff-active" data-diff="medium" onclick="setDifficulty('medium')">MEDIUM</button>
-    <button class="diff-btn" data-diff="hard" onclick="setDifficulty('hard')">HARD</button>
+    <button class="diff-btn" data-diff="easy" onclick="setDifficulty('easy')">EASY<span class="diff-reward">+150</span></button>
+    <button class="diff-btn diff-active" data-diff="medium" onclick="setDifficulty('medium')">MEDIUM<span class="diff-reward">+375</span></button>
+    <button class="diff-btn" data-diff="hard" onclick="setDifficulty('hard')">HARD<span class="diff-reward">+750</span></button>
   </div>
   <div class="team-count">SELECT YOUR TEAM: <span id="battleTeamCount">0/3</span></div>
   <div id="battleTeamGrid"></div>
+  <div class="bet-section">
+    <div class="bet-label">WAGER</div>
+    <div class="bet-sublabel">Risk coins for bigger rewards. Lose them if you lose.</div>
+    <div id="betRow"></div>
+    <div id="betPotential"></div>
+  </div>
   <button id="btnBattleStart" disabled onclick="startBattleFight()">FIGHT!</button>
   <button class="bt-back" onclick="closeBattle()">Back</button>
 </div>

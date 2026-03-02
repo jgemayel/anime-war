@@ -343,6 +343,7 @@ function showBattleSetup(){
   document.getElementById('battleSetup').style.display='block';
   selectedBattleTeam=[];
   selectedDifficulty='medium';
+  currentBet=0;
   renderBattleSetup();
 }
 
@@ -350,12 +351,20 @@ function renderBattleSetup(){
   const grid=document.getElementById('battleTeamGrid');
   let unlocked=ALL_CHARS.filter(c=>isUnlocked(c.id));
   if(typeof globalAnimeFilter!=='undefined'&&globalAnimeFilter!=='both') unlocked=unlocked.filter(c=>c.anime===globalAnimeFilter);
+
+  // Show coin balance at top
+  const coinEl = document.getElementById('setupCoins');
+  if(coinEl) coinEl.textContent = saveData.coins.toLocaleString();
+
   grid.innerHTML=unlocked.map(c=>{
     const sel=selectedBattleTeam.includes(c.id);
+    const lvl = getUpgradeLevel(c.id);
+    const lvlTag = lvl > 0 ? `<div class="bt-char-lvl">Lv.${lvl}</div>` : '';
     return `<div class="bt-char ${sel?'bt-selected':''}" onclick="toggleBattleChar('${c.id}')">
       <img src="${CHAR_IMGS[c.id]||'images/'+c.id+'.jpg'}" alt="${c.name}">
       <div class="bt-char-name">${c.name}</div>
       <div class="bt-char-tier tier-${c.tier.replace('+','p')}">${c.tier}</div>
+      ${lvlTag}
     </div>`;
   }).join('');
   document.getElementById('battleTeamCount').textContent=`${selectedBattleTeam.length}/3`;
@@ -365,6 +374,29 @@ function renderBattleSetup(){
   document.querySelectorAll('.diff-btn').forEach(b=>{
     b.classList.toggle('diff-active',b.dataset.diff===selectedDifficulty);
   });
+
+  // Bet buttons
+  const betRow = document.getElementById('betRow');
+  if(betRow) {
+    betRow.innerHTML = BET_OPTIONS.map(amt => {
+      const canAfford = amt <= saveData.coins;
+      const selected = currentBet === amt;
+      return `<button class="bet-btn ${selected?'bet-active':''} ${!canAfford&&amt>0?'bet-disabled':''}"
+        onclick="${canAfford?`setBet(${amt})`:''}" ${!canAfford&&amt>0?'disabled':''}>
+        ${amt === 0 ? 'NONE' : amt.toLocaleString()}
+      </button>`;
+    }).join('');
+  }
+
+  // Show potential winnings
+  const potentialEl = document.getElementById('betPotential');
+  if(potentialEl) {
+    const baseReward = DIFF_REWARDS[selectedDifficulty] + DIFF_BONUS_WIN[selectedDifficulty];
+    const betWin = currentBet > 0 ? Math.floor(currentBet * (selectedDifficulty==='easy'?1.5:selectedDifficulty==='medium'?2:3)) : 0;
+    potentialEl.textContent = currentBet > 0
+      ? `Win: +${baseReward} base + ${betWin} bet payout = ${baseReward+betWin} total`
+      : `Win: +${baseReward} coins`;
+  }
 }
 
 function toggleBattleChar(id){
@@ -376,11 +408,24 @@ function toggleBattleChar(id){
 
 function setDifficulty(d){selectedDifficulty=d;renderBattleSetup();}
 
+let currentBet = 0;
+const BET_OPTIONS = [0, 100, 250, 500, 1000, 2500];
+
+function setBet(amount) {
+  if(amount > saveData.coins) return;
+  currentBet = amount;
+  renderBattleSetup();
+}
+
 function startBattleFight(){
   if(selectedBattleTeam.length!==3) return;
+  if(currentBet > saveData.coins) { currentBet = 0; }
   const pTeam=selectedBattleTeam.map(id=>ALL_CHARS.find(c=>c.id===id));
   const eTeam=aiSelectTeam(selectedDifficulty);
   currentBattle=new Battle(pTeam,eTeam,selectedDifficulty);
+  currentBattle.bet = currentBet;
+  // Deduct bet upfront
+  if(currentBet > 0) { saveData.coins -= currentBet; saveSave(); }
   document.getElementById('battleSetup').style.display='none';
   document.getElementById('battleArena').style.display='block';
   renderBattle();
@@ -447,11 +492,26 @@ function renderBattle(){
   }else if(b.phase==='won'||b.phase==='lost'){
     const reward=b.phase==='won'?DIFF_REWARDS[b.diff]:0;
     const bonus=b.phase==='won'?DIFF_BONUS_WIN[b.diff]:0;
-    if(b.phase==='won'){saveData.wins++;addCoins(reward+bonus);playSound('win');}
+    const bet = b.bet || 0;
+    const betMult = b.diff==='easy'?1.5:b.diff==='medium'?2:3;
+    const betWin = b.phase==='won' ? Math.floor(bet * betMult) : 0;
+    if(b.phase==='won'){saveData.wins++;addCoins(reward+bonus+betWin);playSound('win');}
     else{saveData.losses++;saveSave();}
+
+    let rewardHTML = '';
+    if(b.phase==='won') {
+      rewardHTML = `<div class="reward-breakdown">
+        <div class="reward-line">Base reward: +${reward+bonus}</div>
+        ${betWin > 0 ? `<div class="reward-line reward-bet">Bet payout (${betMult}x): +${betWin}</div>` : ''}
+        <div class="reward-total">Total: +${reward+bonus+betWin} coins</div>
+      </div>`;
+    } else if(bet > 0) {
+      rewardHTML = `<div class="reward-breakdown loss"><div class="reward-line">Bet lost: -${bet} coins</div></div>`;
+    }
+
     actDiv.innerHTML=`<div class="battle-result ${b.phase}">
       <h2>${b.phase==='won'?'VICTORY!':'DEFEAT'}</h2>
-      ${b.phase==='won'?`<div class="reward-text">+${reward+bonus} coins earned!</div>`:''}
+      ${rewardHTML}
       <div class="result-btns">
         <button onclick="showBattleSetup()">Play Again</button>
         <button onclick="closeBattle()">Main Menu</button>
@@ -614,47 +674,60 @@ function showCharDetail(id) {
   const unlocked = isUnlocked(id);
   const upgrades = getCharUpgrades(id);
   const currentLevel = getUpgradeLevel(id);
+  const boosts = getUpgradeBoosts(id);
   const maxHP = calcMaxHP(ch);
+  const upgLabel = currentLevel > 0 ? upgrades[currentLevel-1].label : 'Base Form';
 
-  // Stat bar helper
-  function statBar(val, max, color) {
-    const pct = Math.min(100, val/max*100);
-    return `<div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${pct}%;background:${color}"></div></div>`;
+  // Stat bar helper - shows base + boost
+  function statBar(val, boost, max, color) {
+    const basePct = Math.min(100, val/max*100);
+    const boostPct = Math.min(100, (val+boost)/max*100);
+    return `<div class="stat-bar-bg">
+      <div class="stat-bar-fill" style="width:${boostPct}%;background:${color};opacity:0.4"></div>
+      <div class="stat-bar-fill stat-bar-base" style="width:${basePct}%;background:${color}"></div>
+    </div>`;
   }
 
   const modal = document.getElementById('charDetailModal');
   modal.innerHTML = `
     <div class="detail-card">
       <button class="detail-close" onclick="closeCharDetail()">✕</button>
-      <div class="detail-top">
-        <div class="detail-img-wrap">
-          <img src="${CHAR_IMGS[id]||'images/'+id+'.jpg'}" class="detail-img ${unlocked?'':'coll-silhouette'}">
+      <div class="detail-hero">
+        <img src="${CHAR_IMGS[id]||'images/'+id+'.jpg'}" class="detail-hero-img ${unlocked?'':'coll-silhouette'}">
+        <div class="detail-hero-overlay">
           <div class="detail-tier tier-${ch.tier.replace('+','p')}">${ch.tier}</div>
+          <div class="detail-hero-info">
+            <div class="detail-name">${ch.name}</div>
+            <div class="detail-title">${ch.title||''}</div>
+            <div class="detail-anime-tag">${ch.anime==='onepiece'?'☠️ One Piece':'🍥 Naruto'}</div>
+          </div>
         </div>
-        <div class="detail-info">
-          <div class="detail-name">${ch.name}</div>
-          <div class="detail-title">${ch.title||''}</div>
-          <div class="detail-anime">${ch.anime==='onepiece'?'☠️ One Piece':'🍥 Naruto'}</div>
-          <div class="detail-hp">HP: ${maxHP}</div>
-          ${unlocked?`<div class="detail-level">Battle Level: ${currentLevel}/${upgrades.length}</div>`:''}
-        </div>
+      </div>
+      ${unlocked && currentLevel > 0 ? `<div class="detail-form-tag">${upgLabel}</div>` : ''}
+      <div class="detail-quick-stats">
+        <div class="dqs"><span class="dqs-val">${maxHP}</span><span class="dqs-lbl">HP</span></div>
+        <div class="dqs"><span class="dqs-val">${ch.atk}${boosts.atk?`<small>+${boosts.atk}</small>`:''}</span><span class="dqs-lbl">ATK</span></div>
+        <div class="dqs"><span class="dqs-val">${ch.def}${boosts.def?`<small>+${boosts.def}</small>`:''}</span><span class="dqs-lbl">DEF</span></div>
+        <div class="dqs"><span class="dqs-val">${ch.spd}${boosts.spd?`<small>+${boosts.spd}</small>`:''}</span><span class="dqs-lbl">SPD</span></div>
       </div>
       <div class="detail-stats">
-        <div class="stat-row"><span class="stat-label">ATK</span><span class="stat-val">${ch.atk}</span>${statBar(ch.atk,100,'#f44336')}</div>
-        <div class="stat-row"><span class="stat-label">DEF</span><span class="stat-val">${ch.def}</span>${statBar(ch.def,100,'#2196F3')}</div>
-        <div class="stat-row"><span class="stat-label">SPD</span><span class="stat-val">${ch.spd}</span>${statBar(ch.spd,100,'#4CAF50')}</div>
-        <div class="stat-row"><span class="stat-label">${ch.anime==='onepiece'?'HAKI':'HAKI'}</span><span class="stat-val">${ch.haki||0}</span>${statBar(ch.haki||0,100,'#9C27B0')}</div>
-        <div class="stat-row"><span class="stat-label">${ch.anime==='onepiece'?'DF':'JUTSU'}</span><span class="stat-val">${ch.df||0}</span>${statBar(ch.df||0,100,'#FF9800')}</div>
+        <div class="stat-row"><span class="stat-label">ATK</span><span class="stat-val">${ch.atk}${boosts.atk?`<span class="stat-boost">+${boosts.atk}</span>`:''}</span>${statBar(ch.atk,boosts.atk,100,'#f44336')}</div>
+        <div class="stat-row"><span class="stat-label">DEF</span><span class="stat-val">${ch.def}${boosts.def?`<span class="stat-boost">+${boosts.def}</span>`:''}</span>${statBar(ch.def,boosts.def,100,'#2196F3')}</div>
+        <div class="stat-row"><span class="stat-label">SPD</span><span class="stat-val">${ch.spd}${boosts.spd?`<span class="stat-boost">+${boosts.spd}</span>`:''}</span>${statBar(ch.spd,boosts.spd,100,'#4CAF50')}</div>
+        <div class="stat-row"><span class="stat-label">HAKI</span><span class="stat-val">${ch.haki||0}</span>${statBar(ch.haki||0,0,100,'#9C27B0')}</div>
+        <div class="stat-row"><span class="stat-label">${ch.anime==='onepiece'?'DF':'JUTSU'}</span><span class="stat-val">${ch.df||0}</span>${statBar(ch.df||0,0,100,'#FF9800')}</div>
       </div>
-      <div class="detail-moves-title">MOVES</div>
+      <div class="detail-section-title">MOVES</div>
       <div class="detail-moves">${moves.map(m => `
         <div class="detail-move move-${m.type}">
-          <div class="dm-name">${m.name}</div>
+          <div class="dm-top">
+            <span class="dm-name">${m.name}</span>
+            <span class="dm-pwr">PWR ${m.power}</span>
+          </div>
           <div class="dm-stats">
             <span class="dm-type">${m.type}</span>
-            <span>Pwr: ${m.power}</span>
-            <span>Acc: ${m.acc}%</span>
-            <span>PP: ${m.pp}</span>
+            <span>Acc ${m.acc}%</span>
+            <span>PP ${m.pp}</span>
             ${m.effect?`<span class="dm-effect">${m.effect}</span>`:''}
           </div>
         </div>
@@ -772,19 +845,41 @@ function purchaseUpgrade(id) {
 }
 
 function renderUpgradeSection(id, ch, currentLevel, upgrades) {
-  let html = '<div class="upgrade-section"><div class="upgrade-title">UPGRADES (Battle Mode)</div>';
+  const boosts = getUpgradeBoosts(id);
+  const totalBoostStr = currentLevel > 0 ? `<div class="upg-current-boost">Current Boost: +${boosts.atk} ATK, +${boosts.def} DEF, +${boosts.spd} SPD</div>` : '';
+
+  let html = `<div class="upgrade-section">
+    <div class="upgrade-header">
+      <div class="upgrade-title">POWER UP</div>
+      <div class="upgrade-subtitle">Boost stats for Battle Mode</div>
+    </div>
+    ${totalBoostStr}
+    <div class="upgrade-track">`;
+
   upgrades.forEach((u, i) => {
     const owned = currentLevel > i;
     const available = currentLevel === i;
     const canAfford = saveData.coins >= u.cost;
-    html += `<div class="upgrade-row ${owned?'upgrade-owned':available?'upgrade-available':'upgrade-locked'}">
-      <div class="upgrade-label">${owned?'✅':available?'➡️':'🔒'} Lv.${i+1}: ${u.label}</div>
-      <div class="upgrade-stats">+${u.atkBoost} ATK, +${u.defBoost} DEF, +${u.spdBoost} SPD</div>
-      ${available && !owned ? `<button class="upgrade-btn ${canAfford?'':'upgrade-cant'}" onclick="purchaseUpgrade('${id}')" ${canAfford?'':'disabled'}>${u.cost} coins</button>` : ''}
-      ${owned ? '<span class="upgrade-owned-tag">OWNED</span>' : ''}
+    const statusClass = owned ? 'upg-owned' : available ? 'upg-next' : 'upg-future';
+    const statusIcon = owned ? '✓' : available ? (i+1) : (i+1);
+
+    html += `<div class="upg-step ${statusClass}">
+      <div class="upg-step-dot">${statusIcon}</div>
+      <div class="upg-step-body">
+        <div class="upg-step-name">${u.label}</div>
+        <div class="upg-step-stats">
+          <span class="upg-stat upg-atk">+${u.atkBoost} ATK</span>
+          <span class="upg-stat upg-def">+${u.defBoost} DEF</span>
+          <span class="upg-stat upg-spd">+${u.spdBoost} SPD</span>
+        </div>
+        ${owned ? '<div class="upg-step-badge">UNLOCKED</div>' : ''}
+        ${available ? `<button class="upg-buy-btn ${canAfford?'upg-can-buy':'upg-no-buy'}" onclick="purchaseUpgrade('${id}')" ${canAfford?'':'disabled'}>${canAfford ? '⬆ UPGRADE' : 'Need'} ${u.cost.toLocaleString()} coins</button>` : ''}
+        ${!owned && !available ? `<div class="upg-step-cost">${u.cost.toLocaleString()} coins</div>` : ''}
+      </div>
     </div>`;
   });
-  html += '</div>';
+
+  html += `</div></div>`;
   return html;
 }
 
