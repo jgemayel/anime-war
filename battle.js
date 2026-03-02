@@ -34,6 +34,158 @@ function unlockChar(id){
 }
 function addCoins(n){saveData.coins+=n;saveSave();}
 
+// ===== GACHA PACK SYSTEM =====
+const GACHA_KEY = 'animewar_gacha';
+const GACHA_PACKS = {
+  bronze: {name:'Bronze Pack',emoji:'🥉',cost:300,pulls:1,color:'#CD7F32',
+    rates:{'C':60,'B':30,'A':8,'S':2,'S+':0},desc:'Common characters'},
+  silver: {name:'Silver Pack',emoji:'🥈',cost:800,pulls:1,color:'#C0C0C0',
+    rates:{'C':20,'B':40,'A':30,'S':9,'S+':1},desc:'Rare chance for S tier'},
+  gold: {name:'Gold Pack',emoji:'🥇',cost:2000,pulls:3,color:'#FFD700',
+    rates:{'C':0,'B':30,'A':45,'S':20,'S+':5},desc:'3 pulls, best odds'}
+};
+const DUPE_REFUND = {'S+':2500,'S':1500,'A':750,'B':400,'C':200};
+const PITY_THRESHOLD = 50;
+
+function loadGacha(){
+  try{const s=localStorage.getItem(GACHA_KEY);if(s)return JSON.parse(s);}catch(e){}
+  return {pity:0,totalPulls:0};
+}
+function saveGacha(g){localStorage.setItem(GACHA_KEY,JSON.stringify(g));}
+
+function rollGachaPull(packType){
+  const pack=GACHA_PACKS[packType];
+  const gacha=loadGacha();
+  gacha.totalPulls++;
+  gacha.pity++;
+  // Pity: guarantee S+ every PITY_THRESHOLD pulls
+  if(gacha.pity>=PITY_THRESHOLD){
+    gacha.pity=0;
+    saveGacha(gacha);
+    return pickRandomCharOfTier('S+');
+  }
+  // Weighted random
+  const roll=Math.random()*100;
+  let cumulative=0;
+  const tiers=['S+','S','A','B','C'];
+  for(const tier of tiers){
+    cumulative+=pack.rates[tier];
+    if(roll<cumulative){
+      if(tier==='S+') gacha.pity=0; // reset pity on natural S+
+      saveGacha(gacha);
+      return pickRandomCharOfTier(tier);
+    }
+  }
+  saveGacha(gacha);
+  return pickRandomCharOfTier('C');
+}
+
+function pickRandomCharOfTier(tier){
+  const pool=ALL_CHARS.filter(c=>c.tier===tier);
+  if(pool.length===0) return ALL_CHARS[Math.floor(Math.random()*ALL_CHARS.length)];
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function openPack(packType){
+  const pack=GACHA_PACKS[packType];
+  if(saveData.coins<pack.cost) return;
+  saveData.coins-=pack.cost;
+  saveSave();
+  const results=[];
+  for(let i=0;i<pack.pulls;i++){
+    const ch=rollGachaPull(packType);
+    const isNew=!isUnlocked(ch.id);
+    if(isNew){
+      saveData.unlocked.push(ch.id);
+    }
+    const dupeCoins=isNew?0:DUPE_REFUND[ch.tier]||200;
+    if(!isNew){saveData.coins+=dupeCoins;}
+    results.push({char:ch,isNew,dupeCoins});
+  }
+  saveSave();
+  showGachaPullResult(results, packType);
+}
+
+function showGachaShop(){
+  const modal=document.getElementById('gachaModal');
+  if(!modal) return;
+  const gacha=loadGacha();
+  const pityLeft=PITY_THRESHOLD-gacha.pity;
+  let packsHTML='';
+  for(const [key,pack] of Object.entries(GACHA_PACKS)){
+    const canAfford=saveData.coins>=pack.cost;
+    const rateStr=Object.entries(pack.rates).filter(([t,r])=>r>0).map(([t,r])=>`<span class="gr-${t.replace('+','p')}">${t}:${r}%</span>`).join(' ');
+    packsHTML+=`<div class="gacha-pack" style="--pc:${pack.color}">
+      <div class="gp-emoji">${pack.emoji}</div>
+      <div class="gp-name">${pack.name}</div>
+      <div class="gp-pulls">${pack.pulls} Pull${pack.pulls>1?'s':''}</div>
+      <div class="gp-rates">${rateStr}</div>
+      <div class="gp-desc">${pack.desc}</div>
+      <button class="gp-btn ${canAfford?'':'gp-disabled'}" onclick="${canAfford?`openPack('${key}')`:''}" ${canAfford?'':'disabled'}>
+        ${pack.cost.toLocaleString()} COINS
+      </button>
+    </div>`;
+  }
+  modal.querySelector('.gacha-content').innerHTML=`
+    <div class="gacha-header">
+      <div class="gacha-title">🎰 SUMMON</div>
+      <div class="gacha-coins">💰 ${saveData.coins.toLocaleString()}</div>
+      <div class="gacha-pity">S+ Pity: ${pityLeft} pulls left</div>
+    </div>
+    <div class="gacha-packs">${packsHTML}</div>
+    <div class="gacha-info">Duplicates refund coins · S+ guaranteed every ${PITY_THRESHOLD} pulls</div>
+    <button class="gacha-close" onclick="closeGachaShop()">BACK</button>
+  `;
+  modal.style.display='flex';
+}
+
+function closeGachaShop(){
+  document.getElementById('gachaModal').style.display='none';
+  if(typeof updateMenuStats==='function') updateMenuStats();
+}
+
+let gachaPullQueue=[];
+let gachaPullIdx=0;
+let gachaPackType='';
+
+function showGachaPullResult(results, packType){
+  gachaPullQueue=results;
+  gachaPullIdx=0;
+  gachaPackType=packType;
+  showNextGachaPull();
+}
+
+function showNextGachaPull(){
+  if(gachaPullIdx>=gachaPullQueue.length){
+    // All pulls shown, back to shop
+    showGachaShop();
+    return;
+  }
+  const r=gachaPullQueue[gachaPullIdx];
+  const ch=r.char;
+  const tierColors={'S+':'#FFD700','S':'#BE4BDB','A':'#339AF0','B':'#4CAF50','C':'#aaa'};
+  const glowColor=tierColors[ch.tier]||'#fff';
+  const modal=document.getElementById('gachaModal');
+  modal.querySelector('.gacha-content').innerHTML=`
+    <div class="pull-result" style="--glow:${glowColor}">
+      <div class="pull-card ${r.isNew?'pull-new':'pull-dupe'}">
+        <div class="pull-tier tier-${ch.tier.replace('+','p')}">${ch.tier}</div>
+        <div class="pull-img-wrap">
+          <img src="images/${ch.id}.jpg" class="pull-img" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1 1%22><rect fill=%22%23222%22 width=%221%22 height=%221%22/></svg>'">
+        </div>
+        <div class="pull-name">${ch.name}</div>
+        <div class="pull-anime">${ch.anime==='onepiece'?'☠️ ONE PIECE':'🍥 NARUTO'}</div>
+        ${r.isNew?'<div class="pull-badge">✨ NEW!</div>':`<div class="pull-dupe-info">Already owned · +${r.dupeCoins} coins</div>`}
+      </div>
+      <div class="pull-counter">${gachaPullIdx+1}/${gachaPullQueue.length}</div>
+      <button class="gp-btn" onclick="gachaPullIdx++;showNextGachaPull()">
+        ${gachaPullIdx<gachaPullQueue.length-1?'NEXT':'DONE'}
+      </button>
+    </div>
+  `;
+}
+
+
 
 // ---- TYPE EFFECTIVENESS ----
 // physical/taijutsu beats: sword/kenjutsu (brute force overwhelms)
@@ -693,12 +845,10 @@ function renderCollection(){
 }
 
 function tryUnlock(id){
-  if(unlockChar(id)){
-    renderCollection();
-    // Flash effect
-    const el=document.querySelector(`.coll-card[onclick*="${id}"]`);
-    if(el){el.classList.add('coll-just-unlocked');setTimeout(()=>el.classList.remove('coll-just-unlocked'),1000);}
-  }
+  const ch=ALL_CHARS.find(c=>c.id===id);
+  if(!ch||isUnlocked(id)) return;
+  closeCharDetail();
+  showGachaShop();
 }
 
 function closeCollection(){
