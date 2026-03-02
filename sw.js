@@ -1,4 +1,4 @@
-const CACHE_NAME = 'anime-war-v4';
+const CACHE_NAME = 'anime-war-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -8,208 +8,8 @@ const ASSETS = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Chakra+Petch:wght@400;600;700&display=swap',
-  'images/nr1.jpg',
-  'images/nr10.jpg',
-  'images/nr100.jpg',
-  'images/nr11.jpg',
-  'images/nr12.jpg',
-  'images/nr13.jpg',
-  'images/nr14.jpg',
-  'images/nr15.jpg',
-  'images/nr16.jpg',
-  'images/nr17.jpg',
-  'images/nr18.jpg',
-  'images/nr19.jpg',
-  'images/nr2.jpg',
-  'images/nr20.jpg',
-  'images/nr21.jpg',
-  'images/nr22.jpg',
-  'images/nr23.jpg',
-  'images/nr24.jpg',
-  'images/nr25.jpg',
-  'images/nr26.jpg',
-  'images/nr27.jpg',
-  'images/nr28.jpg',
-  'images/nr29.jpg',
-  'images/nr3.jpg',
-  'images/nr30.jpg',
-  'images/nr31.jpg',
-  'images/nr32.jpg',
-  'images/nr33.jpg',
-  'images/nr34.jpg',
-  'images/nr35.jpg',
-  'images/nr36.jpg',
-  'images/nr37.jpg',
-  'images/nr38.jpg',
-  'images/nr39.jpg',
-  'images/nr4.jpg',
-  'images/nr40.jpg',
-  'images/nr41.jpg',
-  'images/nr42.jpg',
-  'images/nr43.jpg',
-  'images/nr44.jpg',
-  'images/nr45.jpg',
-  'images/nr46.jpg',
-  'images/nr47.jpg',
-  'images/nr48.jpg',
-  'images/nr49.jpg',
-  'images/nr5.jpg',
-  'images/nr50.jpg',
-  'images/nr51.jpg',
-  'images/nr52.jpg',
-  'images/nr53.jpg',
-  'images/nr54.jpg',
-  'images/nr55.jpg',
-  'images/nr56.jpg',
-  'images/nr57.jpg',
-  'images/nr58.jpg',
-  'images/nr59.jpg',
-  'images/nr6.jpg',
-  'images/nr60.jpg',
-  'images/nr61.jpg',
-  'images/nr62.jpg',
-  'images/nr63.jpg',
-  'images/nr64.jpg',
-  'images/nr65.jpg',
-  'images/nr66.jpg',
-  'images/nr67.jpg',
-  'images/nr68.jpg',
-  'images/nr69.jpg',
-  'images/nr7.jpg',
-  'images/nr70.jpg',
-  'images/nr71.jpg',
-  'images/nr72.jpg',
-  'images/nr73.jpg',
-  'images/nr74.jpg',
-  'images/nr75.jpg',
-  'images/nr76.jpg',
-  'images/nr77.jpg',
-  'images/nr78.jpg',
-  'images/nr79.jpg',
-  'images/nr8.jpg',
-  'images/nr80.jpg',
-  'images/nr81.jpg',
-  'images/nr82.jpg',
-  'images/nr83.jpg',
-  'images/nr84.jpg',
-  'images/nr85.jpg',
-  'images/nr86.jpg',
-  'images/nr87.jpg',
-  'images/nr88.jpg',
-  'images/nr89.jpg',
-  'images/nr9.jpg',
-  'images/nr90.jpg',
-  'images/nr91.jpg',
-  'images/nr92.jpg',
-  'images/nr93.jpg',
-  'images/nr94.jpg',
-  'images/nr95.jpg',
-  'images/nr96.jpg',
-  'images/nr97.jpg',
-  'images/nr98.jpg',
-  'images/nr99.jpg',
-  'images/op1.jpg',
-  'images/op10.jpg',
-  'images/op100.jpg',
-  'images/op101.jpg',
-  'images/op102.jpg',
-  'images/op11.jpg',
-  'images/op12.jpg',
-  'images/op13.jpg',
-  'images/op14.jpg',
-  'images/op15.jpg',
-  'images/op16.jpg',
-  'images/op17.jpg',
-  'images/op18.jpg',
-  'images/op19.jpg',
-  'images/op2.jpg',
-  'images/op20.jpg',
-  'images/op21.jpg',
-  'images/op22.jpg',
-  'images/op23.jpg',
-  'images/op24.jpg',
-  'images/op25.jpg',
-  'images/op26.jpg',
-  'images/op27.jpg',
-  'images/op28.jpg',
-  'images/op29.jpg',
-  'images/op3.jpg',
-  'images/op30.jpg',
-  'images/op31.jpg',
-  'images/op32.jpg',
-  'images/op33.jpg',
-  'images/op34.jpg',
-  'images/op35.jpg',
-  'images/op36.jpg',
-  'images/op37.jpg',
-  'images/op38.jpg',
-  'images/op39.jpg',
-  'images/op4.jpg',
-  'images/op40.jpg',
-  'images/op41.jpg',
-  'images/op42.jpg',
-  'images/op43.jpg',
-  'images/op44.jpg',
-  'images/op45.jpg',
-  'images/op46.jpg',
-  'images/op47.jpg',
-  'images/op48.jpg',
-  'images/op49.jpg',
-  'images/op5.jpg',
-  'images/op50.jpg',
-  'images/op51.jpg',
-  'images/op52.jpg',
-  'images/op53.jpg',
-  'images/op54.jpg',
-  'images/op55.jpg',
-  'images/op56.jpg',
-  'images/op57.jpg',
-  'images/op58.jpg',
-  'images/op59.jpg',
-  'images/op6.jpg',
-  'images/op60.jpg',
-  'images/op61.jpg',
-  'images/op62.jpg',
-  'images/op63.jpg',
-  'images/op64.jpg',
-  'images/op65.jpg',
-  'images/op66.jpg',
-  'images/op67.jpg',
-  'images/op68.jpg',
-  'images/op69.jpg',
-  'images/op7.jpg',
-  'images/op70.jpg',
-  'images/op71.jpg',
-  'images/op72.jpg',
-  'images/op73.jpg',
-  'images/op74.jpg',
-  'images/op75.jpg',
-  'images/op76.jpg',
-  'images/op77.jpg',
-  'images/op78.jpg',
-  'images/op79.jpg',
-  'images/op8.jpg',
-  'images/op80.jpg',
-  'images/op81.jpg',
-  'images/op82.jpg',
-  'images/op83.jpg',
-  'images/op84.jpg',
-  'images/op85.jpg',
-  'images/op86.jpg',
-  'images/op87.jpg',
-  'images/op88.jpg',
-  'images/op89.jpg',
-  'images/op9.jpg',
-  'images/op90.jpg',
-  'images/op91.jpg',
-  'images/op92.jpg',
-  'images/op93.jpg',
-  'images/op94.jpg',
-  'images/op95.jpg',
-  'images/op96.jpg',
-  'images/op97.jpg',
-  'images/op98.jpg',
-  'images/op99.jpg',
+  'images/nr1.jpg','images/nr10.jpg','images/nr100.jpg','images/nr11.jpg','images/nr12.jpg','images/nr13.jpg','images/nr14.jpg','images/nr15.jpg','images/nr16.jpg','images/nr17.jpg','images/nr18.jpg','images/nr19.jpg','images/nr2.jpg','images/nr20.jpg','images/nr21.jpg','images/nr22.jpg','images/nr23.jpg','images/nr24.jpg','images/nr25.jpg','images/nr26.jpg','images/nr27.jpg','images/nr28.jpg','images/nr29.jpg','images/nr3.jpg','images/nr30.jpg','images/nr31.jpg','images/nr32.jpg','images/nr33.jpg','images/nr34.jpg','images/nr35.jpg','images/nr36.jpg','images/nr37.jpg','images/nr38.jpg','images/nr39.jpg','images/nr4.jpg','images/nr40.jpg','images/nr41.jpg','images/nr42.jpg','images/nr43.jpg','images/nr44.jpg','images/nr45.jpg','images/nr46.jpg','images/nr47.jpg','images/nr48.jpg','images/nr49.jpg','images/nr5.jpg','images/nr50.jpg','images/nr51.jpg','images/nr52.jpg','images/nr53.jpg','images/nr54.jpg','images/nr55.jpg','images/nr56.jpg','images/nr57.jpg','images/nr58.jpg','images/nr59.jpg','images/nr6.jpg','images/nr60.jpg','images/nr61.jpg','images/nr62.jpg','images/nr63.jpg','images/nr64.jpg','images/nr65.jpg','images/nr66.jpg','images/nr67.jpg','images/nr68.jpg','images/nr69.jpg','images/nr7.jpg','images/nr70.jpg','images/nr71.jpg','images/nr72.jpg','images/nr73.jpg','images/nr74.jpg','images/nr75.jpg','images/nr76.jpg','images/nr77.jpg','images/nr78.jpg','images/nr79.jpg','images/nr8.jpg','images/nr80.jpg','images/nr81.jpg','images/nr82.jpg','images/nr83.jpg','images/nr84.jpg','images/nr85.jpg','images/nr86.jpg','images/nr87.jpg','images/nr88.jpg','images/nr89.jpg','images/nr9.jpg','images/nr90.jpg','images/nr91.jpg','images/nr92.jpg','images/nr93.jpg','images/nr94.jpg','images/nr95.jpg','images/nr96.jpg','images/nr97.jpg','images/nr98.jpg','images/nr99.jpg',
+  'images/op1.jpg','images/op10.jpg','images/op100.jpg','images/op101.jpg','images/op102.jpg','images/op11.jpg','images/op12.jpg','images/op13.jpg','images/op14.jpg','images/op15.jpg','images/op16.jpg','images/op17.jpg','images/op18.jpg','images/op19.jpg','images/op2.jpg','images/op20.jpg','images/op21.jpg','images/op22.jpg','images/op23.jpg','images/op24.jpg','images/op25.jpg','images/op26.jpg','images/op27.jpg','images/op28.jpg','images/op29.jpg','images/op3.jpg','images/op30.jpg','images/op31.jpg','images/op32.jpg','images/op33.jpg','images/op34.jpg','images/op35.jpg','images/op36.jpg','images/op37.jpg','images/op38.jpg','images/op39.jpg','images/op4.jpg','images/op40.jpg','images/op41.jpg','images/op42.jpg','images/op43.jpg','images/op44.jpg','images/op45.jpg','images/op46.jpg','images/op47.jpg','images/op48.jpg','images/op49.jpg','images/op5.jpg','images/op50.jpg','images/op51.jpg','images/op52.jpg','images/op53.jpg','images/op54.jpg','images/op55.jpg','images/op56.jpg','images/op57.jpg','images/op58.jpg','images/op59.jpg','images/op6.jpg','images/op60.jpg','images/op61.jpg','images/op62.jpg','images/op63.jpg','images/op64.jpg','images/op65.jpg','images/op66.jpg','images/op67.jpg','images/op68.jpg','images/op69.jpg','images/op7.jpg','images/op70.jpg','images/op71.jpg','images/op72.jpg','images/op73.jpg','images/op74.jpg','images/op75.jpg','images/op76.jpg','images/op77.jpg','images/op78.jpg','images/op79.jpg','images/op8.jpg','images/op80.jpg','images/op81.jpg','images/op82.jpg','images/op83.jpg','images/op84.jpg','images/op85.jpg','images/op86.jpg','images/op87.jpg','images/op88.jpg','images/op89.jpg','images/op9.jpg','images/op90.jpg','images/op91.jpg','images/op92.jpg','images/op93.jpg','images/op94.jpg','images/op95.jpg','images/op96.jpg','images/op97.jpg','images/op98.jpg','images/op99.jpg',
 ];
 
 // Install: cache all assets
@@ -231,29 +31,37 @@ self.addEventListener('activate', e => {
   );
 });
 
-// Fetch: cache-first for assets, network-first for navigation
+// Fetch: network-first for HTML/JS, cache-first for images/fonts
 self.addEventListener('fetch', e => {
-  // Skip non-GET and cross-origin Google Fonts font files
   if (e.request.method !== 'GET') return;
-  
-  e.respondWith(
-    caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(response => {
-        // Cache successful responses
-        if (response.ok && response.type === 'basic') {
+
+  const url = new URL(e.request.url);
+  const isAppFile = url.pathname.endsWith('.html') || url.pathname.endsWith('.js') || url.pathname.endsWith('/');
+
+  if (isAppFile) {
+    // Network-first for app files (always get latest)
+    e.respondWith(
+      fetch(e.request).then(response => {
+        if (response.ok) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
         }
         return response;
-      }).catch(() => {
-        // Offline fallback for navigation
-        if (e.request.mode === 'navigate') {
-          return caches.match('./index.html',
-  './moves.js',
-  './battle.js');
-        }
-      });
-    })
-  );
+      }).catch(() => caches.match(e.request))
+    );
+  } else {
+    // Cache-first for images and fonts
+    e.respondWith(
+      caches.match(e.request).then(cached => {
+        if (cached) return cached;
+        return fetch(e.request).then(response => {
+          if (response.ok && response.type === 'basic') {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+          }
+          return response;
+        });
+      })
+    );
+  }
 });

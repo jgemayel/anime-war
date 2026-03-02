@@ -364,9 +364,8 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
   <div class="title-main">ANIME WAR</div>
   <div class="ck" style="font-size:11px;color:#555;letter-spacing:4px;margin-top:4px;z-index:1">SELECT YOUR ANIME</div>
   <div class="anime-select">
-    <button class="anime-btn selected" data-anime="both" onclick="setAnimeFilter('both',this)" style="--ac:#FFD700">🌀 BOTH<span class="tag" style="color:#FFD700">202</span></button>
-    <button class="anime-btn" data-anime="onepiece" onclick="setAnimeFilter('onepiece',this)" style="--ac:#E03131">☠️ ONE PIECE<span class="tag" style="color:#E03131">102</span></button>
-    <button class="anime-btn" data-anime="naruto" onclick="setAnimeFilter('naruto',this)" style="--ac:#FF7B00">🍥 NARUTO<span class="tag" style="color:#FF7B00">100</span></button>
+    <button class="anime-btn selected" data-anime="onepiece" onclick="toggleAnimeSelect(this)" style="--ac:#E03131">☠️ ONE PIECE<span class="tag" style="color:#E03131">102</span></button>
+    <button class="anime-btn selected" data-anime="naruto" onclick="toggleAnimeSelect(this)" style="--ac:#FF7B00">🍥 NARUTO<span class="tag" style="color:#FF7B00">100</span></button>
   </div>
 
   <div class="mode-section">
@@ -1023,15 +1022,8 @@ function resolveBattle(c1,c2){
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
 
-function toggleAnime(btn){let a=btn.dataset.anime;
-// Single-select: clear all others first
-document.querySelectorAll('.anime-btn').forEach(b=>{b.classList.remove('selected');selectedAnimes.delete(b.dataset.anime)});
-selectedAnimes.add(a);btn.classList.add('selected');
-let t=(selectedAnimes.has('onepiece')?OP.length:0)+(selectedAnimes.has('naruto')?NR.length:0);
-let dis=t===0;
-document.getElementById('btn-start').disabled=dis;
-document.getElementById('btn-draft').disabled=dis;
-document.getElementById('select-info').textContent=t>0?t+' fighters selected':'Select one anime to battle'}
+// toggleAnime - legacy, replaced by toggleAnimeSelect in global script
+function toggleAnime(btn){}
 
 function buildCardHTML(c){
   let tc=TC[c.tier]||"#888",ac=AC[c.anime],al=AL[c.anime];
@@ -2014,52 +2006,87 @@ window.addEventListener('appinstalled',()=>{
   <button class="coll-back" onclick="closeCollection()">Back to Menu</button>
 </div>
 
-<script src="moves.js"></script>
-<script src="battle.js"></script>
+<script src="moves.js?v=5"></script>
+<script src="battle.js?v=5"></script>
 
 <script>
-// ===== GLOBAL ANIME FILTER =====
+// ===== MULTI-SELECT ANIME FILTER =====
 let globalAnimeFilter = 'both';
-function setAnimeFilter(filter, btn) {
-  globalAnimeFilter = filter;
-  // Update button states
-  document.querySelectorAll('.anime-select .anime-btn').forEach(b => b.classList.remove('selected'));
-  if(btn) btn.classList.add('selected');
-  // Sync with legacy selectedAnimes Set used by card battle/draft modes
+
+function toggleAnimeSelect(btn) {
+  const anime = btn.dataset.anime;
+  const isSelected = btn.classList.contains('selected');
+
+  // Count currently selected
+  const allBtns = document.querySelectorAll('.anime-select .anime-btn');
+  let selectedCount = 0;
+  allBtns.forEach(b => { if(b.classList.contains('selected')) selectedCount++; });
+
+  // Don't allow deselecting the last one
+  if(isSelected && selectedCount <= 1) return;
+
+  // Toggle this button
+  btn.classList.toggle('selected');
+
+  // Sync selectedAnimes Set
   if(typeof selectedAnimes !== 'undefined') {
-    selectedAnimes.clear();
-    if(filter === 'onepiece') { selectedAnimes.add('onepiece'); }
-    else if(filter === 'naruto') { selectedAnimes.add('naruto'); }
-    else { selectedAnimes.add('onepiece'); selectedAnimes.add('naruto'); }
+    if(btn.classList.contains('selected')) {
+      selectedAnimes.add(anime);
+    } else {
+      selectedAnimes.delete(anime);
+    }
   }
-  // Enable/disable mode buttons
-  const starts = document.querySelectorAll('#btn-start, #btn-draft');
-  starts.forEach(b => b.disabled = false);
-  // Update collection count on menu
+
+  // Update globalAnimeFilter for battle mode
+  const opSel = document.querySelector('.anime-btn[data-anime="onepiece"]').classList.contains('selected');
+  const nrSel = document.querySelector('.anime-btn[data-anime="naruto"]').classList.contains('selected');
+  if(opSel && nrSel) globalAnimeFilter = 'both';
+  else if(opSel) globalAnimeFilter = 'onepiece';
+  else globalAnimeFilter = 'naruto';
+
+  // Enable mode buttons (always enabled since at least 1 anime selected)
+  document.querySelectorAll('#btn-start, #btn-draft').forEach(b => b.disabled = false);
   updateMenuStats();
 }
+
+// Also keep setAnimeFilter for backwards compat (called nowhere now, but safe)
+function setAnimeFilter(filter, btn) {
+  globalAnimeFilter = filter;
+  if(typeof selectedAnimes !== 'undefined') {
+    selectedAnimes.clear();
+    if(filter === 'onepiece' || filter === 'both') selectedAnimes.add('onepiece');
+    if(filter === 'naruto' || filter === 'both') selectedAnimes.add('naruto');
+  }
+}
+
 function updateMenuStats() {
   try {
     const el = document.getElementById('menuUnlockCount');
     if(el && typeof saveData !== 'undefined') el.textContent = saveData.unlocked.length;
   } catch(e) {}
 }
+
 function getFilteredChars() {
   if(globalAnimeFilter === 'onepiece') return ALL_CHARS.filter(c => c.anime === 'onepiece');
   if(globalAnimeFilter === 'naruto') return ALL_CHARS.filter(c => c.anime === 'naruto');
   return ALL_CHARS;
 }
-// Override battle setup to respect anime filter
-const _origRenderBattleSetup = typeof renderBattleSetup === 'function' ? renderBattleSetup : null;
+
 document.addEventListener('DOMContentLoaded', function() {
-  // Auto-select 'both' on load
-  setAnimeFilter('both', document.querySelector('.anime-btn[data-anime="both"]'));
+  // Both animes selected by default
+  selectedAnimes.add('onepiece');
+  selectedAnimes.add('naruto');
+  globalAnimeFilter = 'both';
+  // Enable mode buttons
+  document.querySelectorAll('#btn-start, #btn-draft').forEach(b => b.disabled = false);
+  updateMenuStats();
 });
 
 // Quit functions for modes
 function quitCardBattle() {
   if(confirm('Quit Card Battle? You will forfeit this match.')) {
     showScreen('title-screen');
+    updateMenuStats();
   }
 }
 
