@@ -461,6 +461,19 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
   opacity: 0.8;
 }
 
+.shop-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px 0}
+.shop-item{background:#1a1a2e;border:1px solid #333;border-radius:10px;padding:12px;text-align:center}
+.shop-emoji{font-size:28px;margin-bottom:4px}
+.shop-name{font-family:'Bebas Neue',sans-serif;font-size:16px;color:#fff;letter-spacing:1px}
+.shop-desc{font-size:10px;color:#aaa;margin:4px 0}
+.shop-owned{font-size:11px;color:#4CAF50;margin-bottom:6px}
+.item-equip-section{text-align:center;margin:8px 0}
+.item-eq-btn{background:#1a1a2e;border:1px solid #444;color:#fff;border-radius:8px;padding:6px 12px;margin:3px;font-size:11px;cursor:pointer;transition:all .2s}
+.item-eq-btn:hover{border-color:#FFD700}
+.item-equipped{border-color:#4CAF50;background:#1a2e1a;box-shadow:0 0 8px #4CAF5055}
+.item-clear{border-color:#ff4444;color:#ff4444;font-size:10px}
+.item-btn{background:linear-gradient(135deg,#4CAF50,#2E7D32);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;cursor:pointer}
+
 @keyframes synergy-glow {
   0%, 100% {
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
@@ -503,8 +516,9 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
     </div>
   </div>
 
-  <div style="text-align:center;margin-top:14px;z-index:2">
+  <div style="text-align:center;margin-top:14px;z-index:2;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
     <button class="gp-btn" onclick="showGachaShop()" style="font-size:20px;padding:10px 36px;letter-spacing:4px">🎰 SUMMON</button>
+    <button class="gp-btn" onclick="showItemShop()" style="font-size:20px;padding:10px 36px;letter-spacing:4px;background:linear-gradient(135deg,#4CAF50,#2E7D32)">🛍️ SHOP</button>
   </div>
   <div class="coin-display"  onclick="claimFreeCoins()" style="margin-top:14px;cursor:pointer;z-index:2;text-align:center">
     <div style="font-family:'Chakra Petch',sans-serif;font-size:10px;color:#666;letter-spacing:2px">YOUR COINS</div>
@@ -2028,7 +2042,7 @@ function loadDraftTeamImages(){
 // PWA: Service Worker Registration
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js?v=12').then(r=>{
+    navigator.serviceWorker.register('sw.js?v=13').then(r=>{
       console.log('SW registered, scope:',r.scope);
       r.update();
     }).catch(e=>console.log('SW registration failed:',e));
@@ -2083,6 +2097,10 @@ window.addEventListener('appinstalled',()=>{
     <div class="bet-sublabel">Risk coins for bigger rewards. Lose them if you lose.</div>
     <div id="betRow"></div>
     <div id="betPotential"></div>
+  </div>
+  <div class="item-equip-section">
+    <div class="bet-label">ITEMS (tap to equip, max 3)</div>
+    <div id="itemEquipRow"></div>
   </div>
   <button id="btnBattleStart" disabled onclick="startBattleFight()">FIGHT!</button>
   <button class="bt-back" onclick="closeBattle()">Back</button>

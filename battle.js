@@ -209,6 +209,129 @@ function showNextGachaPull(){
 
 
 
+// ---- ITEMS SYSTEM ----
+const ITEMS = {
+  potion:    {name:'Potion',emoji:'🧪',desc:'Heal 25% HP',cost:150,effect:'heal',value:0.25},
+  hipotion:  {name:'Hi-Potion',emoji:'💊',desc:'Heal 50% HP',cost:300,effect:'heal',value:0.50},
+  atkboost:  {name:'ATK Boost',emoji:'⚔️',desc:'+20% ATK for battle',cost:200,effect:'buff',stat:'atk',value:0.20},
+  defboost:  {name:'DEF Boost',emoji:'🛡️',desc:'+20% DEF for battle',cost:200,effect:'buff',stat:'def',value:0.20},
+  spdboost:  {name:'SPD Boost',emoji:'💨',desc:'+20% SPD for battle',cost:200,effect:'buff',stat:'spd',value:0.20},
+  revive:    {name:'Revive',emoji:'✨',desc:'Revive fainted ally at 30% HP',cost:500,effect:'revive',value:0.30}
+};
+const INV_KEY='animewar_inventory';
+function loadInventory(){try{const s=localStorage.getItem(INV_KEY);if(s)return JSON.parse(s);}catch(e){}return {};}
+function saveInventory(inv){localStorage.setItem(INV_KEY,JSON.stringify(inv));}
+function getItemCount(itemId){const inv=loadInventory();return inv[itemId]||0;}
+function buyItem(itemId,qty){
+  const item=ITEMS[itemId]; if(!item) return false;
+  const total=item.cost*qty;
+  if(saveData.coins<total) return false;
+  saveData.coins-=total; saveSave();
+  const inv=loadInventory(); inv[itemId]=(inv[itemId]||0)+qty; saveInventory(inv);
+  return true;
+}
+function consumeItem(itemId){
+  const inv=loadInventory(); if(!inv[itemId]||inv[itemId]<=0) return false;
+  inv[itemId]--; if(inv[itemId]<=0) delete inv[itemId]; saveInventory(inv);
+  return true;
+}
+
+let equippedItems=[];
+function useItemInBattle(itemId){
+  if(!currentBattle||currentBattle.phase!=='action') return;
+  const item=ITEMS[itemId]; if(!item) return;
+  if(!consumeItem(itemId)) return;
+  const idx=equippedItems.indexOf(itemId);
+  if(idx>=0) equippedItems.splice(idx,1);
+  const b=currentBattle, p=b.pActive;
+  b.pendingLog=[];
+  if(item.effect==='heal'){
+    const heal=Math.floor(p.maxHP*item.value);
+    p.hp=Math.min(p.maxHP,p.hp+heal);
+    b.addLog(`${p.name} used ${item.name}! Healed ${heal} HP!`);
+  }else if(item.effect==='buff'){
+    const boost=Math.floor(p[item.stat]*item.value);
+    p[item.stat]+=boost;
+    b.addLog(`${p.name} used ${item.name}! ${item.stat.toUpperCase()} +${boost}!`);
+  }else if(item.effect==='revive'){
+    const fainted=b.pTeam.filter(c=>c.fainted);
+    if(fainted.length>0){
+      const target=fainted[0];
+      target.fainted=false;
+      target.hp=Math.floor(target.maxHP*item.value);
+      b.addLog(`${target.name} was revived with ${target.hp} HP!`);
+    }else{
+      b.addLog('No fainted allies to revive!');
+      // Refund the item
+      const inv=loadInventory(); inv[itemId]=(inv[itemId]||0)+1; saveInventory(inv);
+      equippedItems.push(itemId);
+      return;
+    }
+  }
+  // Using item takes your turn - enemy attacks
+  const e=b.eActive;
+  const eMoveIdx=b.aiPickMove(e,p);
+  const eMove=e.moves[eMoveIdx];
+  b.execAttack(e,p,eMove);
+  b.tickStatus(p); b.tickStatus(e);
+  if(b.pSynergies&&b.pSynergies.some(s=>s.key==='sannin')){
+    const healAmt=Math.floor(p.maxHP*0.03);
+    p.hp=Math.min(p.maxHP,p.hp+healAmt);
+    if(healAmt>0) b.addLog(`${p.name} recovered ${healAmt} HP from Sannin synergy!`);
+  }
+  b.checkFaint(); b.turn++;
+  animateLogs(b.pendingLog,()=>renderBattle());
+  b.pendingLog=[];
+}
+
+function showBattleItems(){
+  if(!currentBattle||currentBattle.phase!=='action') return;
+  const actDiv=document.getElementById('battleActions');
+  let html='<div class="switch-prompt">Use an Item (takes your turn)</div><div class="switch-grid">';
+  const counted={};
+  equippedItems.forEach(id=>{counted[id]=(counted[id]||0)+1;});
+  for(const [id,qty] of Object.entries(counted)){
+    const item=ITEMS[id];
+    html+=`<button class="switch-char-btn" onclick="useItemInBattle('${id}')">
+      <span style="font-size:24px">${item.emoji}</span>
+      <span>${item.name} x${qty}</span>
+      <span style="font-size:10px;opacity:0.7">${item.desc}</span>
+    </button>`;
+  }
+  html+=`</div><button class="switch-btn" onclick="renderBattle()" style="margin-top:8px">Cancel</button>`;
+  actDiv.innerHTML=html;
+}
+
+function showItemShop(){
+  const modal=document.getElementById('gachaModal');
+  if(!modal) return;
+  const inv=loadInventory();
+  let html=`<div class="gacha-header">
+    <div class="gacha-title">🛍️ SHOP</div>
+    <div class="gacha-coins">💰 ${saveData.coins.toLocaleString()}</div>
+  </div><div class="shop-grid">`;
+  for(const [id,item] of Object.entries(ITEMS)){
+    const owned=inv[id]||0;
+    const canBuy=saveData.coins>=item.cost;
+    html+=`<div class="shop-item">
+      <div class="shop-emoji">${item.emoji}</div>
+      <div class="shop-name">${item.name}</div>
+      <div class="shop-desc">${item.desc}</div>
+      <div class="shop-owned">Owned: ${owned}</div>
+      <button class="gp-btn ${canBuy?'':'gp-disabled'}" onclick="buyItemUI('${id}')" ${canBuy?'':'disabled'}>${item.cost} COINS</button>
+    </div>`;
+  }
+  html+=`</div><button class="gacha-close" onclick="closeGachaShop()">BACK</button>`;
+  modal.querySelector('.gacha-content').innerHTML=html;
+  modal.style.display='flex';
+}
+
+function buyItemUI(itemId){
+  if(buyItem(itemId,1)){
+    showItemShop(); // refresh
+  }
+}
+
 // ---- TYPE EFFECTIVENESS ----
 // physical/taijutsu beats: sword/kenjutsu (brute force overwhelms)
 // sword/kenjutsu beats: special/df/ninjutsu (precise cuts)
@@ -576,6 +699,7 @@ function showBattleSetup(){
   selectedBattleTeam=[];
   selectedDifficulty='medium';
   currentBet=0;
+  equippedItems=[];
   renderBattleSetup();
 }
 
@@ -632,6 +756,32 @@ function renderBattleSetup(){
       : `Win: +${baseReward} coins`;
   }
 
+  // Item equip row
+  const itemRow = document.getElementById('itemEquipRow');
+  if(itemRow) {
+    const inv = loadInventory();
+    const hasItems = Object.keys(inv).length > 0;
+    if(hasItems) {
+      let html = '';
+      for(const [id, qty] of Object.entries(inv)) {
+        if(qty <= 0) continue;
+        const item = ITEMS[id]; if(!item) continue;
+        const eqCount = equippedItems.filter(e=>e===id).length;
+        const available = qty - eqCount;
+        const equipped = eqCount > 0;
+        html += `<button class="item-eq-btn ${equipped?'item-equipped':''}" onclick="toggleEquipItem('${id}')">
+          ${item.emoji} ${item.name}${qty>1?' x'+qty:''} ${eqCount>0?'('+eqCount+' equipped)':''}
+        </button>`;
+      }
+      if(equippedItems.length > 0) {
+        html += `<button class="item-eq-btn item-clear" onclick="equippedItems=[];renderBattleSetup()">Clear All</button>`;
+      }
+      itemRow.innerHTML = html;
+    } else {
+      itemRow.innerHTML = '<span style="font-size:11px;color:#666">No items. Buy some from the Shop!</span>';
+    }
+  }
+
   // Show active synergies
   const synergyEl = document.getElementById('activeSynergies');
   if(synergyEl) {
@@ -666,6 +816,21 @@ function toggleBattleChar(id){
 }
 
 function setDifficulty(d){selectedDifficulty=d;renderBattleSetup();}
+
+function toggleEquipItem(itemId){
+  const inv=loadInventory();
+  const owned=inv[itemId]||0;
+  const eqCount=equippedItems.filter(e=>e===itemId).length;
+  if(eqCount>0){
+    // Unequip one
+    const idx=equippedItems.indexOf(itemId);
+    if(idx>=0) equippedItems.splice(idx,1);
+  }else if(equippedItems.length<3 && eqCount<owned){
+    // Equip one
+    equippedItems.push(itemId);
+  }
+  renderBattleSetup();
+}
 
 let currentBet = 0;
 function getBetOptions() {
@@ -752,6 +917,7 @@ function renderBattle(){
     }).join('')}</div>
     <div class="battle-bottom-btns">
       <button class="switch-btn" onclick="showSwitchMenu()">Switch</button>
+      ${equippedItems.length>0?`<button class="item-btn" onclick="showBattleItems()">🧪 Items (${equippedItems.length})</button>`:''}
       <button class="forfeit-btn" onclick="quitBattle()">Quit</button>
     </div>`;
   }else if(b.phase==='switching'){
