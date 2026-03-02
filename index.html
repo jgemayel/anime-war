@@ -344,9 +344,7 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
 .reward-breakdown.loss .reward-line{color:#f44}
 
 /* Dashboard polish */
-.mode-card{position:relative;overflow:hidden}
-.mode-card::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,#fff05 60%,transparent);opacity:0;transition:opacity .3s}
-.mode-card:hover::after{opacity:1}
+.mode-card{position:relative}
 .mode-card .mode-icon{transition:transform .3s}.mode-card:hover .mode-icon{transform:scale(1.15)}
 .setup-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .setup-header h2{margin:0}
@@ -2027,10 +2025,13 @@ function setAnimeFilter(filter, btn) {
   // Update button states
   document.querySelectorAll('.anime-select .anime-btn').forEach(b => b.classList.remove('selected'));
   if(btn) btn.classList.add('selected');
-  // Legacy compat: also set selectedAnime for card battle/draft modes
-  if(filter === 'onepiece') { selectedAnime = 'onepiece'; }
-  else if(filter === 'naruto') { selectedAnime = 'naruto'; }
-  else { selectedAnime = null; }
+  // Sync with legacy selectedAnimes Set used by card battle/draft modes
+  if(typeof selectedAnimes !== 'undefined') {
+    selectedAnimes.clear();
+    if(filter === 'onepiece') { selectedAnimes.add('onepiece'); }
+    else if(filter === 'naruto') { selectedAnimes.add('naruto'); }
+    else { selectedAnimes.add('onepiece'); selectedAnimes.add('naruto'); }
+  }
   // Enable/disable mode buttons
   const starts = document.querySelectorAll('#btn-start, #btn-draft');
   starts.forEach(b => b.disabled = false);
