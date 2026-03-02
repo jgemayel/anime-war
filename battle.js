@@ -133,17 +133,29 @@ function calcMaxHP(ch){
   return Math.floor((ch.def*2.5+150)*(TIER_MULT[ch.tier]||1));
 }
 function calcDamage(atk,def,move){
-  const isPhys=['physical','taijutsu','sword','kenjutsu'].includes(move.type);
-  const atkStat=isPhys? atk.atk : Math.max(atk.atk, atk.df||0, atk.haki||0);
-  const defStat=def.def;
+  // Attack stat depends on move type
+  const mt=move.type;
+  let atkStat;
+  if(mt==='physical'||mt==='taijutsu') atkStat=atk.atk;
+  else if(mt==='sword'||mt==='kenjutsu') atkStat=atk.haki>0?Math.round((atk.atk+atk.haki)/2):atk.atk;
+  else if(mt==='haki'||mt==='genjutsu') atkStat=atk.haki||atk.atk;
+  else if(mt==='df'||mt==='ninjutsu') atkStat=(atk.df||0)||atk.atk;
+  else atkStat=Math.max(atk.atk, atk.df||0, atk.haki||0); // special
+  // Defense stat varies by incoming type
+  let defStat=def.def;
+  if(mt==='sword'||mt==='kenjutsu') defStat=Math.round((def.def+(def.spd||0))/2);
+  else if(mt==='haki'||mt==='genjutsu') defStat=Math.round((def.def+(def.haki||0))/2);
+  else if(mt==='df'||mt==='ninjutsu') defStat=Math.round((def.def+(def.df||0))/2);
   const base=((move.power*(atkStat/50))*(50/(50+defStat)))+2;
   const variance=0.85+Math.random()*0.15;
-  const spdBonus=atk.spd>def.spd?1.05:1.0;
-  // Type effectiveness
+  // Speed bonus scales with gap (max 12% at +40 spd diff)
+  const spdDiff=atk.spd-def.spd;
+  const spdBonus=spdDiff>0?1+Math.min(0.12,spdDiff*0.003):1.0;
   const typeMult=getTypeMultiplier(move.type, def._moves||[]);
   let dmg=Math.floor(base*variance*spdBonus*typeMult);
-  // Crit: 6.25% chance, 1.5x
-  const crit=Math.random()<0.0625;
+  // Crit: base 6.25%, +0.1% per speed point above opponent
+  const critRate=Math.min(0.15,0.0625+(spdDiff>0?spdDiff*0.001:0));
+  const crit=Math.random()<critRate;
   if(crit) dmg=Math.floor(dmg*1.5);
   return {dmg:Math.max(1,dmg),crit,typeMult};
 }
