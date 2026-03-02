@@ -489,6 +489,16 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
 .story-boss-btn{border-color:#ff4444;background:#1a0a0a;color:#ff6666;font-weight:700}
 .story-boss-btn.ch-done{border-color:#FFD700;color:#FFD700}
 .arc-complete{text-align:center;color:#FFD700;font-size:12px;margin-top:6px;font-weight:700}
+.daily-streak{font-size:14px;color:#ff6b35;font-weight:700;margin-top:4px}
+.daily-grid{display:flex;flex-direction:column;gap:8px;padding:10px 0}
+.daily-card{background:#1a1a2e;border:1px solid #444;border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px}
+.daily-done{border-color:#4CAF50;opacity:0.7}
+.daily-emoji{font-size:28px;min-width:36px;text-align:center}
+.daily-name{font-family:'Bebas Neue',sans-serif;font-size:16px;color:#fff;letter-spacing:1px}
+.daily-desc{font-size:11px;color:#aaa}
+.daily-reward{margin-left:auto;font-size:12px;color:#FFD700;font-weight:700;white-space:nowrap}
+.daily-info{font-size:10px;color:#666;text-align:center;margin:8px 0}
+.daily-complete-note{color:#4CAF50;font-weight:700;font-size:14px;margin:8px 0;text-align:center;animation:synergy-glow 1.5s ease-in-out infinite}
 
 .item-btn{background:linear-gradient(135deg,#4CAF50,#2E7D32);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;cursor:pointer}
 
@@ -542,6 +552,7 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
   <div style="text-align:center;margin-top:14px;z-index:2;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
     <button class="gp-btn" onclick="showGachaShop()" style="font-size:20px;padding:10px 36px;letter-spacing:4px">🎰 SUMMON</button>
     <button class="gp-btn" onclick="showItemShop()" style="font-size:20px;padding:10px 36px;letter-spacing:4px;background:linear-gradient(135deg,#4CAF50,#2E7D32)">🛍️ SHOP</button>
+    <button class="gp-btn" onclick="showDailyChallenges()" style="font-size:20px;padding:10px 36px;letter-spacing:4px;background:linear-gradient(135deg,#E03131,#c92a2a)">🎯 DAILY</button>
   </div>
   <div class="coin-display"  onclick="claimFreeCoins()" style="margin-top:14px;cursor:pointer;z-index:2;text-align:center">
     <div style="font-family:'Chakra Petch',sans-serif;font-size:10px;color:#666;letter-spacing:2px">YOUR COINS</div>
@@ -2065,7 +2076,7 @@ function loadDraftTeamImages(){
 // PWA: Service Worker Registration
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js?v=14').then(r=>{
+    navigator.serviceWorker.register('sw.js?v=15').then(r=>{
       console.log('SW registered, scope:',r.scope);
       r.update();
     }).catch(e=>console.log('SW registration failed:',e));

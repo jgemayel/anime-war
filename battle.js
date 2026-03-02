@@ -523,6 +523,106 @@ function completeStoryBoss(arcId,reward,arcReward){
   return !alreadyCleared;
 }
 
+// ---- DAILY CHALLENGES ----
+const DAILY_KEY='animewar_daily';
+const CHALLENGE_POOL=[
+  {id:'b_tier_only',name:'B-Tier Warriors',desc:'Win a battle using only B-tier characters',emoji:'🅱️',reward:400,check:(r)=>r.won&&r.team.every(c=>c.tier==='B')},
+  {id:'c_tier_only',name:'Underdog Victory',desc:'Win a battle using only C-tier characters',emoji:'🐕',reward:800,check:(r)=>r.won&&r.team.every(c=>c.tier==='C')},
+  {id:'no_items',name:'Pure Skill',desc:'Win a battle without using any items',emoji:'💪',reward:300,check:(r)=>r.won&&r.itemsUsed===0},
+  {id:'synergy_win',name:'Team Synergy',desc:'Win with at least 1 active synergy',emoji:'🤝',reward:400,check:(r)=>r.won&&r.synergies>0},
+  {id:'hard_win',name:'Hard Mode',desc:'Win a Hard difficulty battle',emoji:'🔥',reward:500,check:(r)=>r.won&&r.diff==='hard'},
+  {id:'no_faint',name:'Perfect Victory',desc:'Win without any of your team fainting',emoji:'🏆',reward:600,check:(r)=>r.won&&r.fainted===0},
+  {id:'speed_win',name:'Quick Battle',desc:'Win in 8 turns or less',emoji:'⚡',reward:500,check:(r)=>r.won&&r.turns<=8},
+  {id:'op_only',name:'Pirate Crew',desc:'Win using only One Piece characters',emoji:'☠️',reward:350,check:(r)=>r.won&&r.team.every(c=>c.anime==='onepiece')},
+  {id:'nr_only',name:'Ninja Squad',desc:'Win using only Naruto characters',emoji:'🍥',reward:350,check:(r)=>r.won&&r.team.every(c=>c.anime==='naruto')},
+  {id:'win_3',name:'Triple Threat',desc:'Win 3 battles today',emoji:'3️⃣',reward:500,check:(r)=>r.dailyWins>=3},
+  {id:'story_chapter',name:'Story Time',desc:'Complete any story chapter',emoji:'📖',reward:300,check:(r)=>r.storyChapter},
+  {id:'boss_kill',name:'Boss Slayer',desc:'Defeat any story boss',emoji:'👑',reward:700,check:(r)=>r.bossKill},
+  {id:'big_spender',name:'High Roller',desc:'Win a bet of 1000+ coins',emoji:'💰',reward:400,check:(r)=>r.won&&r.bet>=1000},
+  {id:'mixed_tier',name:'Variety Pack',desc:'Win with 3 different tier characters',emoji:'🎭',reward:350,check:(r)=>{if(!r.won) return false; const t=new Set(r.team.map(c=>c.tier)); return t.size>=3;}},
+  {id:'s_tier',name:'Elite Squad',desc:'Win using at least 2 S or S+ tier characters',emoji:'⭐',reward:300,check:(r)=>r.won&&r.team.filter(c=>c.tier==='S'||c.tier==='S+').length>=2}
+];
+
+function loadDaily(){
+  try{const s=localStorage.getItem(DAILY_KEY);if(s){const d=JSON.parse(s);if(d.date===getTodayStr()) return d;}}catch(e){}
+  return {date:getTodayStr(),completed:[],streak:getStreak(),dailyWins:0};
+}
+function saveDaily(d){localStorage.setItem(DAILY_KEY,JSON.stringify(d));}
+function getTodayStr(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+
+function getStreak(){
+  try{const s=localStorage.getItem(DAILY_KEY);if(s){const d=JSON.parse(s);
+    const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
+    const yStr=yesterday.getFullYear()+'-'+(yesterday.getMonth()+1)+'-'+yesterday.getDate();
+    if(d.date===yStr&&d.completed.length>0) return (d.streak||0)+1;
+    if(d.date===getTodayStr()) return d.streak||0;
+  }}catch(e){}
+  return 0;
+}
+
+function getDailyChallenges(){
+  // Seed from today's date to get consistent daily challenges
+  const dateStr=getTodayStr();
+  let hash=0;
+  for(let i=0;i<dateStr.length;i++){hash=((hash<<5)-hash)+dateStr.charCodeAt(i);hash|=0;}
+  const seed=Math.abs(hash);
+  // Pick 3 unique challenges
+  const shuffled=[...CHALLENGE_POOL];
+  for(let i=shuffled.length-1;i>0;i--){
+    const j=(seed*(i+1)*31)%shuffled.length;
+    [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
+  }
+  return shuffled.slice(0,3);
+}
+
+function checkDailyChallenges(battleResult){
+  const daily=loadDaily();
+  const challenges=getDailyChallenges();
+  let completed=false;
+  for(const ch of challenges){
+    if(daily.completed.includes(ch.id)) continue;
+    if(ch.check(battleResult)){
+      daily.completed.push(ch.id);
+      const streakMult=1+Math.min(0.5,daily.streak*0.1);
+      const reward=Math.floor(ch.reward*streakMult);
+      addCoins(reward);
+      completed=true;
+    }
+  }
+  if(battleResult.won) daily.dailyWins=(daily.dailyWins||0)+1;
+  saveDaily(daily);
+  return completed;
+}
+
+function showDailyChallenges(){
+  const modal=document.getElementById('gachaModal');
+  if(!modal) return;
+  const daily=loadDaily();
+  const challenges=getDailyChallenges();
+  const streak=daily.streak||0;
+  const streakMult=1+Math.min(0.5,streak*0.1);
+
+  let html=`<div class="gacha-header">
+    <div class="gacha-title">🎯 DAILY CHALLENGES</div>
+    ${streak>0?`<div class="daily-streak">🔥 ${streak}-day streak! +${Math.round((streakMult-1)*100)}% bonus</div>`:''}
+  </div><div class="daily-grid">`;
+
+  for(const ch of challenges){
+    const done=daily.completed.includes(ch.id);
+    const reward=Math.floor(ch.reward*streakMult);
+    html+=`<div class="daily-card ${done?'daily-done':''}">
+      <div class="daily-emoji">${ch.emoji}</div>
+      <div class="daily-name">${ch.name}</div>
+      <div class="daily-desc">${ch.desc}</div>
+      <div class="daily-reward">${done?'✅ Completed':`+${reward} coins`}</div>
+    </div>`;
+  }
+  html+=`</div><div class="daily-info">New challenges every day. Complete at least 1 to keep your streak!</div>`;
+  html+=`<button class="gacha-close" onclick="closeGachaShop()">BACK</button>`;
+  modal.querySelector('.gacha-content').innerHTML=html;
+  modal.style.display='flex';
+}
+
 // ---- TYPE EFFECTIVENESS ----
 // physical/taijutsu beats: sword/kenjutsu (brute force overwhelms)
 // sword/kenjutsu beats: special/df/ninjutsu (precise cuts)
@@ -1155,7 +1255,6 @@ function renderBattle(){
       b._resultHandled = true;
       const sc=b.storyContext;
       if(sc && b.phase==='won'){
-        // Story mode rewards
         if(sc.type==='chapter'){
           completeStoryChapter(sc.arcId,sc.chIdx,sc.reward);
         }else if(sc.type==='boss'){
@@ -1167,6 +1266,22 @@ function renderBattle(){
       }else{
         saveData.losses++;saveSave();
       }
+      // Check daily challenges
+      const daily=loadDaily();
+      const battleResult={
+        won:b.phase==='won',
+        team:b.pTeam,
+        diff:b.diff,
+        synergies:(b.pSynergies||[]).length,
+        fainted:b.pTeam.filter(c=>c.fainted).length,
+        turns:b.turn,
+        itemsUsed:(b._itemsUsed||0),
+        bet:b.bet||0,
+        storyChapter:!!(sc&&sc.type==='chapter'&&b.phase==='won'),
+        bossKill:!!(sc&&sc.type==='boss'&&b.phase==='won'),
+        dailyWins:(daily.dailyWins||0)+(b.phase==='won'?1:0)
+      };
+      b._dailyCompleted=checkDailyChallenges(battleResult);
     }
 
     let rewardHTML = '';
@@ -1197,9 +1312,11 @@ function renderBattle(){
 
     const backBtnLabel=sc?'Back to Story':'Play Again';
     const backBtnAction=sc?`storyContext=null;showStoryMode()`:'showBattleSetup()';
+    const dailyNote=b._dailyCompleted?'<div class="daily-complete-note">🎯 Daily Challenge Completed!</div>':'';
     actDiv.innerHTML=`<div class="battle-result ${b.phase}">
       <h2>${b.phase==='won'?'VICTORY!':'DEFEAT'}</h2>
       ${rewardHTML}
+      ${dailyNote}
       <div class="result-btns">
         <button onclick="${backBtnAction}">${backBtnLabel}</button>
         <button onclick="storyContext=null;closeBattle()">Main Menu</button>
