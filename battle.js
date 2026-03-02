@@ -469,12 +469,20 @@ function renderBattle(){
   // Action area
   const actDiv=document.getElementById('battleActions');
   if(b.phase==='action'){
-    actDiv.innerHTML=`<div class="move-grid">${p.moves.map((m,i)=>
-      `<button class="move-btn move-${m.type}" onclick="doPlayerMove(${i})" ${m.curPP<=0?'disabled':''}>
+    // Get defender's primary type for effectiveness display
+    const defMoves = e._moves || BATTLE_MOVES[e.id] || [];
+    const defType = defMoves.length > 0 ? defMoves[0].type : null;
+    actDiv.innerHTML=`<div class="move-grid">${p.moves.map((m,i)=>{
+      const missRate = 100 - m.acc;
+      const typeMult = defType && TYPE_CHART[m.type] ? (TYPE_CHART[m.type][defType]||1.0) : 1.0;
+      const effClass = typeMult > 1.1 ? 'eff-super' : (typeMult < 0.9 ? 'eff-weak' : 'eff-neutral');
+      const effLabel = typeMult > 1.1 ? 'Super Effective' : (typeMult < 0.9 ? 'Not Effective' : '');
+      return `<button class="move-btn move-${m.type} ${effClass}" onclick="doPlayerMove(${i})" ${m.curPP<=0?'disabled':''}>
         <span class="move-name">${m.name}</span>
-        <span class="move-info">${m.type} | Pwr:${m.power} | PP:${m.curPP}/${m.pp}</span>
-      </button>`
-    ).join('')}</div>
+        <span class="move-info">Pwr:${m.power} | PP:${m.curPP}/${m.pp}</span>
+        <span class="move-meta"><span class="move-acc">Miss:${missRate}%</span>${effLabel?`<span class="move-eff ${effClass}">${effLabel}</span>`:''}</span>
+      </button>`;
+    }).join('')}</div>
     <div class="battle-bottom-btns">
       <button class="switch-btn" onclick="showSwitchMenu()">Switch</button>
       <button class="forfeit-btn" onclick="quitBattle()">Quit</button>
@@ -753,6 +761,10 @@ function showCharDetail(id) {
     </div>
   `;
   modal.style.display = 'flex';
+  // Click outside to close
+  modal.onclick = function(e) {
+    if(e.target === modal) closeCharDetail();
+  };
 }
 
 function closeCharDetail() {

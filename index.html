@@ -246,19 +246,19 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
 @keyframes typeFlash{0%{filter:brightness(1)}50%{filter:brightness(2)}100%{filter:brightness(1)}}
 
 /* ===== CHARACTER DETAIL MODAL ===== */
-#charDetailModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000c;z-index:10001;justify-content:center;align-items:flex-start;padding:20px;overflow-y:auto}
-.detail-card{background:#111;border:2px solid #222;border-radius:16px;max-width:380px;width:100%;padding:20px;position:relative}
-.detail-close{position:absolute;top:10px;right:14px;background:none;border:none;color:#666;font-size:20px;cursor:pointer}
-.detail-close:hover{color:#fff}
+#charDetailModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000c;z-index:10001;justify-content:center;align-items:center;padding:10px;overflow-y:auto;cursor:pointer}
+.detail-card{background:#111;border:2px solid #222;border-radius:14px;max-width:340px;width:100%;padding:14px;position:relative;cursor:default;max-height:90vh;overflow-y:auto}
+.detail-close{position:absolute;top:8px;right:10px;background:#000a;border:1px solid #333;color:#aaa;font-size:16px;cursor:pointer;z-index:10;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.detail-close:hover{background:#f44;color:#fff;border-color:#f44}
 .detail-card{position:relative;overflow:hidden}
 .detail-tier{position:absolute;top:4px;right:4px;font-size:11px;padding:2px 6px;border-radius:4px;font-weight:bold;z-index:5}
-.detail-name{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#fff;letter-spacing:1px}
+.detail-name{font-family:'Bebas Neue',sans-serif;font-size:18px;color:#fff;letter-spacing:1px}
 .detail-title{font-size:10px;color:#666;font-family:'Chakra Petch',sans-serif;margin-top:2px}
 .detail-stats{margin-bottom:15px}
 .stat-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
 .stat-label{width:38px;font-size:10px;color:#888;font-family:'Chakra Petch',sans-serif;text-align:right}
 .stat-val{width:24px;font-size:12px;color:#fff;font-family:'Chakra Petch',sans-serif;text-align:right}
-.stat-bar-bg{flex:1;height:8px;background:#222;border-radius:4px;overflow:hidden}
+.stat-bar-bg{flex:1;height:6px;background:#222;border-radius:3px;overflow:hidden}
 .stat-bar-fill{height:100%;border-radius:4px;transition:width .5s}
 .detail-moves{display:flex;flex-direction:column;gap:6px;margin-bottom:15px}
 .detail-move{padding:8px 10px;border:1px solid #222;border-radius:8px;background:#0a0a0f}
@@ -302,7 +302,7 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
 .upg-step-cost{font-size:9px;color:#444;font-family:'Chakra Petch',sans-serif;margin-top:2px}
 
 /* Character detail hero redesign */
-.detail-hero{position:relative;width:100%;height:180px;overflow:hidden;border-radius:14px 14px 0 0;margin:-20px -20px 0 -20px;width:calc(100% + 40px)}
+.detail-hero{position:relative;width:100%;height:130px;overflow:hidden;border-radius:12px 12px 0 0;margin:-14px -14px 0 -14px;width:calc(100% + 28px)}
 .detail-hero-img{width:100%;height:100%;object-fit:cover;object-position:center top}
 .detail-hero-overlay{position:absolute;bottom:0;left:0;right:0;padding:12px 16px;background:linear-gradient(transparent,#111e)}
 .detail-hero-info{margin-top:4px}
@@ -353,6 +353,15 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
 .diff-btn.diff-active .diff-reward{opacity:1}
 
 /* Quit bar for all modes */
+
+/* Move effectiveness indicators */
+.move-meta{display:flex;justify-content:space-between;font-size:8px;margin-top:3px;font-family:'Chakra Petch',sans-serif}
+.move-acc{color:#aaa;letter-spacing:0.5px}
+.move-eff{font-weight:700;letter-spacing:0.5px;padding:1px 4px;border-radius:3px}
+.move-eff.eff-super{color:#4CAF50;background:#4CAF5022}
+.move-eff.eff-weak{color:#f44;background:#f4433622}
+.move-btn.eff-super{border-color:#4CAF5066!important}
+.move-btn.eff-weak{border-color:#f4433644!important;opacity:0.85}
 .quit-bar{display:flex;justify-content:flex-end;padding:6px 10px;position:sticky;top:0;z-index:100}
 .quit-btn{font-family:'Chakra Petch',sans-serif;font-size:10px;letter-spacing:2px;padding:5px 14px;background:#1a0a0a;color:#f44;border:1px solid #f4433644;border-radius:6px;cursor:pointer;transition:all .2s}
 .quit-btn:hover{background:#2a0a0a;border-color:#f44}
@@ -453,237 +462,237 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
 // ================================================================
 const OP=[
 // --- STRAW HATS ---
-{id:"op1",name:"Monkey D. Luffy",sn:"Luffy Monkey",title:"Captain, Straw Hat Pirates / Gear 5 Nika",anime:"onepiece",atk:97,def:85,spd:92,haki:98,df:95,rivalId:"op13",emoji:"👒",tier:"S",color:"#E03131"},
-{id:"op2",name:"Roronoa Zoro",sn:"Roronoa Zoro",title:"First Mate, Straw Hat Pirates / King of Hell",anime:"onepiece",atk:94,def:88,spd:85,haki:90,df:0,rivalId:"op18",emoji:"⚔️",tier:"S",color:"#2F9E44"},
-{id:"op3",name:"Vinsmoke Sanji",sn:"Sanji Vinsmoke",title:"Cook, Straw Hat Pirates / Ifrit Jambe",anime:"onepiece",atk:88,def:86,spd:93,haki:82,df:0,rivalId:"op26",emoji:"🔥",tier:"A",color:"#F08C00"},
-{id:"op4",name:"Nami",sn:"Nami One Piece",title:"Navigator, Straw Hat Pirates / Zeus",anime:"onepiece",atk:52,def:45,spd:65,haki:0,df:0,rivalId:"op27",emoji:"🌩️",tier:"C",color:"#FF922B"},
-{id:"op5",name:"Nico Robin",sn:"Nico Robin",title:"Archaeologist, Straw Hat Pirates / Demonio Fleur",anime:"onepiece",atk:72,def:65,spd:60,haki:45,df:80,rivalId:"op28",emoji:"🌸",tier:"B",color:"#7048E8"},
-{id:"op6",name:"Franky",sn:"Franky One Piece",title:"Shipwright, Straw Hat Pirates / General Franky",anime:"onepiece",atk:75,def:82,spd:55,haki:0,df:0,rivalId:"op29",emoji:"🤖",tier:"B",color:"#1098AD"},
-{id:"op7",name:"Jinbe",sn:"Jinbe",title:"Helmsman, Straw Hat Pirates / Fishman Karate",anime:"onepiece",atk:84,def:88,spd:70,haki:80,df:0,rivalId:"op30",emoji:"🦈",tier:"A",color:"#3B5BDB"},
-{id:"op8",name:"Tony Tony Chopper",sn:"Tony Tony Chopper",title:"Doctor, Straw Hat Pirates / Monster Point",anime:"onepiece",atk:58,def:60,spd:62,haki:0,df:70,rivalId:"op32",emoji:"🦌",tier:"C",color:"#E8590C"},
-{id:"op9",name:"Brook",sn:"Brook One Piece",title:"Musician, Straw Hat Pirates / Soul King",anime:"onepiece",atk:68,def:55,spd:78,haki:40,df:72,rivalId:"op31",emoji:"💀",tier:"B",color:"#495057"},
-{id:"op10",name:"Usopp",sn:"Usopp",title:"Sniper, Straw Hat Pirates / God Usopp",anime:"onepiece",atk:48,def:35,spd:60,haki:45,df:0,rivalId:"op38",emoji:"🎯",tier:"C",color:"#E8D44D"},
+{id:"op1",name:"Monkey D. Luffy",sn:"Luffy Monkey",title:"Captain, Straw Hat Pirates / Gear 5 Nika",anime:"onepiece",atk:72,def:52,spd:61,haki:81,df:65,rivalId:"op13",emoji:"👒",tier:"S",color:"#E03131"},
+{id:"op2",name:"Roronoa Zoro",sn:"Roronoa Zoro",title:"First Mate, Straw Hat Pirates / King of Hell",anime:"onepiece",atk:82,def:65,spd:50,haki:73,df:0,rivalId:"op18",emoji:"⚔️",tier:"S",color:"#2F9E44"},
+{id:"op3",name:"Vinsmoke Sanji",sn:"Sanji Vinsmoke",title:"Cook, Straw Hat Pirates / Ifrit Jambe",anime:"onepiece",atk:60,def:52,spd:78,haki:41,df:0,rivalId:"op26",emoji:"🔥",tier:"A",color:"#F08C00"},
+{id:"op4",name:"Nami",sn:"Nami One Piece",title:"Navigator, Straw Hat Pirates / Zeus",anime:"onepiece",atk:39,def:23,spd:54,haki:0,df:0,rivalId:"op27",emoji:"🌩️",tier:"C",color:"#FF922B"},
+{id:"op5",name:"Nico Robin",sn:"Nico Robin",title:"Archaeologist, Straw Hat Pirates / Demonio Fleur",anime:"onepiece",atk:55,def:47,spd:37,haki:33,df:68,rivalId:"op28",emoji:"🌸",tier:"B",color:"#7048E8"},
+{id:"op6",name:"Franky",sn:"Franky One Piece",title:"Shipwright, Straw Hat Pirates / General Franky",anime:"onepiece",atk:52,def:68,spd:31,haki:0,df:0,rivalId:"op29",emoji:"🤖",tier:"B",color:"#1098AD"},
+{id:"op7",name:"Jinbe",sn:"Jinbe",title:"Helmsman, Straw Hat Pirates / Fishman Karate",anime:"onepiece",atk:60,def:77,spd:44,haki:50,df:0,rivalId:"op30",emoji:"🦈",tier:"A",color:"#3B5BDB"},
+{id:"op8",name:"Tony Tony Chopper",sn:"Tony Tony Chopper",title:"Doctor, Straw Hat Pirates / Monster Point",anime:"onepiece",atk:18,def:37,spd:45,haki:0,df:54,rivalId:"op32",emoji:"🦌",tier:"C",color:"#E8590C"},
+{id:"op9",name:"Brook",sn:"Brook One Piece",title:"Musician, Straw Hat Pirates / Soul King",anime:"onepiece",atk:50,def:43,spd:68,haki:33,df:62,rivalId:"op31",emoji:"💀",tier:"B",color:"#495057"},
+{id:"op10",name:"Usopp",sn:"Usopp",title:"Sniper, Straw Hat Pirates / God Usopp",anime:"onepiece",atk:41,def:17,spd:53,haki:32,df:0,rivalId:"op38",emoji:"🎯",tier:"C",color:"#E8D44D"},
 // --- WORST GENERATION ---
-{id:"op11",name:"Trafalgar Law",sn:"Trafalgar Law",title:"Captain, Heart Pirates / Ope-Ope Fruit",anime:"onepiece",atk:85,def:75,spd:80,haki:78,df:92,rivalId:"op15",emoji:"⚕️",tier:"A",color:"#495057"},
-{id:"op12",name:"Eustass Kid",sn:"Eustass Kid",title:"Captain, Kid Pirates / Magnet-Magnet Fruit",anime:"onepiece",atk:86,def:80,spd:72,haki:75,df:85,rivalId:"op20",emoji:"🧲",tier:"A",color:"#C92A2A"},
-{id:"op58",name:"Killer",sn:"Killer One Piece",title:"Kid Pirates / Massacre Soldier",anime:"onepiece",atk:78,def:72,spd:82,haki:68,df:0,rivalId:"op2",emoji:"🔪",tier:"B",color:"#5C5F66"},
+{id:"op11",name:"Trafalgar Law",sn:"Trafalgar Law",title:"Captain, Heart Pirates / Ope-Ope Fruit",anime:"onepiece",atk:66,def:42,spd:58,haki:53,df:77,rivalId:"op15",emoji:"⚕️",tier:"A",color:"#495057"},
+{id:"op12",name:"Eustass Kid",sn:"Eustass Kid",title:"Captain, Kid Pirates / Magnet-Magnet Fruit",anime:"onepiece",atk:78,def:58,spd:44,haki:49,df:64,rivalId:"op20",emoji:"🧲",tier:"A",color:"#C92A2A"},
+{id:"op58",name:"Killer",sn:"Killer One Piece",title:"Kid Pirates / Massacre Soldier",anime:"onepiece",atk:52,def:39,spd:66,haki:30,df:0,rivalId:"op2",emoji:"🔪",tier:"B",color:"#5C5F66"},
 // --- YONKO ---
-{id:"op13",name:"Kaido",sn:"Kaidou",title:"Emperor, Beast Pirates / King of Beasts",anime:"onepiece",atk:99,def:98,spd:82,haki:96,df:98,rivalId:"op1",emoji:"🐉",tier:"S+",color:"#5F3DC4"},
-{id:"op14",name:"Charlotte Linlin",sn:"Charlotte Linlin",title:"Emperor, Big Mom Pirates / Soul-Soul Fruit",anime:"onepiece",atk:96,def:97,spd:68,haki:92,df:95,rivalId:"op12",emoji:"🎂",tier:"S+",color:"#F06595"},
-{id:"op19",name:"Marshall D. Teach",sn:"Marshall D. Teach",title:"Emperor, Blackbeard Pirates / Two Devil Fruits",anime:"onepiece",atk:93,def:82,spd:65,haki:85,df:99,rivalId:"op20",emoji:"🕳️",tier:"S",color:"#343A40"},
-{id:"op20",name:"Red-Haired Shanks",sn:"Shanks",title:"Emperor, Red Hair Pirates / Supreme Haki",anime:"onepiece",atk:95,def:88,spd:94,haki:100,df:0,rivalId:"op19",emoji:"🍶",tier:"S+",color:"#E03131"},
-{id:"op46",name:"Buggy",sn:"Buggy One Piece",title:"Emperor by Proxy / Cross Guild Figurehead",anime:"onepiece",atk:45,def:42,spd:55,haki:35,df:62,rivalId:"op20",emoji:"🤡",tier:"C",color:"#E64980"},
+{id:"op13",name:"Kaido",sn:"Kaidou",title:"Emperor, Beast Pirates / King of Beasts",anime:"onepiece",atk:91,def:83,spd:62,haki:70,df:77,rivalId:"op1",emoji:"🐉",tier:"S+",color:"#5F3DC4"},
+{id:"op14",name:"Charlotte Linlin",sn:"Charlotte Linlin",title:"Emperor, Big Mom Pirates / Soul-Soul Fruit",anime:"onepiece",atk:86,def:86,spd:61,haki:65,df:77,rivalId:"op12",emoji:"🎂",tier:"S+",color:"#F06595"},
+{id:"op19",name:"Marshall D. Teach",sn:"Marshall D. Teach",title:"Emperor, Blackbeard Pirates / Two Devil Fruits",anime:"onepiece",atk:74,def:62,spd:47,haki:65,df:79,rivalId:"op20",emoji:"🕳️",tier:"S",color:"#343A40"},
+{id:"op20",name:"Red-Haired Shanks",sn:"Shanks",title:"Emperor, Red Hair Pirates / Supreme Haki",anime:"onepiece",atk:80,def:62,spd:67,haki:87,df:0,rivalId:"op19",emoji:"🍶",tier:"S+",color:"#E03131"},
+{id:"op46",name:"Buggy",sn:"Buggy One Piece",title:"Emperor by Proxy / Cross Guild Figurehead",anime:"onepiece",atk:35,def:27,spd:46,haki:22,df:53,rivalId:"op20",emoji:"🤡",tier:"C",color:"#E64980"},
 // --- WHITEBEARD PIRATES ---
-{id:"op21",name:"Edward Newgate",sn:"Edward Newgate",title:"Emperor, Whitebeard Pirates / Tremor-Tremor Fruit",anime:"onepiece",atk:98,def:92,spd:70,haki:95,df:98,rivalId:"op22",emoji:"🌊",tier:"S+",color:"#E8E8E8"},
-{id:"op49",name:"Marco",sn:"Marco One Piece Phoenix",title:"1st Div. Commander, Whitebeard Pirates / Phoenix",anime:"onepiece",atk:85,def:88,spd:82,haki:82,df:92,rivalId:"op19",emoji:"🔵",tier:"S",color:"#339AF0"},
-{id:"op50",name:"Jozu",sn:"Jozu One Piece",title:"3rd Div. Commander, Whitebeard Pirates / Diamond",anime:"onepiece",atk:82,def:95,spd:58,haki:75,df:85,rivalId:"op35",emoji:"💎",tier:"A",color:"#66D9E8"},
-{id:"op51",name:"Vista",sn:"Vista One Piece",title:"5th Div. Commander, Whitebeard Pirates / Flower Sword",anime:"onepiece",atk:82,def:78,spd:80,haki:82,df:0,rivalId:"op18",emoji:"🌹",tier:"A",color:"#8CE99A"},
-{id:"op23",name:"Portgas D. Ace",sn:"Portgas D. Ace",title:"2nd Div. Commander, Whitebeard Pirates / Fire Fist",anime:"onepiece",atk:85,def:72,spd:82,haki:72,df:88,rivalId:"op19",emoji:"🔥",tier:"A",color:"#FD7E14"},
+{id:"op21",name:"Edward Newgate",sn:"Edward Newgate",title:"Emperor, Whitebeard Pirates / Tremor-Tremor Fruit",anime:"onepiece",atk:91,def:69,spd:57,haki:77,df:86,rivalId:"op22",emoji:"🌊",tier:"S+",color:"#E8E8E8"},
+{id:"op49",name:"Marco",sn:"Marco One Piece Phoenix",title:"1st Div. Commander, Whitebeard Pirates / Phoenix",anime:"onepiece",atk:64,def:75,spd:60,haki:49,df:85,rivalId:"op19",emoji:"🔵",tier:"S",color:"#339AF0"},
+{id:"op50",name:"Jozu",sn:"Jozu One Piece",title:"3rd Div. Commander, Whitebeard Pirates / Diamond",anime:"onepiece",atk:61,def:73,spd:42,haki:51,df:64,rivalId:"op35",emoji:"💎",tier:"A",color:"#66D9E8"},
+{id:"op51",name:"Vista",sn:"Vista One Piece",title:"5th Div. Commander, Whitebeard Pirates / Flower Sword",anime:"onepiece",atk:75,def:39,spd:53,haki:65,df:0,rivalId:"op18",emoji:"🌹",tier:"A",color:"#8CE99A"},
+{id:"op23",name:"Portgas D. Ace",sn:"Portgas D. Ace",title:"2nd Div. Commander, Whitebeard Pirates / Fire Fist",anime:"onepiece",atk:70,def:53,spd:59,haki:40,df:73,rivalId:"op19",emoji:"🔥",tier:"A",color:"#FD7E14"},
 // --- BEAST PIRATES ---
-{id:"op25",name:"King",sn:"King Alber One Piece",title:"All-Star, Beast Pirates / Lunarian Wildfire",anime:"onepiece",atk:90,def:92,spd:85,haki:82,df:88,rivalId:"op2",emoji:"🦅",tier:"A",color:"#1B1B1B"},
-{id:"op26",name:"Queen",sn:"Queen One Piece Beast",title:"All-Star, Beast Pirates / The Plague",anime:"onepiece",atk:86,def:88,spd:62,haki:72,df:85,rivalId:"op3",emoji:"🦕",tier:"A",color:"#495057"},
-{id:"op27",name:"Ulti",sn:"Ulti One Piece",title:"Tobiroppo, Beast Pirates / Headbutt",anime:"onepiece",atk:70,def:72,spd:75,haki:55,df:68,rivalId:"op4",emoji:"🦖",tier:"B",color:"#D6336C"},
-{id:"op28",name:"Black Maria",sn:"Black Maria",title:"Tobiroppo, Beast Pirates / Spider Zoan",anime:"onepiece",atk:68,def:70,spd:60,haki:50,df:72,rivalId:"op5",emoji:"🕷️",tier:"B",color:"#7048E8"},
-{id:"op29",name:"Sasaki",sn:"Sasaki One Piece",title:"Tobiroppo, Beast Pirates / Triceratops",anime:"onepiece",atk:72,def:78,spd:55,haki:50,df:70,rivalId:"op6",emoji:"🦏",tier:"B",color:"#0CA678"},
-{id:"op30",name:"Who's Who",sn:"Who's-Who",title:"Tobiroppo, Beast Pirates / Saber-Tooth",anime:"onepiece",atk:74,def:70,spd:78,haki:60,df:72,rivalId:"op7",emoji:"🐱",tier:"B",color:"#3BC9DB"},
+{id:"op25",name:"King",sn:"King Alber One Piece",title:"All-Star, Beast Pirates / Lunarian Wildfire",anime:"onepiece",atk:65,def:78,spd:54,haki:38,df:59,rivalId:"op2",emoji:"🦅",tier:"A",color:"#1B1B1B"},
+{id:"op26",name:"Queen",sn:"Queen One Piece Beast",title:"All-Star, Beast Pirates / The Plague",anime:"onepiece",atk:64,def:74,spd:43,haki:54,df:58,rivalId:"op3",emoji:"🦕",tier:"A",color:"#495057"},
+{id:"op27",name:"Ulti",sn:"Ulti One Piece",title:"Tobiroppo, Beast Pirates / Headbutt",anime:"onepiece",atk:46,def:59,spd:68,haki:29,df:39,rivalId:"op4",emoji:"🦖",tier:"B",color:"#D6336C"},
+{id:"op28",name:"Black Maria",sn:"Black Maria",title:"Tobiroppo, Beast Pirates / Spider Zoan",anime:"onepiece",atk:53,def:60,spd:36,haki:33,df:63,rivalId:"op5",emoji:"🕷️",tier:"B",color:"#7048E8"},
+{id:"op29",name:"Sasaki",sn:"Sasaki One Piece",title:"Tobiroppo, Beast Pirates / Triceratops",anime:"onepiece",atk:58,def:63,spd:42,haki:32,df:45,rivalId:"op6",emoji:"🦏",tier:"B",color:"#0CA678"},
+{id:"op30",name:"Who's Who",sn:"Who's-Who",title:"Tobiroppo, Beast Pirates / Saber-Tooth",anime:"onepiece",atk:60,def:36,spd:66,haki:35,df:47,rivalId:"op7",emoji:"🐱",tier:"B",color:"#3BC9DB"},
 // --- BIG MOM PIRATES ---
-{id:"op24",name:"Charlotte Katakuri",sn:"Charlotte Katakuri",title:"Sweet Commander, Big Mom Pirates / Mochi-Mochi",anime:"onepiece",atk:90,def:88,spd:88,haki:92,df:88,rivalId:"op1",emoji:"🍩",tier:"S",color:"#862E9C"},
+{id:"op24",name:"Charlotte Katakuri",sn:"Charlotte Katakuri",title:"Sweet Commander, Big Mom Pirates / Mochi-Mochi",anime:"onepiece",atk:79,def:71,spd:59,haki:84,df:48,rivalId:"op1",emoji:"🍩",tier:"S",color:"#862E9C"},
 // --- WARLORDS ---
-{id:"op15",name:"Donquixote Doflamingo",sn:"Donquixote Doflamingo",title:"King of Dressrosa / Former Warlord / String Fruit",anime:"onepiece",atk:88,def:78,spd:82,haki:82,df:90,rivalId:"op11",emoji:"🕶️",tier:"A",color:"#D6336C"},
-{id:"op16",name:"Crocodile",sn:"Crocodile One Piece",title:"Cross Guild / Former Warlord / Sand-Sand Fruit",anime:"onepiece",atk:80,def:72,spd:68,haki:60,df:85,rivalId:"op1",emoji:"🏜️",tier:"A",color:"#AE8E50"},
-{id:"op43",name:"Boa Hancock",sn:"Boa Hancock",title:"Pirate Empress / Former Warlord / Love-Love Fruit",anime:"onepiece",atk:82,def:78,spd:85,haki:85,df:88,rivalId:"op19",emoji:"💘",tier:"A",color:"#F06595"},
-{id:"op44",name:"Bartholomew Kuma",sn:"Bartholomew Kuma",title:"Former Warlord / Revolutionary / Paw-Paw Fruit",anime:"onepiece",atk:85,def:88,spd:75,haki:72,df:88,rivalId:"op54",emoji:"🐻",tier:"A",color:"#9775FA"},
-{id:"op45",name:"Gecko Moria",sn:"Gecko Moria",title:"Former Warlord / Shadow-Shadow Fruit",anime:"onepiece",atk:70,def:72,spd:55,haki:55,df:82,rivalId:"op13",emoji:"🦇",tier:"B",color:"#845EF7"},
+{id:"op15",name:"Donquixote Doflamingo",sn:"Donquixote Doflamingo",title:"King of Dressrosa / Former Warlord / String Fruit",anime:"onepiece",atk:70,def:41,spd:57,haki:49,df:78,rivalId:"op11",emoji:"🕶️",tier:"A",color:"#D6336C"},
+{id:"op16",name:"Crocodile",sn:"Crocodile One Piece",title:"Cross Guild / Former Warlord / Sand-Sand Fruit",anime:"onepiece",atk:66,def:57,spd:51,haki:43,df:78,rivalId:"op1",emoji:"🏜️",tier:"A",color:"#AE8E50"},
+{id:"op43",name:"Boa Hancock",sn:"Boa Hancock",title:"Pirate Empress / Former Warlord / Love-Love Fruit",anime:"onepiece",atk:54,def:45,spd:65,haki:62,df:73,rivalId:"op19",emoji:"💘",tier:"A",color:"#F06595"},
+{id:"op44",name:"Bartholomew Kuma",sn:"Bartholomew Kuma",title:"Former Warlord / Revolutionary / Paw-Paw Fruit",anime:"onepiece",atk:60,def:78,spd:49,haki:39,df:65,rivalId:"op54",emoji:"🐻",tier:"A",color:"#9775FA"},
+{id:"op45",name:"Gecko Moria",sn:"Gecko Moria",title:"Former Warlord / Shadow-Shadow Fruit",anime:"onepiece",atk:50,def:59,spd:37,haki:29,df:65,rivalId:"op13",emoji:"🦇",tier:"B",color:"#845EF7"},
 // --- MARINES / ADMIRALS ---
-{id:"op22",name:"Sakazuki",sn:"Sakazuki",title:"Fleet Admiral / Magma-Magma Fruit",anime:"onepiece",atk:95,def:90,spd:78,haki:90,df:96,rivalId:"op21",emoji:"🌋",tier:"S",color:"#C92A2A"},
-{id:"op35",name:"Kuzan",sn:"Kuzan Aokiji",title:"Former Admiral / Ice-Ice Fruit",anime:"onepiece",atk:90,def:88,spd:82,haki:88,df:92,rivalId:"op22",emoji:"❄️",tier:"S",color:"#74C0FC"},
-{id:"op36",name:"Borsalino",sn:"Borsalino Kizaru",title:"Admiral / Light-Light Fruit",anime:"onepiece",atk:88,def:82,spd:100,haki:85,df:94,rivalId:"op37",emoji:"💡",tier:"S",color:"#FFE066"},
-{id:"op55",name:"Fujitora",sn:"Issho Fujitora",title:"Admiral / Gravity-Gravity Fruit",anime:"onepiece",atk:88,def:90,spd:72,haki:88,df:92,rivalId:"op22",emoji:"⬇️",tier:"S",color:"#845EF7"},
-{id:"op56",name:"Ryokugyu",sn:"Aramaki Ryokugyu",title:"Admiral / Forest-Forest Fruit",anime:"onepiece",atk:88,def:84,spd:78,haki:84,df:90,rivalId:"op20",emoji:"🌿",tier:"S",color:"#2B8A3E"},
-{id:"op40",name:"Sengoku",sn:"Sengoku One Piece",title:"Former Fleet Admiral / Buddha-Buddha Fruit",anime:"onepiece",atk:90,def:92,spd:72,haki:90,df:88,rivalId:"op33",emoji:"☸️",tier:"S",color:"#FFD700"},
-{id:"op34",name:"Monkey D. Garp",sn:"Garp Monkey",title:"Vice Admiral / Hero of the Marines",anime:"onepiece",atk:97,def:95,spd:85,haki:98,df:0,rivalId:"op33",emoji:"👊",tier:"S+",color:"#868E96"},
+{id:"op22",name:"Sakazuki",sn:"Sakazuki",title:"Fleet Admiral / Magma-Magma Fruit",anime:"onepiece",atk:77,def:70,spd:49,haki:56,df:84,rivalId:"op21",emoji:"🌋",tier:"S",color:"#C92A2A"},
+{id:"op35",name:"Kuzan",sn:"Kuzan Aokiji",title:"Former Admiral / Ice-Ice Fruit",anime:"onepiece",atk:76,def:71,spd:53,haki:64,df:85,rivalId:"op22",emoji:"❄️",tier:"S",color:"#74C0FC"},
+{id:"op36",name:"Borsalino",sn:"Borsalino Kizaru",title:"Admiral / Light-Light Fruit",anime:"onepiece",atk:66,def:52,spd:81,haki:61,df:77,rivalId:"op37",emoji:"💡",tier:"S",color:"#FFE066"},
+{id:"op55",name:"Fujitora",sn:"Issho Fujitora",title:"Admiral / Gravity-Gravity Fruit",anime:"onepiece",atk:65,def:71,spd:54,haki:57,df:82,rivalId:"op22",emoji:"⬇️",tier:"S",color:"#845EF7"},
+{id:"op56",name:"Ryokugyu",sn:"Aramaki Ryokugyu",title:"Admiral / Forest-Forest Fruit",anime:"onepiece",atk:73,def:68,spd:51,haki:60,df:78,rivalId:"op20",emoji:"🌿",tier:"S",color:"#2B8A3E"},
+{id:"op40",name:"Sengoku",sn:"Sengoku One Piece",title:"Former Fleet Admiral / Buddha-Buddha Fruit",anime:"onepiece",atk:78,def:81,spd:50,haki:63,df:64,rivalId:"op33",emoji:"☸️",tier:"S",color:"#FFD700"},
+{id:"op34",name:"Monkey D. Garp",sn:"Garp Monkey",title:"Vice Admiral / Hero of the Marines",anime:"onepiece",atk:78,def:70,spd:60,haki:89,df:0,rivalId:"op33",emoji:"👊",tier:"S+",color:"#868E96"},
 // --- WORLD GOVERNMENT ---
-{id:"op53",name:"Imu",sn:"Imu One Piece",title:"Sovereign of the World / Ruler of the Empty Throne",anime:"onepiece",atk:98,def:96,spd:85,haki:96,df:98,rivalId:"op42",emoji:"🔱",tier:"S+",color:"#845EF7"},
-{id:"op54",name:"Saint Jaygarcia Saturn",sn:"Saturn Gorosei",title:"Gorosei / Warrior God of Science & Defense",anime:"onepiece",atk:90,def:88,spd:78,haki:88,df:92,rivalId:"op1",emoji:"🕸️",tier:"S",color:"#343A40"},
+{id:"op53",name:"Imu",sn:"Imu One Piece",title:"Sovereign of the World / Ruler of the Empty Throne",anime:"onepiece",atk:91,def:75,spd:63,haki:66,df:83,rivalId:"op42",emoji:"🔱",tier:"S+",color:"#845EF7"},
+{id:"op54",name:"Saint Jaygarcia Saturn",sn:"Saturn Gorosei",title:"Gorosei / Warrior God of Science & Defense",anime:"onepiece",atk:73,def:67,spd:49,haki:63,df:84,rivalId:"op1",emoji:"🕸️",tier:"S",color:"#343A40"},
 // --- LEGENDS / ROGER ERA ---
-{id:"op33",name:"Gol D. Roger",sn:"Gol D. Roger",title:"King of the Pirates / Strongest Haki",anime:"onepiece",atk:99,def:95,spd:92,haki:100,df:0,rivalId:"op34",emoji:"👑",tier:"S+",color:"#FFD43B"},
-{id:"op37",name:"Silvers Rayleigh",sn:"Silvers Rayleigh",title:"First Mate, Roger Pirates / Dark King",anime:"onepiece",atk:92,def:88,spd:90,haki:96,df:0,rivalId:"op36",emoji:"⚡",tier:"S",color:"#C0C0C0"},
-{id:"op47",name:"Kozuki Oden",sn:"Kozuki Oden",title:"Daimyo of Kuri / Roger & Whitebeard Crew / Nitoryu",anime:"onepiece",atk:95,def:85,spd:85,haki:94,df:0,rivalId:"op13",emoji:"🍢",tier:"S",color:"#F76707"},
-{id:"op18",name:"Dracule Mihawk",sn:"Dracule Mihawk",title:"World's Strongest Swordsman / Cross Guild",anime:"onepiece",atk:96,def:90,spd:92,haki:95,df:0,rivalId:"op2",emoji:"🗡️",tier:"S",color:"#1B1B1B"},
+{id:"op33",name:"Gol D. Roger",sn:"Gol D. Roger",title:"King of the Pirates / Strongest Haki",anime:"onepiece",atk:77,def:71,spd:65,haki:91,df:0,rivalId:"op34",emoji:"👑",tier:"S+",color:"#FFD43B"},
+{id:"op37",name:"Silvers Rayleigh",sn:"Silvers Rayleigh",title:"First Mate, Roger Pirates / Dark King",anime:"onepiece",atk:73,def:52,spd:63,haki:82,df:0,rivalId:"op36",emoji:"⚡",tier:"S",color:"#C0C0C0"},
+{id:"op47",name:"Kozuki Oden",sn:"Kozuki Oden",title:"Daimyo of Kuri / Roger & Whitebeard Crew / Nitoryu",anime:"onepiece",atk:83,def:60,spd:52,haki:75,df:0,rivalId:"op13",emoji:"🍢",tier:"S",color:"#F76707"},
+{id:"op18",name:"Dracule Mihawk",sn:"Dracule Mihawk",title:"World's Strongest Swordsman / Cross Guild",anime:"onepiece",atk:79,def:52,spd:61,haki:76,df:0,rivalId:"op2",emoji:"🗡️",tier:"S",color:"#1B1B1B"},
 // --- RED HAIR PIRATES ---
-{id:"op57",name:"Ben Beckman",sn:"Ben Beckman",title:"First Mate, Red Hair Pirates",anime:"onepiece",atk:90,def:85,spd:88,haki:92,df:0,rivalId:"op36",emoji:"🔫",tier:"S",color:"#868E96"},
+{id:"op57",name:"Ben Beckman",sn:"Ben Beckman",title:"First Mate, Red Hair Pirates",anime:"onepiece",atk:75,def:51,spd:59,haki:84,df:0,rivalId:"op36",emoji:"🔫",tier:"S",color:"#868E96"},
 // --- BLACKBEARD PIRATES ---
-{id:"op52",name:"Shiryu",sn:"Shiryu One Piece",title:"Blackbeard Pirates / Clear-Clear Fruit / Ex-Warden",anime:"onepiece",atk:88,def:80,spd:82,haki:82,df:82,rivalId:"op2",emoji:"🌫️",tier:"A",color:"#495057"},
+{id:"op52",name:"Shiryu",sn:"Shiryu One Piece",title:"Blackbeard Pirates / Clear-Clear Fruit / Ex-Warden",anime:"onepiece",atk:78,def:40,spd:66,haki:58,df:52,rivalId:"op2",emoji:"🌫️",tier:"A",color:"#495057"},
 // --- REVOLUTIONARIES ---
-{id:"op41",name:"Sabo",sn:"Sabo One Piece",title:"Chief of Staff, Revolutionary Army / Flame-Flame Fruit",anime:"onepiece",atk:87,def:80,spd:88,haki:82,df:88,rivalId:"op23",emoji:"🎩",tier:"A",color:"#3B7DD8"},
-{id:"op42",name:"Monkey D. Dragon",sn:"Monkey D. Dragon",title:"Supreme Commander, Revolutionary Army",anime:"onepiece",atk:95,def:90,spd:88,haki:95,df:92,rivalId:"op53",emoji:"🌪️",tier:"S+",color:"#2D5016"},
+{id:"op41",name:"Sabo",sn:"Sabo One Piece",title:"Chief of Staff, Revolutionary Army / Flame-Flame Fruit",anime:"onepiece",atk:62,def:38,spd:78,haki:48,df:68,rivalId:"op23",emoji:"🎩",tier:"A",color:"#3B7DD8"},
+{id:"op42",name:"Monkey D. Dragon",sn:"Monkey D. Dragon",title:"Supreme Commander, Revolutionary Army",anime:"onepiece",atk:88,def:68,spd:63,haki:79,df:76,rivalId:"op53",emoji:"🌪️",tier:"S+",color:"#2D5016"},
 // --- OTHER PIRATES ---
-{id:"op48",name:"Yamato",sn:"Yamato One Piece",title:"Kaido's Son / Guardian Deity of Wano / Ice Oni",anime:"onepiece",atk:86,def:82,spd:82,haki:80,df:82,rivalId:"op13",emoji:"🐺",tier:"A",color:"#66D9E8"},
-{id:"op38",name:"Enel",sn:"Enel",title:"Former God of Skypiea / Rumble-Rumble Fruit",anime:"onepiece",atk:78,def:58,spd:85,haki:65,df:88,rivalId:"op1",emoji:"⚡",tier:"B",color:"#FCC419"},
-{id:"op39",name:"Shiki",sn:"Shiki Golden Lion",title:"Legendary Pirate / Float-Float Fruit",anime:"onepiece",atk:88,def:82,spd:78,haki:80,df:85,rivalId:"op40",emoji:"🦁",tier:"A",color:"#F59F00"},
-{id:"op17",name:"Rob Lucci",sn:"Rob Lucci",title:"CP0 Chief Agent / Leopard Zoan / Awakened",anime:"onepiece",atk:85,def:82,spd:88,haki:80,df:82,rivalId:"op1",emoji:"🐆",tier:"A",color:"#212529"},
+{id:"op48",name:"Yamato",sn:"Yamato One Piece",title:"Kaido's Son / Guardian Deity of Wano / Ice Oni",anime:"onepiece",atk:76,def:70,spd:55,haki:39,df:52,rivalId:"op13",emoji:"🐺",tier:"A",color:"#66D9E8"},
+{id:"op38",name:"Enel",sn:"Enel",title:"Former God of Skypiea / Rumble-Rumble Fruit",anime:"onepiece",atk:47,def:28,spd:54,haki:37,df:68,rivalId:"op1",emoji:"⚡",tier:"B",color:"#FCC419"},
+{id:"op39",name:"Shiki",sn:"Shiki Golden Lion",title:"Legendary Pirate / Float-Float Fruit",anime:"onepiece",atk:78,def:60,spd:43,haki:51,df:71,rivalId:"op40",emoji:"🦁",tier:"A",color:"#F59F00"},
+{id:"op17",name:"Rob Lucci",sn:"Rob Lucci",title:"CP0 Chief Agent / Leopard Zoan / Awakened",anime:"onepiece",atk:63,def:57,spd:76,haki:38,df:50,rivalId:"op1",emoji:"🐆",tier:"A",color:"#212529"},
 // --- OTHER ---
-{id:"op31",name:"Perona",sn:"Perona",title:"Thriller Bark / Hollow-Hollow Fruit",anime:"onepiece",atk:45,def:50,spd:60,haki:0,df:78,rivalId:"op10",emoji:"👻",tier:"C",color:"#F783AC"},
-{id:"op32",name:"Caesar Clown",sn:"Caesar Clown",title:"Punk Hazard Scientist / Gas-Gas Fruit",anime:"onepiece",atk:62,def:55,spd:58,haki:0,df:82,rivalId:"op8",emoji:"☠️",tier:"C",color:"#ADB5BD"},
+{id:"op31",name:"Perona",sn:"Perona",title:"Thriller Bark / Hollow-Hollow Fruit",anime:"onepiece",atk:22,def:31,spd:46,haki:0,df:54,rivalId:"op10",emoji:"👻",tier:"C",color:"#F783AC"},
+{id:"op32",name:"Caesar Clown",sn:"Caesar Clown",title:"Punk Hazard Scientist / Gas-Gas Fruit",anime:"onepiece",atk:43,def:25,spd:36,haki:0,df:58,rivalId:"op8",emoji:"☠️",tier:"C",color:"#ADB5BD"},
 // --- NEW OP CHARACTERS ---
-{id:"op59",name:"X Drake",sn:"X Drake",title:"Worst Generation / Secret SWORD Agent / Dragon-Dragon Fruit",anime:"onepiece",atk:80,def:78,spd:75,haki:72,df:80,rivalId:"op26",emoji:"🦖",tier:"B",color:"#862E9C"},
-{id:"op60",name:"Basil Hawkins",sn:"Basil Hawkins",title:"Worst Generation / Straw-Straw Fruit / Card Reader",anime:"onepiece",atk:72,def:70,spd:68,haki:65,df:78,rivalId:"op58",emoji:"🃏",tier:"B",color:"#E8590C"},
-{id:"op61",name:"Scratchmen Apoo",sn:"Scratchmen Apoo",title:"Worst Generation / Tone-Tone Fruit / Sound Attacks",anime:"onepiece",atk:70,def:65,spd:72,haki:60,df:75,rivalId:"op59",emoji:"🎵",tier:"B",color:"#F76707"},
-{id:"op62",name:"Capone Bege",sn:"Capone Bege",title:"Worst Generation / Castle-Castle Fruit / Mafia Don",anime:"onepiece",atk:72,def:80,spd:55,haki:65,df:82,rivalId:"op14",emoji:"🏰",tier:"B",color:"#495057"},
-{id:"op63",name:"Urouge",sn:"Urouge",title:"Worst Generation / Mad Monk / Damage Conversion",anime:"onepiece",atk:78,def:75,spd:65,haki:60,df:72,rivalId:"op25",emoji:"🙏",tier:"B",color:"#E67700"},
-{id:"op64",name:"Jewelry Bonney",sn:"Jewelry Bonney",title:"Worst Generation / Age-Age Fruit / Kuma's Daughter",anime:"onepiece",atk:68,def:60,spd:78,haki:55,df:85,rivalId:"op44",emoji:"🍕",tier:"B",color:"#E64980"},
-{id:"op65",name:"Koby",sn:"Koby One Piece",title:"SWORD Captain / Honesty Impact / Future Admiral",anime:"onepiece",atk:75,def:72,spd:82,haki:78,df:0,rivalId:"op43",emoji:"💗",tier:"B",color:"#FF6B9D"},
-{id:"op66",name:"Smoker",sn:"Smoker One Piece",title:"Vice Admiral / Smoke-Smoke Fruit",anime:"onepiece",atk:76,def:72,spd:70,haki:72,df:78,rivalId:"op1",emoji:"💨",tier:"B",color:"#ADB5BD"},
-{id:"op67",name:"Sentomaru",sn:"Sentomaru",title:"Marine / Broadaxe / Strongest Defense",anime:"onepiece",atk:72,def:80,spd:60,haki:70,df:0,rivalId:"op36",emoji:"🪓",tier:"B",color:"#E8590C"},
-{id:"op68",name:"Magellan",sn:"Magellan",title:"Impel Down Warden / Venom-Venom Fruit",anime:"onepiece",atk:85,def:82,spd:60,haki:65,df:90,rivalId:"op19",emoji:"☠️",tier:"A",color:"#5F3DC4"},
-{id:"op69",name:"Tsuru",sn:"Tsuru One Piece",title:"Vice Admiral / Great Tactician / Wash-Wash Fruit",anime:"onepiece",atk:68,def:72,spd:55,haki:80,df:72,rivalId:"op40",emoji:"🧓",tier:"B",color:"#868E96"},
-{id:"op70",name:"Kong",sn:"Kong One Piece",title:"Commander-in-Chief / Former Fleet Admiral",anime:"onepiece",atk:88,def:85,spd:72,haki:88,df:0,rivalId:"op40",emoji:"🦍",tier:"A",color:"#495057"},
-{id:"op71",name:"Van Augur",sn:"Van Augur",title:"Blackbeard Pirates / Warp-Warp Fruit / Sniper",anime:"onepiece",atk:78,def:65,spd:82,haki:72,df:80,rivalId:"op10",emoji:"🎯",tier:"B",color:"#495057"},
-{id:"op72",name:"Avalo Pizarro",sn:"Avalo Pizarro",title:"Blackbeard Pirates / Island-Island Fruit",anime:"onepiece",atk:80,def:82,spd:65,haki:70,df:82,rivalId:"op54",emoji:"👑",tier:"B",color:"#C92A2A"},
-{id:"op73",name:"Charlotte Cracker",sn:"Charlotte Cracker",title:"Sweet Commander / Biscuit-Biscuit Fruit / 800M Berry",anime:"onepiece",atk:84,def:88,spd:72,haki:80,df:85,rivalId:"op1",emoji:"🍪",tier:"A",color:"#D9480F"},
-{id:"op74",name:"Charlotte Smoothie",sn:"Charlotte Smoothie",title:"Sweet Commander / Juice-Juice Fruit / 932M Berry",anime:"onepiece",atk:82,def:80,spd:75,haki:78,df:82,rivalId:"op7",emoji:"🧃",tier:"A",color:"#E599F7"},
-{id:"op75",name:"Charlotte Perospero",sn:"Charlotte Perospero",title:"Big Mom Pirates / Lick-Lick Fruit / Eldest Son",anime:"onepiece",atk:78,def:75,spd:68,haki:72,df:80,rivalId:"op49",emoji:"🍬",tier:"B",color:"#7048E8"},
-{id:"op76",name:"Charlotte Oven",sn:"Charlotte Oven",title:"Big Mom Pirates / Heat-Heat Fruit",anime:"onepiece",atk:80,def:78,spd:68,haki:72,df:78,rivalId:"op23",emoji:"🔥",tier:"B",color:"#E8590C"},
-{id:"op77",name:"Jack",sn:"Jack One Piece",title:"All-Star, Beast Pirates / Mammoth / 1B Berry",anime:"onepiece",atk:82,def:88,spd:55,haki:72,df:82,rivalId:"op7",emoji:"🦣",tier:"A",color:"#5C5F66"},
-{id:"op78",name:"Page One",sn:"Page One",title:"Tobiroppo / Spinosaurus / Ancient Zoan",anime:"onepiece",atk:70,def:72,spd:68,haki:55,df:70,rivalId:"op3",emoji:"🦕",tier:"B",color:"#495057"},
-{id:"op79",name:"Kinemon",sn:"Kinemon",title:"Red Scabbard / Foxfire Style / Leader",anime:"onepiece",atk:78,def:72,spd:72,haki:75,df:68,rivalId:"op13",emoji:"🔥",tier:"B",color:"#E03131"},
-{id:"op80",name:"Denjiro",sn:"Denjiro",title:"Red Scabbard / Kyoshiro / Strongest Samurai",anime:"onepiece",atk:80,def:78,spd:78,haki:78,df:0,rivalId:"op15",emoji:"⚔️",tier:"B",color:"#1864AB"},
-{id:"op81",name:"Inuarashi",sn:"Inuarashi",title:"Red Scabbard / Duke of Zou / Sulong Form",anime:"onepiece",atk:82,def:78,spd:80,haki:78,df:0,rivalId:"op77",emoji:"🐕",tier:"B",color:"#F08C00"},
-{id:"op82",name:"Nekomamushi",sn:"Nekomamushi",title:"Red Scabbard / Boss of Zou / Sulong Form",anime:"onepiece",atk:82,def:80,spd:78,haki:78,df:0,rivalId:"op75",emoji:"🐱",tier:"B",color:"#F59F00"},
-{id:"op83",name:"Ashura Doji",sn:"Ashura Doji",title:"Red Scabbard / Mountain Bandit / Oden's Strongest",anime:"onepiece",atk:80,def:78,spd:70,haki:75,df:0,rivalId:"op77",emoji:"💀",tier:"B",color:"#495057"},
-{id:"op84",name:"Kawamatsu",sn:"Kawamatsu",title:"Red Scabbard / Kappa Swordsman",anime:"onepiece",atk:78,def:80,spd:72,haki:72,df:0,rivalId:"op50",emoji:"🐸",tier:"B",color:"#2B8A3E"},
-{id:"op85",name:"Izo",sn:"Izo One Piece",title:"Red Scabbard / 16th Div. Commander Whitebeard / Gunslinger",anime:"onepiece",atk:78,def:70,spd:78,haki:75,df:0,rivalId:"op52",emoji:"🔫",tier:"B",color:"#E64980"},
-{id:"op86",name:"Ivankov",sn:"Ivankov",title:"Revolutionary Commander / Horm-Horm Fruit / Okama King",anime:"onepiece",atk:78,def:72,spd:80,haki:72,df:82,rivalId:"op22",emoji:"👸",tier:"B",color:"#7048E8"},
-{id:"op87",name:"Bartolomeo",sn:"Bartolomeo",title:"Barto Club / Barrier-Barrier Fruit / Luffy Fanboy",anime:"onepiece",atk:65,def:95,spd:60,haki:55,df:88,rivalId:"op15",emoji:"🛡️",tier:"B",color:"#37B24D"},
-{id:"op88",name:"Cavendish",sn:"Cavendish",title:"Beautiful Pirates / Hakuba Alter Ego / White Horse",anime:"onepiece",atk:80,def:72,spd:85,haki:72,df:0,rivalId:"op15",emoji:"🐴",tier:"B",color:"#F59F00"},
-{id:"op89",name:"Edward Weevil",sn:"Edward Weevil",title:"Former Warlord / Self-Proclaimed Whitebeard Jr.",anime:"onepiece",atk:92,def:88,spd:60,haki:65,df:0,rivalId:"op21",emoji:"💪",tier:"A",color:"#F76707"},
-{id:"op90",name:"Kaku",sn:"Kaku CP0",title:"CP0 Agent / Giraffe-Giraffe Fruit Awakened",anime:"onepiece",atk:80,def:78,spd:82,haki:75,df:78,rivalId:"op2",emoji:"🦒",tier:"B",color:"#1098AD"},
-{id:"op91",name:"Jabra",sn:"Jabra",title:"Former CP9 / Wolf-Wolf Fruit / Iron Body",anime:"onepiece",atk:72,def:75,spd:72,haki:55,df:70,rivalId:"op3",emoji:"🐺",tier:"B",color:"#495057"},
-{id:"op92",name:"Arlong",sn:"Arlong",title:"Fishman Pirate / Saw-Nose / Nami's Tormentor",anime:"onepiece",atk:65,def:68,spd:60,haki:0,df:0,rivalId:"op4",emoji:"🦈",tier:"C",color:"#3B5BDB"},
-{id:"op93",name:"Bon Clay",sn:"Bon Clay Mr 2",title:"Clone-Clone Fruit / Okama Way / Luffy's Friend",anime:"onepiece",atk:68,def:65,spd:75,haki:50,df:78,rivalId:"op22",emoji:"🦢",tier:"C",color:"#E64980"},
-{id:"op94",name:"Vergo",sn:"Vergo",title:"Former Vice Admiral / Doflamingo's Right Hand / Full Body Haki",anime:"onepiece",atk:80,def:85,spd:72,haki:82,df:0,rivalId:"op11",emoji:"🦯",tier:"B",color:"#5C5F66"},
-{id:"op95",name:"Diamante",sn:"Diamante",title:"Doflamingo Family / Flag-Flag Fruit / Colosseum Champion",anime:"onepiece",atk:75,def:72,spd:72,haki:70,df:72,rivalId:"op41",emoji:"💎",tier:"B",color:"#5C5F66"},
-{id:"op96",name:"Pica",sn:"Pica One Piece",title:"Doflamingo Family / Stone-Stone Fruit / Mountain Giant",anime:"onepiece",atk:78,def:85,spd:55,haki:72,df:82,rivalId:"op2",emoji:"🗿",tier:"B",color:"#868E96"},
-{id:"op97",name:"Pedro",sn:"Pedro One Piece",title:"Mink Warrior / Sulong / Self-Sacrifice Hero",anime:"onepiece",atk:75,def:68,spd:80,haki:72,df:0,rivalId:"op75",emoji:"🐆",tier:"B",color:"#F08C00"},
-{id:"op98",name:"Momonosuke",sn:"Momonosuke",title:"Shogun of Wano / Azure Dragon Form / Oden's Son",anime:"onepiece",atk:65,def:70,spd:60,haki:55,df:80,rivalId:"op13",emoji:"🐲",tier:"C",color:"#E64980"},
-{id:"op99",name:"Lucky Roux",sn:"Lucky Roux",title:"Red Hair Pirates / Officer / Fastest Draw",anime:"onepiece",atk:85,def:82,spd:78,haki:85,df:0,rivalId:"op57",emoji:"🍖",tier:"A",color:"#E03131"},
-{id:"op100",name:"Yasopp",sn:"Yasopp",title:"Red Hair Pirates / Sniper King / Usopp's Father",anime:"onepiece",atk:80,def:68,spd:82,haki:88,df:0,rivalId:"op10",emoji:"🎯",tier:"A",color:"#F59F00"},
-{id:"op101",name:"Rocks D. Xebec",sn:"Rocks D Xebec",title:"Captain of Rocks Pirates / Most Dangerous Pirate Ever",anime:"onepiece",atk:99,def:95,spd:90,haki:98,df:95,rivalId:"op33",emoji:"☠️",tier:"S+",color:"#1B1B1B"},
-{id:"op102",name:"Bellamy",sn:"Bellamy",title:"Spring-Spring Fruit / Dressrosa Fighter",anime:"onepiece",atk:62,def:58,spd:72,haki:50,df:68,rivalId:"op1",emoji:"🔔",tier:"C",color:"#5C5F66"},
+{id:"op59",name:"X Drake",sn:"X Drake",title:"Worst Generation / Secret SWORD Agent / Dragon-Dragon Fruit",anime:"onepiece",atk:68,def:53,spd:40,haki:27,df:58,rivalId:"op26",emoji:"🦖",tier:"B",color:"#862E9C"},
+{id:"op60",name:"Basil Hawkins",sn:"Basil Hawkins",title:"Worst Generation / Straw-Straw Fruit / Card Reader",anime:"onepiece",atk:56,def:45,spd:38,haki:27,df:64,rivalId:"op58",emoji:"🃏",tier:"B",color:"#E8590C"},
+{id:"op61",name:"Scratchmen Apoo",sn:"Scratchmen Apoo",title:"Worst Generation / Tone-Tone Fruit / Sound Attacks",anime:"onepiece",atk:53,def:42,spd:53,haki:29,df:68,rivalId:"op59",emoji:"🎵",tier:"B",color:"#F76707"},
+{id:"op62",name:"Capone Bege",sn:"Capone Bege",title:"Worst Generation / Castle-Castle Fruit / Mafia Don",anime:"onepiece",atk:46,def:54,spd:27,haki:39,df:66,rivalId:"op14",emoji:"🏰",tier:"B",color:"#495057"},
+{id:"op63",name:"Urouge",sn:"Urouge",title:"Worst Generation / Mad Monk / Damage Conversion",anime:"onepiece",atk:65,def:55,spd:40,haki:27,df:51,rivalId:"op25",emoji:"🙏",tier:"B",color:"#E67700"},
+{id:"op64",name:"Jewelry Bonney",sn:"Jewelry Bonney",title:"Worst Generation / Age-Age Fruit / Kuma's Daughter",anime:"onepiece",atk:50,def:37,spd:55,haki:34,df:68,rivalId:"op44",emoji:"🍕",tier:"B",color:"#E64980"},
+{id:"op65",name:"Koby",sn:"Koby One Piece",title:"SWORD Captain / Honesty Impact / Future Admiral",anime:"onepiece",atk:47,def:34,spd:66,haki:55,df:0,rivalId:"op43",emoji:"💗",tier:"B",color:"#FF6B9D"},
+{id:"op66",name:"Smoker",sn:"Smoker One Piece",title:"Vice Admiral / Smoke-Smoke Fruit",anime:"onepiece",atk:53,def:48,spd:30,haki:40,df:66,rivalId:"op1",emoji:"💨",tier:"B",color:"#ADB5BD"},
+{id:"op67",name:"Sentomaru",sn:"Sentomaru",title:"Marine / Broadaxe / Strongest Defense",anime:"onepiece",atk:51,def:68,spd:29,haki:39,df:0,rivalId:"op36",emoji:"🪓",tier:"B",color:"#E8590C"},
+{id:"op68",name:"Magellan",sn:"Magellan",title:"Impel Down Warden / Venom-Venom Fruit",anime:"onepiece",atk:68,def:58,spd:39,haki:46,df:74,rivalId:"op19",emoji:"☠️",tier:"A",color:"#5F3DC4"},
+{id:"op69",name:"Tsuru",sn:"Tsuru One Piece",title:"Vice Admiral / Great Tactician / Wash-Wash Fruit",anime:"onepiece",atk:39,def:56,spd:27,haki:68,df:47,rivalId:"op40",emoji:"🧓",tier:"B",color:"#868E96"},
+{id:"op70",name:"Kong",sn:"Kong One Piece",title:"Commander-in-Chief / Former Fleet Admiral",anime:"onepiece",atk:76,def:50,spd:37,haki:68,df:0,rivalId:"op40",emoji:"🦍",tier:"A",color:"#495057"},
+{id:"op71",name:"Van Augur",sn:"Van Augur",title:"Blackbeard Pirates / Warp-Warp Fruit / Sniper",anime:"onepiece",atk:50,def:34,spd:67,haki:43,df:60,rivalId:"op10",emoji:"🎯",tier:"B",color:"#495057"},
+{id:"op72",name:"Avalo Pizarro",sn:"Avalo Pizarro",title:"Blackbeard Pirates / Island-Island Fruit",anime:"onepiece",atk:49,def:68,spd:34,haki:38,df:53,rivalId:"op54",emoji:"👑",tier:"B",color:"#C92A2A"},
+{id:"op73",name:"Charlotte Cracker",sn:"Charlotte Cracker",title:"Sweet Commander / Biscuit-Biscuit Fruit / 800M Berry",anime:"onepiece",atk:60,def:78,spd:38,haki:46,df:69,rivalId:"op1",emoji:"🍪",tier:"A",color:"#D9480F"},
+{id:"op74",name:"Charlotte Smoothie",sn:"Charlotte Smoothie",title:"Sweet Commander / Juice-Juice Fruit / 932M Berry",anime:"onepiece",atk:78,def:59,spd:42,haki:48,df:66,rivalId:"op7",emoji:"🧃",tier:"A",color:"#E599F7"},
+{id:"op75",name:"Charlotte Perospero",sn:"Charlotte Perospero",title:"Big Mom Pirates / Lick-Lick Fruit / Eldest Son",anime:"onepiece",atk:54,def:52,spd:31,haki:41,df:68,rivalId:"op49",emoji:"🍬",tier:"B",color:"#7048E8"},
+{id:"op76",name:"Charlotte Oven",sn:"Charlotte Oven",title:"Big Mom Pirates / Heat-Heat Fruit",anime:"onepiece",atk:63,def:58,spd:33,haki:38,df:47,rivalId:"op23",emoji:"🔥",tier:"B",color:"#E8590C"},
+{id:"op77",name:"Jack",sn:"Jack One Piece",title:"All-Star, Beast Pirates / Mammoth / 1B Berry",anime:"onepiece",atk:64,def:78,spd:42,haki:47,df:63,rivalId:"op7",emoji:"🦣",tier:"A",color:"#5C5F66"},
+{id:"op78",name:"Page One",sn:"Page One",title:"Tobiroppo / Spinosaurus / Ancient Zoan",anime:"onepiece",atk:59,def:68,spd:43,haki:27,df:45,rivalId:"op3",emoji:"🦕",tier:"B",color:"#495057"},
+{id:"op79",name:"Kinemon",sn:"Kinemon",title:"Red Scabbard / Foxfire Style / Leader",anime:"onepiece",atk:68,def:47,spd:40,haki:54,df:28,rivalId:"op13",emoji:"🔥",tier:"B",color:"#E03131"},
+{id:"op80",name:"Denjiro",sn:"Denjiro",title:"Red Scabbard / Kyoshiro / Strongest Samurai",anime:"onepiece",atk:61,def:54,spd:47,haki:33,df:0,rivalId:"op15",emoji:"⚔️",tier:"B",color:"#1864AB"},
+{id:"op81",name:"Inuarashi",sn:"Inuarashi",title:"Red Scabbard / Duke of Zou / Sulong Form",anime:"onepiece",atk:63,def:43,spd:50,haki:33,df:0,rivalId:"op77",emoji:"🐕",tier:"B",color:"#F08C00"},
+{id:"op82",name:"Nekomamushi",sn:"Nekomamushi",title:"Red Scabbard / Boss of Zou / Sulong Form",anime:"onepiece",atk:61,def:58,spd:46,haki:31,df:0,rivalId:"op75",emoji:"🐱",tier:"B",color:"#F59F00"},
+{id:"op83",name:"Ashura Doji",sn:"Ashura Doji",title:"Red Scabbard / Mountain Bandit / Oden's Strongest",anime:"onepiece",atk:67,def:51,spd:32,haki:42,df:0,rivalId:"op77",emoji:"💀",tier:"B",color:"#495057"},
+{id:"op84",name:"Kawamatsu",sn:"Kawamatsu",title:"Red Scabbard / Kappa Swordsman",anime:"onepiece",atk:53,def:63,spd:45,haki:34,df:0,rivalId:"op50",emoji:"🐸",tier:"B",color:"#2B8A3E"},
+{id:"op85",name:"Izo",sn:"Izo One Piece",title:"Red Scabbard / 16th Div. Commander Whitebeard / Gunslinger",anime:"onepiece",atk:68,def:34,spd:58,haki:44,df:0,rivalId:"op52",emoji:"🔫",tier:"B",color:"#E64980"},
+{id:"op86",name:"Ivankov",sn:"Ivankov",title:"Revolutionary Commander / Horm-Horm Fruit / Okama King",anime:"onepiece",atk:48,def:39,spd:59,haki:36,df:68,rivalId:"op22",emoji:"👸",tier:"B",color:"#7048E8"},
+{id:"op87",name:"Bartolomeo",sn:"Bartolomeo",title:"Barto Club / Barrier-Barrier Fruit / Luffy Fanboy",anime:"onepiece",atk:52,def:63,spd:42,haki:29,df:54,rivalId:"op15",emoji:"🛡️",tier:"B",color:"#37B24D"},
+{id:"op88",name:"Cavendish",sn:"Cavendish",title:"Beautiful Pirates / Hakuba Alter Ego / White Horse",anime:"onepiece",atk:54,def:38,spd:64,haki:32,df:0,rivalId:"op15",emoji:"🐴",tier:"B",color:"#F59F00"},
+{id:"op89",name:"Edward Weevil",sn:"Edward Weevil",title:"Former Warlord / Self-Proclaimed Whitebeard Jr.",anime:"onepiece",atk:78,def:66,spd:44,haki:54,df:0,rivalId:"op21",emoji:"💪",tier:"A",color:"#F76707"},
+{id:"op90",name:"Kaku",sn:"Kaku CP0",title:"CP0 Agent / Giraffe-Giraffe Fruit Awakened",anime:"onepiece",atk:53,def:44,spd:63,haki:35,df:38,rivalId:"op2",emoji:"🦒",tier:"B",color:"#1098AD"},
+{id:"op91",name:"Jabra",sn:"Jabra",title:"Former CP9 / Wolf-Wolf Fruit / Iron Body",anime:"onepiece",atk:59,def:68,spd:50,haki:32,df:39,rivalId:"op3",emoji:"🐺",tier:"B",color:"#495057"},
+{id:"op92",name:"Arlong",sn:"Arlong",title:"Fishman Pirate / Saw-Nose / Nami's Tormentor",anime:"onepiece",atk:38,def:53,spd:22,haki:0,df:0,rivalId:"op4",emoji:"🦈",tier:"C",color:"#3B5BDB"},
+{id:"op93",name:"Bon Clay",sn:"Bon Clay Mr 2",title:"Clone-Clone Fruit / Okama Way / Luffy's Friend",anime:"onepiece",atk:37,def:28,spd:48,haki:17,df:58,rivalId:"op22",emoji:"🦢",tier:"C",color:"#E64980"},
+{id:"op94",name:"Vergo",sn:"Vergo",title:"Former Vice Admiral / Doflamingo's Right Hand / Full Body Haki",anime:"onepiece",atk:42,def:62,spd:32,haki:57,df:0,rivalId:"op11",emoji:"🦯",tier:"B",color:"#5C5F66"},
+{id:"op95",name:"Diamante",sn:"Diamante",title:"Doflamingo Family / Flag-Flag Fruit / Colosseum Champion",anime:"onepiece",atk:64,def:56,spd:47,haki:32,df:40,rivalId:"op41",emoji:"💎",tier:"B",color:"#5C5F66"},
+{id:"op96",name:"Pica",sn:"Pica One Piece",title:"Doflamingo Family / Stone-Stone Fruit / Mountain Giant",anime:"onepiece",atk:50,def:68,spd:28,haki:39,df:62,rivalId:"op2",emoji:"🗿",tier:"B",color:"#868E96"},
+{id:"op97",name:"Pedro",sn:"Pedro One Piece",title:"Mink Warrior / Sulong / Self-Sacrifice Hero",anime:"onepiece",atk:53,def:29,spd:62,haki:46,df:0,rivalId:"op75",emoji:"🐆",tier:"B",color:"#F08C00"},
+{id:"op98",name:"Momonosuke",sn:"Momonosuke",title:"Shogun of Wano / Azure Dragon Form / Oden's Son",anime:"onepiece",atk:34,def:46,spd:34,haki:23,df:55,rivalId:"op13",emoji:"🐲",tier:"C",color:"#E64980"},
+{id:"op99",name:"Lucky Roux",sn:"Lucky Roux",title:"Red Hair Pirates / Officer / Fastest Draw",anime:"onepiece",atk:78,def:54,spd:40,haki:62,df:0,rivalId:"op57",emoji:"🍖",tier:"A",color:"#E03131"},
+{id:"op100",name:"Yasopp",sn:"Yasopp",title:"Red Hair Pirates / Sniper King / Usopp's Father",anime:"onepiece",atk:55,def:43,spd:64,haki:76,df:0,rivalId:"op10",emoji:"🎯",tier:"A",color:"#F59F00"},
+{id:"op101",name:"Rocks D. Xebec",sn:"Rocks D Xebec",title:"Captain of Rocks Pirates / Most Dangerous Pirate Ever",anime:"onepiece",atk:91,def:73,spd:62,haki:81,df:65,rivalId:"op33",emoji:"☠️",tier:"S+",color:"#1B1B1B"},
+{id:"op102",name:"Bellamy",sn:"Bellamy",title:"Spring-Spring Fruit / Dressrosa Fighter",anime:"onepiece",atk:36,def:33,spd:53,haki:19,df:44,rivalId:"op1",emoji:"🔔",tier:"C",color:"#5C5F66"},
 ];
 
 const NR=[
 // --- TEAM 7 ---
-{id:"nr1",name:"Naruto Uzumaki",sn:"Naruto Uzumaki",title:"Seventh Hokage / Nine-Tails Jinchuriki",anime:"naruto",atk:98,def:88,spd:95,haki:96,df:99,rivalId:"nr2",emoji:"🍥",tier:"S+",color:"#FF7B00"},
-{id:"nr2",name:"Sasuke Uchiha",sn:"Sasuke Uchiha",title:"Shadow Hokage / Rinnegan & Eternal Mangekyo",anime:"naruto",atk:96,def:85,spd:94,haki:97,df:96,rivalId:"nr1",emoji:"⚡",tier:"S+",color:"#3B3980"},
-{id:"nr3",name:"Sakura Haruno",sn:"Sakura Haruno",title:"Hokage's Advisor / Strength of a Hundred Seal",anime:"naruto",atk:82,def:78,spd:72,haki:60,df:75,rivalId:"nr11",emoji:"🌸",tier:"B",color:"#FF69B4"},
-{id:"nr4",name:"Kakashi Hatake",sn:"Kakashi Hatake",title:"Sixth Hokage / Copy Ninja / Sharingan",anime:"naruto",atk:88,def:82,spd:90,haki:88,df:80,rivalId:"nr8",emoji:"📖",tier:"A",color:"#8B95A5"},
+{id:"nr1",name:"Naruto Uzumaki",sn:"Naruto Uzumaki",title:"Seventh Hokage / Nine-Tails Jinchuriki",anime:"naruto",atk:84,def:63,spd:69,haki:72,df:91,rivalId:"nr2",emoji:"🍥",tier:"S+",color:"#FF7B00"},
+{id:"nr2",name:"Sasuke Uchiha",sn:"Sasuke Uchiha",title:"Shadow Hokage / Rinnegan & Eternal Mangekyo",anime:"naruto",atk:85,def:62,spd:67,haki:91,df:78,rivalId:"nr1",emoji:"⚡",tier:"S+",color:"#3B3980"},
+{id:"nr3",name:"Sakura Haruno",sn:"Sakura Haruno",title:"Hokage's Advisor / Strength of a Hundred Seal",anime:"naruto",atk:63,def:58,spd:38,haki:32,df:53,rivalId:"nr11",emoji:"🌸",tier:"B",color:"#FF69B4"},
+{id:"nr4",name:"Kakashi Hatake",sn:"Kakashi Hatake",title:"Sixth Hokage / Copy Ninja / Sharingan",anime:"naruto",atk:69,def:47,spd:72,haki:56,df:39,rivalId:"nr8",emoji:"📖",tier:"A",color:"#8B95A5"},
 // --- UCHIHA ---
-{id:"nr5",name:"Itachi Uchiha",sn:"Itachi Uchiha",title:"Rogue Ninja / Mangekyo Sharingan / Tsukuyomi",anime:"naruto",atk:90,def:78,spd:88,haki:96,df:95,rivalId:"nr2",emoji:"🌙",tier:"S",color:"#8B0000"},
-{id:"nr6",name:"Madara Uchiha",sn:"Madara Uchiha",title:"Ghost of the Uchiha / Rinnegan / Ten-Tails Host",anime:"naruto",atk:98,def:95,spd:90,haki:97,df:98,rivalId:"nr7",emoji:"🔮",tier:"S+",color:"#4A0E4E"},
-{id:"nr8",name:"Obito Uchiha",sn:"Obito Uchiha",title:"Former Akatsuki Leader / Kamui / Ten-Tails Host",anime:"naruto",atk:92,def:85,spd:88,haki:85,df:95,rivalId:"nr4",emoji:"🎭",tier:"S",color:"#FF4500"},
-{id:"nr41",name:"Shisui Uchiha",sn:"Shisui Uchiha",title:"Body Flicker Shisui / Kotoamatsukami",anime:"naruto",atk:85,def:72,spd:95,haki:90,df:88,rivalId:"nr5",emoji:"🌀",tier:"A",color:"#2B8A3E"},
+{id:"nr5",name:"Itachi Uchiha",sn:"Itachi Uchiha",title:"Rogue Ninja / Mangekyo Sharingan / Tsukuyomi",anime:"naruto",atk:71,def:54,spd:59,haki:80,df:71,rivalId:"nr2",emoji:"🌙",tier:"S",color:"#8B0000"},
+{id:"nr6",name:"Madara Uchiha",sn:"Madara Uchiha",title:"Ghost of the Uchiha / Rinnegan / Ten-Tails Host",anime:"naruto",atk:85,def:71,spd:58,haki:72,df:85,rivalId:"nr7",emoji:"🔮",tier:"S+",color:"#4A0E4E"},
+{id:"nr8",name:"Obito Uchiha",sn:"Obito Uchiha",title:"Former Akatsuki Leader / Kamui / Ten-Tails Host",anime:"naruto",atk:77,def:62,spd:65,haki:49,df:83,rivalId:"nr4",emoji:"🎭",tier:"S",color:"#FF4500"},
+{id:"nr41",name:"Shisui Uchiha",sn:"Shisui Uchiha",title:"Body Flicker Shisui / Kotoamatsukami",anime:"naruto",atk:50,def:42,spd:74,haki:64,df:58,rivalId:"nr5",emoji:"🌀",tier:"A",color:"#2B8A3E"},
 // --- SENJU / HOKAGE ---
-{id:"nr7",name:"Hashirama Senju",sn:"Hashirama Senju",title:"First Hokage / God of Shinobi / Wood Style",anime:"naruto",atk:97,def:96,spd:85,haki:92,df:98,rivalId:"nr6",emoji:"🌳",tier:"S+",color:"#228B22"},
-{id:"nr30",name:"Tobirama Senju",sn:"Tobirama Senju",title:"Second Hokage / Creator of Edo Tensei & FTG",anime:"naruto",atk:90,def:85,spd:88,haki:92,df:90,rivalId:"nr6",emoji:"💧",tier:"S",color:"#1E90FF"},
-{id:"nr31",name:"Hiruzen Sarutobi",sn:"Hiruzen Sarutobi",title:"Third Hokage / The Professor / All Five Natures",anime:"naruto",atk:85,def:80,spd:72,haki:88,df:82,rivalId:"nr12",emoji:"🐒",tier:"A",color:"#8B4513"},
-{id:"nr13",name:"Minato Namikaze",sn:"Minato Namikaze",title:"Fourth Hokage / Yellow Flash / Flying Thunder God",anime:"naruto",atk:92,def:80,spd:100,haki:90,df:88,rivalId:"nr8",emoji:"💨",tier:"S",color:"#FFD700"},
+{id:"nr7",name:"Hashirama Senju",sn:"Hashirama Senju",title:"First Hokage / God of Shinobi / Wood Style",anime:"naruto",atk:79,def:71,spd:64,haki:69,df:85,rivalId:"nr6",emoji:"🌳",tier:"S+",color:"#228B22"},
+{id:"nr30",name:"Tobirama Senju",sn:"Tobirama Senju",title:"Second Hokage / Creator of Edo Tensei & FTG",anime:"naruto",atk:71,def:51,spd:63,haki:85,df:71,rivalId:"nr6",emoji:"💧",tier:"S",color:"#1E90FF"},
+{id:"nr31",name:"Hiruzen Sarutobi",sn:"Hiruzen Sarutobi",title:"Third Hokage / The Professor / All Five Natures",anime:"naruto",atk:65,def:48,spd:38,haki:78,df:57,rivalId:"nr12",emoji:"🐒",tier:"A",color:"#8B4513"},
+{id:"nr13",name:"Minato Namikaze",sn:"Minato Namikaze",title:"Fourth Hokage / Yellow Flash / Flying Thunder God",anime:"naruto",atk:77,def:55,spd:79,haki:64,df:57,rivalId:"nr8",emoji:"💨",tier:"S",color:"#FFD700"},
 // --- LEGENDARY SANNIN ---
-{id:"nr10",name:"Jiraiya",sn:"Jiraiya",title:"Legendary Sannin / Toad Sage / Naruto's Master",anime:"naruto",atk:86,def:78,spd:76,haki:85,df:82,rivalId:"nr9",emoji:"🐸",tier:"A",color:"#DC143C"},
-{id:"nr11",name:"Tsunade",sn:"Tsunade",title:"Fifth Hokage / Legendary Sannin / Creation Rebirth",anime:"naruto",atk:84,def:85,spd:68,haki:72,df:80,rivalId:"nr12",emoji:"💎",tier:"A",color:"#DAA520"},
-{id:"nr12",name:"Orochimaru",sn:"Orochimaru",title:"Legendary Sannin / Immortality Seeker / Snake Sage",anime:"naruto",atk:86,def:80,spd:78,haki:82,df:90,rivalId:"nr11",emoji:"🐍",tier:"A",color:"#9370DB"},
+{id:"nr10",name:"Jiraiya",sn:"Jiraiya",title:"Legendary Sannin / Toad Sage / Naruto's Master",anime:"naruto",atk:74,def:46,spd:40,haki:66,df:58,rivalId:"nr9",emoji:"🐸",tier:"A",color:"#DC143C"},
+{id:"nr11",name:"Tsunade",sn:"Tsunade",title:"Fifth Hokage / Legendary Sannin / Creation Rebirth",anime:"naruto",atk:70,def:72,spd:38,haki:53,df:59,rivalId:"nr12",emoji:"💎",tier:"A",color:"#DAA520"},
+{id:"nr12",name:"Orochimaru",sn:"Orochimaru",title:"Legendary Sannin / Immortality Seeker / Snake Sage",anime:"naruto",atk:69,def:49,spd:46,haki:54,df:72,rivalId:"nr11",emoji:"🐍",tier:"A",color:"#9370DB"},
 // --- AKATSUKI ---
-{id:"nr9",name:"Pain / Nagato",sn:"Nagato",title:"Akatsuki Founder / Six Paths of Pain / Rinnegan",anime:"naruto",atk:94,def:82,spd:80,haki:92,df:96,rivalId:"nr1",emoji:"☯️",tier:"S",color:"#7B3F00"},
-{id:"nr27",name:"Konan",sn:"Konan Naruto",title:"Akatsuki Co-Founder / Paper Angel / 600 Billion Bombs",anime:"naruto",atk:76,def:72,spd:75,haki:78,df:82,rivalId:"nr8",emoji:"📄",tier:"B",color:"#4169E1"},
-{id:"nr22",name:"Deidara",sn:"Deidara",title:"Akatsuki / Explosive Clay Artist / Art is an Explosion",anime:"naruto",atk:82,def:62,spd:78,haki:70,df:85,rivalId:"nr2",emoji:"💥",tier:"B",color:"#FFD700"},
-{id:"nr23",name:"Sasori",sn:"Sasori",title:"Akatsuki / Red Sand Puppeteer / Hiruko Armor",anime:"naruto",atk:80,def:75,spd:72,haki:78,df:82,rivalId:"nr3",emoji:"🦂",tier:"B",color:"#8B0000"},
-{id:"nr24",name:"Kisame Hoshigaki",sn:"Kisame Hoshigaki",title:"Akatsuki / Tailless Tailed Beast / Samehada",anime:"naruto",atk:88,def:82,spd:75,haki:72,df:85,rivalId:"nr14",emoji:"🦈",tier:"A",color:"#4682B4"},
-{id:"nr25",name:"Hidan",sn:"Hidan",title:"Akatsuki / Jashin Immortal / Ritual Curse",anime:"naruto",atk:72,def:65,spd:70,haki:40,df:78,rivalId:"nr20",emoji:"⛪",tier:"B",color:"#808080"},
-{id:"nr26",name:"Kakuzu",sn:"Kakuzu",title:"Akatsuki / Five Heart Monster / Fought First Hokage",anime:"naruto",atk:80,def:82,spd:68,haki:72,df:80,rivalId:"nr4",emoji:"🖤",tier:"B",color:"#2F4F4F"},
-{id:"nr21",name:"Kabuto Yakushi",sn:"Kabuto Yakushi",title:"Orochimaru's Protégé / Dragon Sage Mode",anime:"naruto",atk:84,def:78,spd:80,haki:82,df:88,rivalId:"nr5",emoji:"🔬",tier:"A",color:"#708090"},
+{id:"nr9",name:"Pain / Nagato",sn:"Nagato",title:"Akatsuki Founder / Six Paths of Pain / Rinnegan",anime:"naruto",atk:76,def:57,spd:53,haki:71,df:85,rivalId:"nr1",emoji:"☯️",tier:"S",color:"#7B3F00"},
+{id:"nr27",name:"Konan",sn:"Konan Naruto",title:"Akatsuki Co-Founder / Paper Angel / 600 Billion Bombs",anime:"naruto",atk:45,def:36,spd:44,haki:59,df:65,rivalId:"nr8",emoji:"📄",tier:"B",color:"#4169E1"},
+{id:"nr22",name:"Deidara",sn:"Deidara",title:"Akatsuki / Explosive Clay Artist / Art is an Explosion",anime:"naruto",atk:53,def:28,spd:46,haki:42,df:63,rivalId:"nr2",emoji:"💥",tier:"B",color:"#FFD700"},
+{id:"nr23",name:"Sasori",sn:"Sasori",title:"Akatsuki / Red Sand Puppeteer / Hiruko Armor",anime:"naruto",atk:58,def:38,spd:30,haki:52,df:66,rivalId:"nr3",emoji:"🦂",tier:"B",color:"#8B0000"},
+{id:"nr24",name:"Kisame Hoshigaki",sn:"Kisame Hoshigaki",title:"Akatsuki / Tailless Tailed Beast / Samehada",anime:"naruto",atk:78,def:62,spd:51,haki:42,df:64,rivalId:"nr14",emoji:"🦈",tier:"A",color:"#4682B4"},
+{id:"nr25",name:"Hidan",sn:"Hidan",title:"Akatsuki / Jashin Immortal / Ritual Curse",anime:"naruto",atk:55,def:41,spd:45,haki:33,df:68,rivalId:"nr20",emoji:"⛪",tier:"B",color:"#808080"},
+{id:"nr26",name:"Kakuzu",sn:"Kakuzu",title:"Akatsuki / Five Heart Monster / Fought First Hokage",anime:"naruto",atk:53,def:66,spd:29,haki:36,df:48,rivalId:"nr4",emoji:"🖤",tier:"B",color:"#2F4F4F"},
+{id:"nr21",name:"Kabuto Yakushi",sn:"Kabuto Yakushi",title:"Orochimaru's Protégé / Dragon Sage Mode",anime:"naruto",atk:63,def:41,spd:49,haki:56,df:73,rivalId:"nr5",emoji:"🔬",tier:"A",color:"#708090"},
 // --- KONOHA JONIN ---
-{id:"nr14",name:"Might Guy",sn:"Maito Gai",title:"Konoha Jonin / Sublime Green Beast / Eight Inner Gates",anime:"naruto",atk:96,def:75,spd:95,haki:78,df:0,rivalId:"nr4",emoji:"🥊",tier:"S",color:"#00AA00"},
-{id:"nr15",name:"Rock Lee",sn:"Rock Lee",title:"Konoha Taijutsu Specialist / Guy's Protégé",anime:"naruto",atk:82,def:68,spd:90,haki:55,df:0,rivalId:"nr16",emoji:"🥋",tier:"B",color:"#00CC00"},
-{id:"nr37",name:"Asuma Sarutobi",sn:"Asuma Sarutobi",title:"Team 10 Leader / Twelve Guardian Ninja / Wind Blade",anime:"naruto",atk:74,def:70,spd:72,haki:72,df:60,rivalId:"nr25",emoji:"🚬",tier:"B",color:"#696969"},
-{id:"nr38",name:"Yamato",sn:"Yamato Naruto",title:"ANBU Captain / Wood Style User",anime:"naruto",atk:76,def:78,spd:72,haki:75,df:80,rivalId:"nr12",emoji:"🪵",tier:"B",color:"#8B4513"},
+{id:"nr14",name:"Might Guy",sn:"Maito Gai",title:"Konoha Jonin / Sublime Green Beast / Eight Inner Gates",anime:"naruto",atk:83,def:53,spd:69,haki:60,df:0,rivalId:"nr4",emoji:"🥊",tier:"S",color:"#00AA00"},
+{id:"nr15",name:"Rock Lee",sn:"Rock Lee",title:"Konoha Taijutsu Specialist / Guy's Protégé",anime:"naruto",atk:57,def:41,spd:67,haki:34,df:0,rivalId:"nr16",emoji:"🥋",tier:"B",color:"#00CC00"},
+{id:"nr37",name:"Asuma Sarutobi",sn:"Asuma Sarutobi",title:"Team 10 Leader / Twelve Guardian Ninja / Wind Blade",anime:"naruto",atk:62,def:39,spd:56,haki:50,df:27,rivalId:"nr25",emoji:"🚬",tier:"B",color:"#696969"},
+{id:"nr38",name:"Yamato",sn:"Yamato Naruto",title:"ANBU Captain / Wood Style User",anime:"naruto",atk:52,def:53,spd:28,haki:36,df:66,rivalId:"nr12",emoji:"🪵",tier:"B",color:"#8B4513"},
 // --- KONOHA NEXT GEN ---
-{id:"nr16",name:"Gaara",sn:"Gaara",title:"Fifth Kazekage / One-Tail Jinchuriki / Sand Shield",anime:"naruto",atk:84,def:92,spd:70,haki:78,df:88,rivalId:"nr15",emoji:"🏜️",tier:"A",color:"#C2B280"},
-{id:"nr18",name:"Neji Hyuga",sn:"Neji Hyuuga",title:"Hyuga Prodigy / Gentle Fist / Byakugan 360",anime:"naruto",atk:78,def:80,spd:82,haki:82,df:0,rivalId:"nr1",emoji:"👁️",tier:"B",color:"#E6E6FA"},
-{id:"nr19",name:"Hinata Hyuga",sn:"Hinata Hyuuga",title:"Byakugan Princess / Twin Lion Fists",anime:"naruto",atk:62,def:65,spd:68,haki:70,df:0,rivalId:"nr9",emoji:"💜",tier:"C",color:"#9966CC"},
-{id:"nr20",name:"Shikamaru Nara",sn:"Shikamaru Nara",title:"Konoha Advisor / 200+ IQ / Shadow Paralysis",anime:"naruto",atk:55,def:58,spd:62,haki:95,df:72,rivalId:"nr25",emoji:"🧠",tier:"B",color:"#556B2F"},
-{id:"nr34",name:"Temari",sn:"Temari Naruto",title:"Sand Village / Wind Scythe Jutsu",anime:"naruto",atk:68,def:60,spd:70,haki:65,df:72,rivalId:"nr20",emoji:"🌪️",tier:"C",color:"#9ACD32"},
-{id:"nr35",name:"Ino Yamanaka",sn:"Ino Yamanaka",title:"Konoha Sensor / Mind Transfer Jutsu",anime:"naruto",atk:50,def:48,spd:62,haki:72,df:68,rivalId:"nr3",emoji:"💐",tier:"C",color:"#DA70D6"},
-{id:"nr36",name:"Kiba Inuzuka",sn:"Kiba Inuzuka",title:"Konoha Tracker / Fang Over Fang",anime:"naruto",atk:64,def:60,spd:78,haki:50,df:55,rivalId:"nr1",emoji:"🐕",tier:"C",color:"#8B6914"},
-{id:"nr39",name:"Shino Aburame",sn:"Shino Aburame",title:"Konoha Tracker / Parasitic Insect Techniques",anime:"naruto",atk:62,def:68,spd:65,haki:72,df:75,rivalId:"nr29",emoji:"🐛",tier:"C",color:"#2F4F4F"},
-{id:"nr40",name:"Choji Akimichi",sn:"Chouji Akimichi",title:"Akimichi Clan / Butterfly Mode",anime:"naruto",atk:78,def:75,spd:55,haki:55,df:70,rivalId:"nr26",emoji:"🦋",tier:"B",color:"#CD853F"},
+{id:"nr16",name:"Gaara",sn:"Gaara",title:"Fifth Kazekage / One-Tail Jinchuriki / Sand Shield",anime:"naruto",atk:58,def:72,spd:45,haki:52,df:70,rivalId:"nr15",emoji:"🏜️",tier:"A",color:"#C2B280"},
+{id:"nr18",name:"Neji Hyuga",sn:"Neji Hyuuga",title:"Hyuga Prodigy / Gentle Fist / Byakugan 360",anime:"naruto",atk:30,def:42,spd:65,haki:58,df:0,rivalId:"nr1",emoji:"👁️",tier:"B",color:"#E6E6FA"},
+{id:"nr19",name:"Hinata Hyuga",sn:"Hinata Hyuuga",title:"Byakugan Princess / Twin Lion Fists",anime:"naruto",atk:23,def:34,spd:46,haki:51,df:0,rivalId:"nr9",emoji:"💜",tier:"C",color:"#9966CC"},
+{id:"nr20",name:"Shikamaru Nara",sn:"Shikamaru Nara",title:"Konoha Advisor / 200+ IQ / Shadow Paralysis",anime:"naruto",atk:33,def:41,spd:51,haki:64,df:57,rivalId:"nr25",emoji:"🧠",tier:"B",color:"#556B2F"},
+{id:"nr34",name:"Temari",sn:"Temari Naruto",title:"Sand Village / Wind Scythe Jutsu",anime:"naruto",atk:36,def:25,spd:48,haki:29,df:57,rivalId:"nr20",emoji:"🌪️",tier:"C",color:"#9ACD32"},
+{id:"nr35",name:"Ino Yamanaka",sn:"Ino Yamanaka",title:"Konoha Sensor / Mind Transfer Jutsu",anime:"naruto",atk:29,def:23,spd:35,haki:58,df:52,rivalId:"nr3",emoji:"💐",tier:"C",color:"#DA70D6"},
+{id:"nr36",name:"Kiba Inuzuka",sn:"Kiba Inuzuka",title:"Konoha Tracker / Fang Over Fang",anime:"naruto",atk:48,def:34,spd:53,haki:24,df:31,rivalId:"nr1",emoji:"🐕",tier:"C",color:"#8B6914"},
+{id:"nr39",name:"Shino Aburame",sn:"Shino Aburame",title:"Konoha Tracker / Parasitic Insect Techniques",anime:"naruto",atk:24,def:35,spd:33,haki:45,df:56,rivalId:"nr29",emoji:"🐛",tier:"C",color:"#2F4F4F"},
+{id:"nr40",name:"Choji Akimichi",sn:"Chouji Akimichi",title:"Akimichi Clan / Butterfly Mode",anime:"naruto",atk:63,def:60,spd:37,haki:35,df:51,rivalId:"nr26",emoji:"🦋",tier:"B",color:"#CD853F"},
 // --- CLOUD / MIST / STONE ---
-{id:"nr17",name:"Killer Bee",sn:"Killer Bee Naruto",title:"Cloud Village / Eight-Tails Jinchuriki / Rapper",anime:"naruto",atk:88,def:82,spd:80,haki:75,df:90,rivalId:"nr2",emoji:"🐙",tier:"A",color:"#4169E1"},
-{id:"nr42",name:"Fourth Raikage Ay",sn:"Raikage Ay",title:"Fourth Raikage / Lightning Armor / Fastest Kage",anime:"naruto",atk:90,def:85,spd:95,haki:78,df:0,rivalId:"nr13",emoji:"💪",tier:"A",color:"#FFE066"},
-{id:"nr28",name:"Zabuza Momochi",sn:"Zabuza Momochi",title:"Seven Swordsmen of the Mist / Demon of the Mist",anime:"naruto",atk:78,def:72,spd:76,haki:68,df:65,rivalId:"nr4",emoji:"🗡️",tier:"B",color:"#2E8B57"},
-{id:"nr29",name:"Haku",sn:"Haku Naruto",title:"Zabuza's Protégé / Demonic Ice Mirrors",anime:"naruto",atk:70,def:62,spd:85,haki:60,df:80,rivalId:"nr1",emoji:"❄️",tier:"C",color:"#B0E0E6"},
-{id:"nr46",name:"Mei Terumi",sn:"Mei Terumi",title:"Fifth Mizukage / Lava & Acid Style",anime:"naruto",atk:78,def:72,spd:70,haki:75,df:82,rivalId:"nr28",emoji:"💋",tier:"B",color:"#E64980"},
-{id:"nr43",name:"Ohnoki",sn:"Oonoki",title:"Third Tsuchikage / Particle Style Disintegration",anime:"naruto",atk:82,def:75,spd:55,haki:85,df:90,rivalId:"nr6",emoji:"⛰️",tier:"A",color:"#BE4BDB"},
-{id:"nr44",name:"Kimimaro",sn:"Kimimaro",title:"Sound Five Leader / Shikotsumyaku Bone Manipulation",anime:"naruto",atk:82,def:78,spd:82,haki:60,df:80,rivalId:"nr16",emoji:"🦴",tier:"B",color:"#DEE2E6"},
+{id:"nr17",name:"Killer Bee",sn:"Killer Bee Naruto",title:"Cloud Village / Eight-Tails Jinchuriki / Rapper",anime:"naruto",atk:71,def:56,spd:53,haki:42,df:78,rivalId:"nr2",emoji:"🐙",tier:"A",color:"#4169E1"},
+{id:"nr42",name:"Fourth Raikage Ay",sn:"Raikage Ay",title:"Fourth Raikage / Lightning Armor / Fastest Kage",anime:"naruto",atk:61,def:54,spd:75,haki:45,df:0,rivalId:"nr13",emoji:"💪",tier:"A",color:"#FFE066"},
+{id:"nr28",name:"Zabuza Momochi",sn:"Zabuza Momochi",title:"Seven Swordsmen of the Mist / Demon of the Mist",anime:"naruto",atk:68,def:48,spd:57,haki:40,df:29,rivalId:"nr4",emoji:"🗡️",tier:"B",color:"#2E8B57"},
+{id:"nr29",name:"Haku",sn:"Haku Naruto",title:"Zabuza's Protégé / Demonic Ice Mirrors",anime:"naruto",atk:40,def:26,spd:53,haki:17,df:50,rivalId:"nr1",emoji:"❄️",tier:"C",color:"#B0E0E6"},
+{id:"nr46",name:"Mei Terumi",sn:"Mei Terumi",title:"Fifth Mizukage / Lava & Acid Style",anime:"naruto",atk:54,def:38,spd:32,haki:45,df:68,rivalId:"nr28",emoji:"💋",tier:"B",color:"#E64980"},
+{id:"nr43",name:"Ohnoki",sn:"Oonoki",title:"Third Tsuchikage / Particle Style Disintegration",anime:"naruto",atk:57,def:54,spd:37,haki:71,df:74,rivalId:"nr6",emoji:"⛰️",tier:"A",color:"#BE4BDB"},
+{id:"nr44",name:"Kimimaro",sn:"Kimimaro",title:"Sound Five Leader / Shikotsumyaku Bone Manipulation",anime:"naruto",atk:68,def:41,spd:56,haki:27,df:47,rivalId:"nr16",emoji:"🦴",tier:"B",color:"#DEE2E6"},
 // --- ROOT / OTHERS ---
-{id:"nr32",name:"Danzo Shimura",sn:"Danzou Shimura",title:"Root Foundation Leader / Stolen Sharingan Army",anime:"naruto",atk:78,def:75,spd:65,haki:80,df:82,rivalId:"nr2",emoji:"🩹",tier:"B",color:"#36454F"},
+{id:"nr32",name:"Danzo Shimura",sn:"Danzou Shimura",title:"Root Foundation Leader / Stolen Sharingan Army",anime:"naruto",atk:50,def:44,spd:33,haki:55,df:68,rivalId:"nr2",emoji:"🩹",tier:"B",color:"#36454F"},
 // --- OTSUTSUKI ---
-{id:"nr33",name:"Kaguya Otsutsuki",sn:"Kaguya Ootsutsuki",title:"Progenitor of Chakra / Rabbit Goddess / God Tier",anime:"naruto",atk:99,def:98,spd:88,haki:90,df:100,rivalId:"nr1",emoji:"🌕",tier:"S+",color:"#E6E6FA"},
-{id:"nr45",name:"Hagoromo Otsutsuki",sn:"Hagoromo Ootsutsuki",title:"Sage of Six Paths / Creator of Ninjutsu / Kaguya's Son",anime:"naruto",atk:99,def:98,spd:92,haki:100,df:99,rivalId:"nr33",emoji:"☀️",tier:"S+",color:"#FCC419"},
+{id:"nr33",name:"Kaguya Otsutsuki",sn:"Kaguya Ootsutsuki",title:"Progenitor of Chakra / Rabbit Goddess / God Tier",anime:"naruto",atk:85,def:75,spd:65,haki:68,df:85,rivalId:"nr1",emoji:"🌕",tier:"S+",color:"#E6E6FA"},
+{id:"nr45",name:"Hagoromo Otsutsuki",sn:"Hagoromo Ootsutsuki",title:"Sage of Six Paths / Creator of Ninjutsu / Kaguya's Son",anime:"naruto",atk:83,def:70,spd:58,haki:87,df:73,rivalId:"nr33",emoji:"☀️",tier:"S+",color:"#FCC419"},
 // --- NEW NR CHARACTERS ---
-{id:"nr47",name:"Toneri Otsutsuki",sn:"Toneri Ootsutsuki",title:"Otsutsuki Clan / Tenseigan / Moon Dweller",anime:"naruto",atk:88,def:82,spd:85,haki:88,df:90,rivalId:"nr1",emoji:"🌙",tier:"S",color:"#BE4BDB"},
-{id:"nr48",name:"Third Raikage",sn:"Sandaime Raikage",title:"Strongest Raikage / Hell Stab / Invincible Body",anime:"naruto",atk:95,def:98,spd:88,haki:80,df:0,rivalId:"nr42",emoji:"⚡",tier:"S",color:"#F59F00"},
-{id:"nr49",name:"Mu",sn:"Mu Nidaime Tsuchikage",title:"Second Tsuchikage / Particle Style / Invisibility",anime:"naruto",atk:82,def:68,spd:80,haki:85,df:88,rivalId:"nr43",emoji:"👻",tier:"A",color:"#BE4BDB"},
-{id:"nr50",name:"Gengetsu Hozuki",sn:"Gengetsu Hozuki",title:"Second Mizukage / Clam Genjutsu / Water Gun",anime:"naruto",atk:82,def:72,spd:75,haki:80,df:85,rivalId:"nr49",emoji:"🫧",tier:"A",color:"#3BC9DB"},
-{id:"nr51",name:"Yagura",sn:"Yagura Karatachi",title:"Fourth Mizukage / Three-Tails Jinchuriki / Perfect Control",anime:"naruto",atk:82,def:78,spd:75,haki:72,df:85,rivalId:"nr8",emoji:"🐢",tier:"A",color:"#339AF0"},
-{id:"nr52",name:"Rasa",sn:"Rasa Kazekage",title:"Fourth Kazekage / Gold Dust / Gaara's Father",anime:"naruto",atk:78,def:75,spd:65,haki:72,df:80,rivalId:"nr16",emoji:"✨",tier:"B",color:"#F59F00"},
-{id:"nr53",name:"Yugito Nii",sn:"Yugito Nii",title:"Two-Tails Jinchuriki / Blue Fire Cat",anime:"naruto",atk:80,def:72,spd:82,haki:68,df:82,rivalId:"nr25",emoji:"🐱",tier:"B",color:"#3BC9DB"},
-{id:"nr54",name:"Roshi",sn:"Roshi Naruto",title:"Four-Tails Jinchuriki / Lava Style",anime:"naruto",atk:78,def:75,spd:65,haki:68,df:82,rivalId:"nr24",emoji:"🐵",tier:"B",color:"#E03131"},
-{id:"nr55",name:"Han",sn:"Han Naruto",title:"Five-Tails Jinchuriki / Steam Armor",anime:"naruto",atk:82,def:80,spd:72,haki:65,df:80,rivalId:"nr26",emoji:"🐴",tier:"B",color:"#E8590C"},
-{id:"nr56",name:"Utakata",sn:"Utakata",title:"Six-Tails Jinchuriki / Bubble Style",anime:"naruto",atk:75,def:70,spd:72,haki:68,df:82,rivalId:"nr23",emoji:"🫧",tier:"B",color:"#339AF0"},
-{id:"nr57",name:"Fu",sn:"Fuu Jinchuriki",title:"Seven-Tails Jinchuriki / Lucky Seven Choumei",anime:"naruto",atk:75,def:68,spd:80,haki:65,df:82,rivalId:"nr27",emoji:"🪲",tier:"B",color:"#37B24D"},
-{id:"nr58",name:"Black Zetsu",sn:"Black Zetsu",title:"Kaguya's Will / Manipulator of Shinobi History",anime:"naruto",atk:45,def:60,spd:65,haki:82,df:75,rivalId:"nr6",emoji:"🖤",tier:"C",color:"#1B1B1B"},
-{id:"nr59",name:"White Zetsu",sn:"White Zetsu",title:"Plant Creature / Clone Army / Spore Technique",anime:"naruto",atk:40,def:50,spd:60,haki:45,df:65,rivalId:"nr38",emoji:"🤍",tier:"C",color:"#E9ECEF"},
-{id:"nr60",name:"Hanzo",sn:"Hanzo Salamander",title:"Hanzo of the Salamander / Poison / Legendary Ninja",anime:"naruto",atk:85,def:80,spd:78,haki:82,df:82,rivalId:"nr9",emoji:"🦎",tier:"A",color:"#495057"},
-{id:"nr61",name:"Tayuya",sn:"Tayuya",title:"Sound Four / Flute Genjutsu / Doki Summoning",anime:"naruto",atk:65,def:55,spd:62,haki:70,df:72,rivalId:"nr20",emoji:"🎶",tier:"C",color:"#E03131"},
-{id:"nr62",name:"Kidomaru",sn:"Kidomaru",title:"Sound Four / Spider Web / Six Arms",anime:"naruto",atk:72,def:65,spd:70,haki:68,df:70,rivalId:"nr18",emoji:"🕷️",tier:"C",color:"#5C5F66"},
-{id:"nr63",name:"Sakon & Ukon",sn:"Sakon Ukon",title:"Sound Four / Parasite Demon / Twin Brothers",anime:"naruto",atk:70,def:72,spd:68,haki:55,df:72,rivalId:"nr36",emoji:"👥",tier:"C",color:"#3B5BDB"},
-{id:"nr64",name:"Jirobo",sn:"Jirobo",title:"Sound Four / Earth Style / Absorption Barrier",anime:"naruto",atk:72,def:75,spd:50,haki:48,df:65,rivalId:"nr40",emoji:"🪨",tier:"C",color:"#E8590C"},
-{id:"nr65",name:"Kankuro",sn:"Kankuro",title:"Sand Village / Puppet Master / Three Puppet Attack",anime:"naruto",atk:70,def:65,spd:62,haki:68,df:72,rivalId:"nr23",emoji:"🎭",tier:"B",color:"#5C5F66"},
-{id:"nr66",name:"Chiyo",sn:"Chiyo",title:"Sand Elder / Legendary Puppeteer / Ten Puppet Collection",anime:"naruto",atk:72,def:65,spd:58,haki:80,df:78,rivalId:"nr23",emoji:"👵",tier:"B",color:"#862E9C"},
-{id:"nr67",name:"Suigetsu Hozuki",sn:"Suigetsu Hozuki",title:"Team Taka / Water Body / Zabuza's Successor",anime:"naruto",atk:75,def:68,spd:78,haki:58,df:78,rivalId:"nr28",emoji:"💧",tier:"B",color:"#339AF0"},
-{id:"nr68",name:"Jugo",sn:"Jugo",title:"Team Taka / Sage Transformation / Berserker",anime:"naruto",atk:82,def:78,spd:65,haki:50,df:80,rivalId:"nr44",emoji:"🦅",tier:"B",color:"#E8590C"},
-{id:"nr69",name:"Karin",sn:"Karin Uzumaki",title:"Team Taka / Uzumaki Clan / Heal Bite / Sensor",anime:"naruto",atk:45,def:50,spd:60,haki:82,df:68,rivalId:"nr3",emoji:"👓",tier:"C",color:"#E03131"},
-{id:"nr70",name:"Darui",sn:"Darui",title:"Fifth Raikage / Storm Style / Black Lightning",anime:"naruto",atk:82,def:75,spd:80,haki:78,df:82,rivalId:"nr42",emoji:"⚡",tier:"A",color:"#495057"},
-{id:"nr71",name:"Omoi",sn:"Omoi",title:"Cloud Jonin / Kenjutsu / Lightning Sword",anime:"naruto",atk:68,def:62,spd:72,haki:65,df:60,rivalId:"nr37",emoji:"⚔️",tier:"C",color:"#495057"},
-{id:"nr72",name:"Chojuro",sn:"Chojuro",title:"Sixth Mizukage / Hiramekarei / Seven Swordsman",anime:"naruto",atk:75,def:70,spd:72,haki:72,df:0,rivalId:"nr28",emoji:"🐟",tier:"B",color:"#339AF0"},
-{id:"nr73",name:"Sai",sn:"Sai Naruto",title:"ANBU Root / Super Beast Scroll / Ink Ninjutsu",anime:"naruto",atk:72,def:65,spd:75,haki:70,df:75,rivalId:"nr32",emoji:"🎨",tier:"B",color:"#1B1B1B"},
-{id:"nr74",name:"Konohamaru",sn:"Konohamaru Sarutobi",title:"Jonin / Rasengan / Third Hokage's Grandson",anime:"naruto",atk:68,def:62,spd:72,haki:65,df:68,rivalId:"nr31",emoji:"🧣",tier:"C",color:"#2B8A3E"},
-{id:"nr75",name:"Kurenai Yuhi",sn:"Kurenai Yuhi",title:"Genjutsu Mistress / Jonin / Team 8 Leader",anime:"naruto",atk:60,def:55,spd:65,haki:78,df:72,rivalId:"nr5",emoji:"🌹",tier:"C",color:"#E03131"},
-{id:"nr76",name:"Anko Mitarashi",sn:"Anko Mitarashi",title:"Former Student of Orochimaru / Snake Techniques",anime:"naruto",atk:68,def:62,spd:75,haki:65,df:72,rivalId:"nr12",emoji:"🐍",tier:"C",color:"#7048E8"},
-{id:"nr77",name:"Iruka Umino",sn:"Iruka Umino",title:"Academy Teacher / Naruto's First Bond",anime:"naruto",atk:45,def:50,spd:55,haki:65,df:50,rivalId:"nr1",emoji:"🐬",tier:"C",color:"#1864AB"},
-{id:"nr78",name:"Might Duy",sn:"Might Duy",title:"Eternal Genin / Eight Gates Released / Guy's Father",anime:"naruto",atk:90,def:55,spd:88,haki:60,df:0,rivalId:"nr24",emoji:"🌟",tier:"B",color:"#37B24D"},
-{id:"nr79",name:"Hiashi Hyuga",sn:"Hiashi Hyuuga",title:"Hyuga Clan Head / Gentle Fist Master / Byakugan",anime:"naruto",atk:75,def:78,spd:68,haki:80,df:0,rivalId:"nr18",emoji:"👁️",tier:"B",color:"#E6E6FA"},
-{id:"nr80",name:"Shikaku Nara",sn:"Shikaku Nara",title:"Nara Clan Head / Chief Strategist / Shadow Bind",anime:"naruto",atk:60,def:58,spd:55,haki:95,df:68,rivalId:"nr20",emoji:"🦌",tier:"B",color:"#495057"},
-{id:"nr81",name:"Kushina Uzumaki",sn:"Kushina Uzumaki",title:"Naruto's Mother / Red Hot-Blooded Habanero / Chains",anime:"naruto",atk:78,def:72,spd:80,haki:75,df:85,rivalId:"nr13",emoji:"🌶️",tier:"B",color:"#E03131"},
-{id:"nr82",name:"Tenten",sn:"Tenten",title:"Weapon Summoning Specialist / Bashosen Fan",anime:"naruto",atk:62,def:55,spd:68,haki:58,df:65,rivalId:"nr34",emoji:"🎯",tier:"C",color:"#E8590C"},
-{id:"nr83",name:"Mifune",sn:"Mifune",title:"Head of the Land of Iron / Greatest Samurai / Iai Slash",anime:"naruto",atk:82,def:78,spd:82,haki:78,df:0,rivalId:"nr60",emoji:"⚔️",tier:"B",color:"#868E96"},
-{id:"nr84",name:"Pakura",sn:"Pakura",title:"Sand Village / Scorch Style / Blazing Heat",anime:"naruto",atk:78,def:62,spd:75,haki:70,df:82,rivalId:"nr46",emoji:"🔥",tier:"B",color:"#E8590C"},
-{id:"nr85",name:"Ginkaku",sn:"Ginkaku",title:"Gold & Silver Brothers / Nine-Tails Chakra / Treasured Tools",anime:"naruto",atk:82,def:78,spd:72,haki:65,df:80,rivalId:"nr30",emoji:"🥈",tier:"B",color:"#868E96"},
-{id:"nr86",name:"Kinkaku",sn:"Kinkaku",title:"Gold & Silver Brothers / Six-Tails Cloak / Treasured Tools",anime:"naruto",atk:85,def:80,spd:75,haki:68,df:82,rivalId:"nr30",emoji:"🥇",tier:"A",color:"#F59F00"},
-{id:"nr87",name:"Mangetsu Hozuki",sn:"Mangetsu Hozuki",title:"Seven Swordsmen / Master of All 7 Blades",anime:"naruto",atk:82,def:72,spd:80,haki:72,df:78,rivalId:"nr28",emoji:"🗡️",tier:"B",color:"#3BC9DB"},
-{id:"nr88",name:"Torune Aburame",sn:"Torune Aburame",title:"Root ANBU / Nano-Sized Venomous Insects",anime:"naruto",atk:68,def:65,spd:72,haki:70,df:75,rivalId:"nr39",emoji:"🪲",tier:"C",color:"#5C5F66"},
-{id:"nr89",name:"Ao",sn:"Ao Naruto",title:"Mist Hunter-Nin / Byakugan / Sensor Type",anime:"naruto",atk:65,def:62,spd:68,haki:75,df:0,rivalId:"nr32",emoji:"🔵",tier:"C",color:"#1864AB"},
-{id:"nr90",name:"Chiriku",sn:"Chiriku",title:"Twelve Guardian Ninja / Welcoming Approach / Monk",anime:"naruto",atk:72,def:68,spd:65,haki:70,df:72,rivalId:"nr37",emoji:"📿",tier:"B",color:"#F59F00"},
-{id:"nr91",name:"Ajisai",sn:"Ajisai",title:"Rain Village Chunin / Paper Bomb Expert",anime:"naruto",atk:55,def:50,spd:65,haki:55,df:60,rivalId:"nr27",emoji:"🌺",tier:"C",color:"#BE4BDB"},
-{id:"nr92",name:"Hayate Gekko",sn:"Hayate Gekko",title:"Leaf Jonin / Crescent Moon Dance / Sword Specialist",anime:"naruto",atk:68,def:60,spd:72,haki:65,df:0,rivalId:"nr37",emoji:"🌙",tier:"C",color:"#495057"},
-{id:"nr93",name:"Ibiki Morino",sn:"Ibiki Morino",title:"Torture & Interrogation / Psychological Warfare Expert",anime:"naruto",atk:60,def:65,spd:55,haki:82,df:0,rivalId:"nr20",emoji:"🧠",tier:"C",color:"#495057"},
-{id:"nr94",name:"Fugaku Uchiha",sn:"Fugaku Uchiha",title:"Uchiha Clan Head / Mangekyo Sharingan / Wicked Eye",anime:"naruto",atk:78,def:72,spd:75,haki:80,df:82,rivalId:"nr5",emoji:"👁️",tier:"B",color:"#1B1B1B"},
-{id:"nr95",name:"Izuna Uchiha",sn:"Izuna Uchiha",title:"Madara's Brother / Mangekyo Sharingan",anime:"naruto",atk:82,def:75,spd:80,haki:78,df:82,rivalId:"nr30",emoji:"👁️",tier:"A",color:"#5C5F66"},
-{id:"nr96",name:"Kagami Uchiha",sn:"Kagami Uchiha",title:"Uchiha Elder / Tobirama's Squad / Will of Fire",anime:"naruto",atk:75,def:70,spd:78,haki:78,df:78,rivalId:"nr41",emoji:"🔥",tier:"B",color:"#E03131"},
-{id:"nr97",name:"Sakumo Hatake",sn:"Sakumo Hatake",title:"White Fang / Greater Than the Sannin / Kakashi's Father",anime:"naruto",atk:90,def:82,spd:90,haki:85,df:0,rivalId:"nr10",emoji:"🐺",tier:"S",color:"#ADB5BD"},
-{id:"nr98",name:"Nawaki",sn:"Nawaki",title:"Tsunade's Brother / Dream of Hokage",anime:"naruto",atk:45,def:40,spd:55,haki:50,df:45,rivalId:"nr11",emoji:"🍀",tier:"C",color:"#37B24D"},
-{id:"nr99",name:"Dan Kato",sn:"Dan Kato",title:"Jonin / Spirit Transformation / Tsunade's Lover",anime:"naruto",atk:72,def:65,spd:75,haki:72,df:78,rivalId:"nr11",emoji:"💙",tier:"B",color:"#339AF0"},
-{id:"nr100",name:"Nagato (Edo)",sn:"Nagato Edo Tensei",title:"Reanimated Nagato / Full Rinnegan Power / No Pain Bodies",anime:"naruto",atk:95,def:85,spd:82,haki:92,df:98,rivalId:"nr17",emoji:"☯️",tier:"S",color:"#862E9C"},
+{id:"nr47",name:"Toneri Otsutsuki",sn:"Toneri Ootsutsuki",title:"Otsutsuki Clan / Tenseigan / Moon Dweller",anime:"naruto",atk:77,def:48,spd:62,haki:66,df:78,rivalId:"nr1",emoji:"🌙",tier:"S",color:"#BE4BDB"},
+{id:"nr48",name:"Third Raikage",sn:"Sandaime Raikage",title:"Strongest Raikage / Hell Stab / Invincible Body",anime:"naruto",atk:75,def:80,spd:65,haki:50,df:0,rivalId:"nr42",emoji:"⚡",tier:"S",color:"#F59F00"},
+{id:"nr49",name:"Mu",sn:"Mu Nidaime Tsuchikage",title:"Second Tsuchikage / Particle Style / Invisibility",anime:"naruto",atk:63,def:38,spd:48,haki:63,df:73,rivalId:"nr43",emoji:"👻",tier:"A",color:"#BE4BDB"},
+{id:"nr50",name:"Gengetsu Hozuki",sn:"Gengetsu Hozuki",title:"Second Mizukage / Clam Genjutsu / Water Gun",anime:"naruto",atk:70,def:44,spd:49,haki:57,df:78,rivalId:"nr49",emoji:"🫧",tier:"A",color:"#3BC9DB"},
+{id:"nr51",name:"Yagura",sn:"Yagura Karatachi",title:"Fourth Mizukage / Three-Tails Jinchuriki / Perfect Control",anime:"naruto",atk:67,def:61,spd:48,haki:38,df:78,rivalId:"nr8",emoji:"🐢",tier:"A",color:"#339AF0"},
+{id:"nr52",name:"Rasa",sn:"Rasa Kazekage",title:"Fourth Kazekage / Gold Dust / Gaara's Father",anime:"naruto",atk:61,def:45,spd:33,haki:44,df:64,rivalId:"nr16",emoji:"✨",tier:"B",color:"#F59F00"},
+{id:"nr53",name:"Yugito Nii",sn:"Yugito Nii",title:"Two-Tails Jinchuriki / Blue Fire Cat",anime:"naruto",atk:45,def:42,spd:65,haki:33,df:58,rivalId:"nr25",emoji:"🐱",tier:"B",color:"#3BC9DB"},
+{id:"nr54",name:"Roshi",sn:"Roshi Naruto",title:"Four-Tails Jinchuriki / Lava Style",anime:"naruto",atk:53,def:53,spd:29,haki:39,df:68,rivalId:"nr24",emoji:"🐵",tier:"B",color:"#E03131"},
+{id:"nr55",name:"Han",sn:"Han Naruto",title:"Five-Tails Jinchuriki / Steam Armor",anime:"naruto",atk:68,def:56,spd:39,haki:35,df:53,rivalId:"nr26",emoji:"🐴",tier:"B",color:"#E8590C"},
+{id:"nr56",name:"Utakata",sn:"Utakata",title:"Six-Tails Jinchuriki / Bubble Style",anime:"naruto",atk:57,def:39,spd:46,haki:30,df:68,rivalId:"nr23",emoji:"🫧",tier:"B",color:"#339AF0"},
+{id:"nr57",name:"Fu",sn:"Fuu Jinchuriki",title:"Seven-Tails Jinchuriki / Lucky Seven Choumei",anime:"naruto",atk:50,def:43,spd:54,haki:28,df:66,rivalId:"nr27",emoji:"🪲",tier:"B",color:"#37B24D"},
+{id:"nr58",name:"Black Zetsu",sn:"Black Zetsu",title:"Kaguya's Will / Manipulator of Shinobi History",anime:"naruto",atk:21,def:33,spd:36,haki:55,df:49,rivalId:"nr6",emoji:"🖤",tier:"C",color:"#1B1B1B"},
+{id:"nr59",name:"White Zetsu",sn:"White Zetsu",title:"Plant Creature / Clone Army / Spore Technique",anime:"naruto",atk:17,def:42,spd:47,haki:33,df:58,rivalId:"nr38",emoji:"🤍",tier:"C",color:"#E9ECEF"},
+{id:"nr60",name:"Hanzo",sn:"Hanzo Salamander",title:"Hanzo of the Salamander / Poison / Legendary Ninja",anime:"naruto",atk:75,def:46,spd:41,haki:65,df:56,rivalId:"nr9",emoji:"🦎",tier:"A",color:"#495057"},
+{id:"nr61",name:"Tayuya",sn:"Tayuya",title:"Sound Four / Flute Genjutsu / Doki Summoning",anime:"naruto",atk:41,def:22,spd:27,haki:44,df:57,rivalId:"nr20",emoji:"🎶",tier:"C",color:"#E03131"},
+{id:"nr62",name:"Kidomaru",sn:"Kidomaru",title:"Sound Four / Spider Web / Six Arms",anime:"naruto",atk:58,def:21,spd:51,haki:27,df:43,rivalId:"nr18",emoji:"🕷️",tier:"C",color:"#5C5F66"},
+{id:"nr63",name:"Sakon & Ukon",sn:"Sakon Ukon",title:"Sound Four / Parasite Demon / Twin Brothers",anime:"naruto",atk:42,def:56,spd:32,haki:24,df:51,rivalId:"nr36",emoji:"👥",tier:"C",color:"#3B5BDB"},
+{id:"nr64",name:"Jirobo",sn:"Jirobo",title:"Sound Four / Earth Style / Absorption Barrier",anime:"naruto",atk:44,def:58,spd:30,haki:20,df:39,rivalId:"nr40",emoji:"🪨",tier:"C",color:"#E8590C"},
+{id:"nr65",name:"Kankuro",sn:"Kankuro",title:"Sand Village / Puppet Master / Three Puppet Attack",anime:"naruto",atk:59,def:44,spd:29,haki:53,df:68,rivalId:"nr23",emoji:"🎭",tier:"B",color:"#5C5F66"},
+{id:"nr66",name:"Chiyo",sn:"Chiyo",title:"Sand Elder / Legendary Puppeteer / Ten Puppet Collection",anime:"naruto",atk:48,def:39,spd:29,haki:68,df:58,rivalId:"nr23",emoji:"👵",tier:"B",color:"#862E9C"},
+{id:"nr67",name:"Suigetsu Hozuki",sn:"Suigetsu Hozuki",title:"Team Taka / Water Body / Zabuza's Successor",anime:"naruto",atk:53,def:36,spd:68,haki:32,df:60,rivalId:"nr28",emoji:"💧",tier:"B",color:"#339AF0"},
+{id:"nr68",name:"Jugo",sn:"Jugo",title:"Team Taka / Sage Transformation / Berserker",anime:"naruto",atk:67,def:50,spd:36,haki:27,df:58,rivalId:"nr44",emoji:"🦅",tier:"B",color:"#E8590C"},
+{id:"nr69",name:"Karin",sn:"Karin Uzumaki",title:"Team Taka / Uzumaki Clan / Heal Bite / Sensor",anime:"naruto",atk:18,def:31,spd:35,haki:58,df:49,rivalId:"nr3",emoji:"👓",tier:"C",color:"#E03131"},
+{id:"nr70",name:"Darui",sn:"Darui",title:"Fifth Raikage / Storm Style / Black Lightning",anime:"naruto",atk:73,def:42,spd:59,haki:51,df:64,rivalId:"nr42",emoji:"⚡",tier:"A",color:"#495057"},
+{id:"nr71",name:"Omoi",sn:"Omoi",title:"Cloud Jonin / Kenjutsu / Lightning Sword",anime:"naruto",atk:48,def:29,spd:52,haki:41,df:24,rivalId:"nr37",emoji:"⚔️",tier:"C",color:"#495057"},
+{id:"nr72",name:"Chojuro",sn:"Chojuro",title:"Sixth Mizukage / Hiramekarei / Seven Swordsman",anime:"naruto",atk:62,def:28,spd:57,haki:39,df:0,rivalId:"nr28",emoji:"🐟",tier:"B",color:"#339AF0"},
+{id:"nr73",name:"Sai",sn:"Sai Naruto",title:"ANBU Root / Super Beast Scroll / Ink Ninjutsu",anime:"naruto",atk:47,def:33,spd:63,haki:36,df:58,rivalId:"nr32",emoji:"🎨",tier:"B",color:"#1B1B1B"},
+{id:"nr74",name:"Konohamaru",sn:"Konohamaru Sarutobi",title:"Jonin / Rasengan / Third Hokage's Grandson",anime:"naruto",atk:51,def:18,spd:53,haki:31,df:40,rivalId:"nr31",emoji:"🧣",tier:"C",color:"#2B8A3E"},
+{id:"nr75",name:"Kurenai Yuhi",sn:"Kurenai Yuhi",title:"Genjutsu Mistress / Jonin / Team 8 Leader",anime:"naruto",atk:26,def:20,spd:35,haki:56,df:51,rivalId:"nr5",emoji:"🌹",tier:"C",color:"#E03131"},
+{id:"nr76",name:"Anko Mitarashi",sn:"Anko Mitarashi",title:"Former Student of Orochimaru / Snake Techniques",anime:"naruto",atk:41,def:17,spd:53,haki:28,df:49,rivalId:"nr12",emoji:"🐍",tier:"C",color:"#7048E8"},
+{id:"nr77",name:"Iruka Umino",sn:"Iruka Umino",title:"Academy Teacher / Naruto's First Bond",anime:"naruto",atk:18,def:34,spd:49,haki:58,df:26,rivalId:"nr1",emoji:"🐬",tier:"C",color:"#1864AB"},
+{id:"nr78",name:"Might Duy",sn:"Might Duy",title:"Eternal Genin / Eight Gates Released / Guy's Father",anime:"naruto",atk:68,def:29,spd:56,haki:38,df:0,rivalId:"nr24",emoji:"🌟",tier:"B",color:"#37B24D"},
+{id:"nr79",name:"Hiashi Hyuga",sn:"Hiashi Hyuuga",title:"Hyuga Clan Head / Gentle Fist Master / Byakugan",anime:"naruto",atk:44,def:53,spd:31,haki:64,df:0,rivalId:"nr18",emoji:"👁️",tier:"B",color:"#E6E6FA"},
+{id:"nr80",name:"Shikaku Nara",sn:"Shikaku Nara",title:"Nara Clan Head / Chief Strategist / Shadow Bind",anime:"naruto",atk:44,def:40,spd:27,haki:68,df:56,rivalId:"nr20",emoji:"🦌",tier:"B",color:"#495057"},
+{id:"nr81",name:"Kushina Uzumaki",sn:"Kushina Uzumaki",title:"Naruto's Mother / Red Hot-Blooded Habanero / Chains",anime:"naruto",atk:46,def:32,spd:56,haki:42,df:65,rivalId:"nr13",emoji:"🌶️",tier:"B",color:"#E03131"},
+{id:"nr82",name:"Tenten",sn:"Tenten",title:"Weapon Summoning Specialist / Bashosen Fan",anime:"naruto",atk:35,def:17,spd:58,haki:33,df:45,rivalId:"nr34",emoji:"🎯",tier:"C",color:"#E8590C"},
+{id:"nr83",name:"Mifune",sn:"Mifune",title:"Head of the Land of Iron / Greatest Samurai / Iai Slash",anime:"naruto",atk:68,def:40,spd:55,haki:34,df:0,rivalId:"nr60",emoji:"⚔️",tier:"B",color:"#868E96"},
+{id:"nr84",name:"Pakura",sn:"Pakura",title:"Sand Village / Scorch Style / Blazing Heat",anime:"naruto",atk:58,def:35,spd:48,haki:44,df:64,rivalId:"nr46",emoji:"🔥",tier:"B",color:"#E8590C"},
+{id:"nr85",name:"Ginkaku",sn:"Ginkaku",title:"Gold & Silver Brothers / Nine-Tails Chakra / Treasured Tools",anime:"naruto",atk:64,def:50,spd:41,haki:35,df:56,rivalId:"nr30",emoji:"🥈",tier:"B",color:"#868E96"},
+{id:"nr86",name:"Kinkaku",sn:"Kinkaku",title:"Gold & Silver Brothers / Six-Tails Cloak / Treasured Tools",anime:"naruto",atk:78,def:59,spd:49,haki:39,df:71,rivalId:"nr30",emoji:"🥇",tier:"A",color:"#F59F00"},
+{id:"nr87",name:"Mangetsu Hozuki",sn:"Mangetsu Hozuki",title:"Seven Swordsmen / Master of All 7 Blades",anime:"naruto",atk:62,def:37,spd:61,haki:32,df:45,rivalId:"nr28",emoji:"🗡️",tier:"B",color:"#3BC9DB"},
+{id:"nr88",name:"Torune Aburame",sn:"Torune Aburame",title:"Root ANBU / Nano-Sized Venomous Insects",anime:"naruto",atk:32,def:25,spd:43,haki:36,df:54,rivalId:"nr39",emoji:"🪲",tier:"C",color:"#5C5F66"},
+{id:"nr89",name:"Ao",sn:"Ao Naruto",title:"Mist Hunter-Nin / Byakugan / Sensor Type",anime:"naruto",atk:33,def:25,spd:42,haki:56,df:0,rivalId:"nr32",emoji:"🔵",tier:"C",color:"#1864AB"},
+{id:"nr90",name:"Chiriku",sn:"Chiriku",title:"Twelve Guardian Ninja / Welcoming Approach / Monk",anime:"naruto",atk:67,def:39,spd:33,haki:47,df:54,rivalId:"nr37",emoji:"📿",tier:"B",color:"#F59F00"},
+{id:"nr91",name:"Ajisai",sn:"Ajisai",title:"Rain Village Chunin / Paper Bomb Expert",anime:"naruto",atk:34,def:18,spd:57,haki:33,df:46,rivalId:"nr27",emoji:"🌺",tier:"C",color:"#BE4BDB"},
+{id:"nr92",name:"Hayate Gekko",sn:"Hayate Gekko",title:"Leaf Jonin / Crescent Moon Dance / Sword Specialist",anime:"naruto",atk:47,def:23,spd:54,haki:30,df:0,rivalId:"nr37",emoji:"🌙",tier:"C",color:"#495057"},
+{id:"nr93",name:"Ibiki Morino",sn:"Ibiki Morino",title:"Torture & Interrogation / Psychological Warfare Expert",anime:"naruto",atk:35,def:42,spd:17,haki:58,df:0,rivalId:"nr20",emoji:"🧠",tier:"C",color:"#495057"},
+{id:"nr94",name:"Fugaku Uchiha",sn:"Fugaku Uchiha",title:"Uchiha Clan Head / Mangekyo Sharingan / Wicked Eye",anime:"naruto",atk:48,def:32,spd:43,haki:55,df:63,rivalId:"nr5",emoji:"👁️",tier:"B",color:"#1B1B1B"},
+{id:"nr95",name:"Izuna Uchiha",sn:"Izuna Uchiha",title:"Madara's Brother / Mangekyo Sharingan",anime:"naruto",atk:78,def:38,spd:57,haki:53,df:70,rivalId:"nr30",emoji:"👁️",tier:"A",color:"#5C5F66"},
+{id:"nr96",name:"Kagami Uchiha",sn:"Kagami Uchiha",title:"Uchiha Elder / Tobirama's Squad / Will of Fire",anime:"naruto",atk:39,def:29,spd:66,haki:60,df:46,rivalId:"nr41",emoji:"🔥",tier:"B",color:"#E03131"},
+{id:"nr97",name:"Sakumo Hatake",sn:"Sakumo Hatake",title:"White Fang / Greater Than the Sannin / Kakashi's Father",anime:"naruto",atk:85,def:55,spd:69,haki:63,df:0,rivalId:"nr10",emoji:"🐺",tier:"S",color:"#ADB5BD"},
+{id:"nr98",name:"Nawaki",sn:"Nawaki",title:"Tsunade's Brother / Dream of Hokage",anime:"naruto",atk:37,def:25,spd:58,haki:50,df:33,rivalId:"nr11",emoji:"🍀",tier:"C",color:"#37B24D"},
+{id:"nr99",name:"Dan Kato",sn:"Dan Kato",title:"Jonin / Spirit Transformation / Tsunade's Lover",anime:"naruto",atk:51,def:33,spd:58,haki:40,df:66,rivalId:"nr11",emoji:"💙",tier:"B",color:"#339AF0"},
+{id:"nr100",name:"Nagato (Edo)",sn:"Nagato Edo Tensei",title:"Reanimated Nagato / Full Rinnegan Power / No Pain Bodies",anime:"naruto",atk:76,def:62,spd:47,haki:67,df:85,rivalId:"nr17",emoji:"☯️",tier:"S",color:"#862E9C"},
 ];
 
 const ALL_CHARS=[...OP,...NR];
@@ -2006,8 +2015,8 @@ window.addEventListener('appinstalled',()=>{
   <button class="coll-back" onclick="closeCollection()">Back to Menu</button>
 </div>
 
-<script src="moves.js?v=5"></script>
-<script src="battle.js?v=5"></script>
+<script src="moves.js?v=6"></script>
+<script src="battle.js?v=6"></script>
 
 <script>
 // ===== MULTI-SELECT ANIME FILTER =====
@@ -2072,13 +2081,6 @@ function getFilteredChars() {
   return ALL_CHARS;
 }
 
-// ===== GLOBAL ERROR HANDLER =====
-window.onerror = function(msg, url, line, col, err) {
-  const d = document.getElementById('_dbg');
-  if(d) d.innerHTML += '<div style="color:red">ERROR: ' + msg + ' (line ' + line + ')</div>';
-  console.error('GLOBAL ERROR:', msg, url, line, col, err);
-};
-
 document.addEventListener('DOMContentLoaded', function() {
   // Both animes selected by default
   selectedAnimes.add('onepiece');
@@ -2087,28 +2089,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // Enable mode buttons
   document.querySelectorAll('#btn-start, #btn-draft').forEach(b => b.disabled = false);
   updateMenuStats();
-
-  // Debug panel
-  const dbg = document.createElement('div');
-  dbg.id = '_dbg';
-  dbg.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#000;color:#0f0;font:10px monospace;padding:4px 8px;z-index:99999;max-height:120px;overflow-y:auto;border-top:1px solid #333';
-  dbg.innerHTML = 'DEBUG: DOMContentLoaded OK | selectedAnimes=' + [...selectedAnimes].join(',') +
-    ' | ALL_CHARS=' + (typeof ALL_CHARS !== 'undefined' ? ALL_CHARS.length : 'UNDEF') +
-    ' | getActiveChars=' + (typeof getActiveChars === 'function' ? getActiveChars().length : 'UNDEF') +
-    ' | showBattleSetup=' + (typeof showBattleSetup === 'function' ? 'OK' : 'UNDEF') +
-    ' | startGame=' + (typeof startGame === 'function' ? 'OK' : 'UNDEF') +
-    ' | startDraft=' + (typeof startDraft === 'function' ? 'OK' : 'UNDEF') +
-    ' | BATTLE_MOVES=' + (typeof BATTLE_MOVES !== 'undefined' ? Object.keys(BATTLE_MOVES).length : 'UNDEF');
-  document.body.appendChild(dbg);
-
-  // Wrap mode button clicks with debug logging
-  document.querySelectorAll('.mode-card').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-      const d = document.getElementById('_dbg');
-      const fn = this.getAttribute('onclick');
-      if(d) d.innerHTML += '<div>CLICK: ' + fn + ' | selectedAnimes=[' + [...selectedAnimes].join(',') + '] | activeChars=' + getActiveChars().length + '</div>';
-    });
-  });
 });
 
 // Quit functions for modes
