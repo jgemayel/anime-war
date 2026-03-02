@@ -406,6 +406,70 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
 @keyframes badgePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 .pull-dupe-info{font-family:'Chakra Petch',sans-serif;font-size:11px;color:#FF8C00;margin-top:8px}
 .pull-counter{font-family:'Chakra Petch',sans-serif;font-size:10px;color:#555;margin:12px 0 8px;letter-spacing:2px}
+
+/* ===== TEAM SYNERGY DISPLAY ===== */
+.synergy-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 15px 0;
+  justify-content: center;
+  min-height: 40px;
+}
+
+.synergy-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 2px solid #FFD700;
+  border-radius: 20px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+  animation: synergy-glow 2s ease-in-out infinite;
+}
+
+.synergy-badge.bonus-atk {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%);
+  border-color: #ff6b6b;
+}
+
+.synergy-badge.bonus-def {
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+  border-color: #4ecdc4;
+}
+
+.synergy-badge.bonus-spd {
+  background: linear-gradient(135deg, #f9ca24 0%, #f0932b 100%);
+  border-color: #f9ca24;
+}
+
+.syn-emoji {
+  font-size: 14px;
+}
+.syn-bonus {
+  font-size: 10px;
+  opacity: 0.85;
+  font-weight: 400;
+}
+
+.synergy-members {
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+@keyframes synergy-glow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(255, 215, 0, 1);
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1964,7 +2028,7 @@ function loadDraftTeamImages(){
 // PWA: Service Worker Registration
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js?v=11').then(r=>{
+    navigator.serviceWorker.register('sw.js?v=12').then(r=>{
       console.log('SW registered, scope:',r.scope);
       r.update();
     }).catch(e=>console.log('SW registration failed:',e));
@@ -2011,6 +2075,8 @@ window.addEventListener('appinstalled',()=>{
     <button class="diff-btn" data-diff="hard" onclick="setDifficulty('hard')">HARD<span class="diff-reward">+750</span></button>
   </div>
   <div class="team-count">SELECT YOUR TEAM: <span id="battleTeamCount">0/3</span></div>
+  <div id="activeSynergies" class="synergy-display"></div>
+
   <div id="battleTeamGrid"></div>
   <div class="bet-section">
     <div class="bet-label">WAGER</div>

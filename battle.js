@@ -46,6 +46,28 @@ const GACHA_PACKS = {
 };
 const DUPE_REFUND = {'S+':2500,'S':1500,'A':750,'B':400,'C':200};
 const PITY_THRESHOLD = 50;
+// ===== TEAM SYNERGY SYSTEM =====
+const TEAM_SYNERGIES = {
+  straw_hats: {name:'Straw Hat Pirates',emoji:'☠️',members:['op1','op2','op3','op4','op5','op6','op7','op8','op9','op10'],bonus:{atk:0.08,spd:0.05}},
+  yonko: {name:'Yonko',emoji:'👑',members:['op13','op14','op19','op20','op1'],bonus:{atk:0.15,def:0.1}},
+  worst_gen: {name:'Worst Generation',emoji:'🔥',members:['op1','op2','op11','op12','op58','op59','op60','op61','op62','op63','op64'],bonus:{spd:0.1,atk:0.05}},
+  whitebeard_pirates: {name:'Whitebeard Pirates',emoji:'⚓',members:['op21','op49','op50','op51','op23'],bonus:{def:0.12,atk:0.08}},
+  beast_pirates: {name:'Beast Pirates',emoji:'🦖',members:['op13','op25','op26','op77','op27','op28','op29','op30','op78'],bonus:{atk:0.1,def:0.1}},
+  warlords: {name:'Warlords',emoji:'⚔️',members:['op18','op43','op15','op16','op44','op45','op7','op46','op11'],bonus:{atk:0.08,def:0.08,spd:0.08}},
+  marines: {name:'Marines',emoji:'🎖️',members:['op22','op35','op36','op55','op56','op40','op34','op65','op66'],bonus:{def:0.1,atk:0.08}},
+  roger_crew: {name:'Roger Pirates',emoji:'🏴‍☠️',members:['op33','op37','op47','op20'],bonus:{atk:0.15,spd:0.1}},
+  scabbards: {name:'Nine Red Scabbards',emoji:'⚔️',members:['op79','op80','op81','op82','op83','op84','op85','op48'],bonus:{atk:0.08,def:0.08}},
+  team_7: {name:'Team 7',emoji:'🐸',members:['nr1','nr2','nr3','nr4'],bonus:{atk:0.1,def:0.05,spd:0.05}},
+  uchiha: {name:'Uchiha Clan',emoji:'👁️',members:['nr2','nr5','nr6','nr8','nr41','nr94','nr95','nr96'],bonus:{haki:0.15,spd:0.08}},
+  akatsuki: {name:'Akatsuki',emoji:'🌙',members:['nr9','nr5','nr24','nr22','nr23','nr25','nr26','nr27','nr8','nr21'],bonus:{atk:0.12,def:-0.05}},
+  hokage: {name:'Hokage',emoji:'🏮',members:['nr7','nr30','nr31','nr13','nr4','nr1','nr11'],bonus:{atk:0.1,def:0.1,spd:0.1}},
+  sannin: {name:'Legendary Sannin',emoji:'🥋',members:['nr10','nr11','nr12'],bonus:{def:0.12,healing:0.03}},
+  konoha_11: {name:'Konoha 11',emoji:'🍃',members:['nr1','nr2','nr3','nr18','nr19','nr20','nr36','nr39','nr40','nr15','nr35','nr82'],bonus:{def:0.08,spd:0.05}},
+  jinchuriki: {name:'Jinchuriki',emoji:'💔',members:['nr1','nr17','nr16','nr53','nr54','nr55','nr56','nr57','nr51'],bonus:{df:0.12,atk:0.08}},
+  otsutsuki: {name:'Otsutsuki',emoji:'✨',members:['nr33','nr45','nr47','nr6'],bonus:{atk:0.2,def:0.2,spd:0.2}},
+  taka: {name:'Taka',emoji:'🦅',members:['nr2','nr67','nr68','nr69'],bonus:{atk:0.1,spd:0.08}},
+};
+
 
 function loadGacha(){
   try{const s=localStorage.getItem(GACHA_KEY);if(s)return JSON.parse(s);}catch(e){}
@@ -315,9 +337,43 @@ function calcDamage(atk,def,move){
 // ---- BATTLE STATE ----
 let currentBattle=null;
 
+function detectSynergies(teamIds) {
+  const active = [];
+  for (const [key, synergy] of Object.entries(TEAM_SYNERGIES)) {
+    const memberCount = synergy.members.filter(m => teamIds.includes(m)).length;
+    if (memberCount >= 2) {
+      active.push({ key, ...synergy, memberCount });
+    }
+  }
+  return active;
+}
+
+function getSynergyBonuses(synergies) {
+  const merged = { atk: 1.0, def: 1.0, spd: 1.0, haki: 1.0, df: 1.0, healing: 0.0 };
+  for (const syn of synergies) {
+    if (syn.bonus.atk) merged.atk *= (1 + syn.bonus.atk);
+    if (syn.bonus.def) merged.def *= (1 + syn.bonus.def);
+    if (syn.bonus.spd) merged.spd *= (1 + syn.bonus.spd);
+    if (syn.bonus.haki) merged.haki *= (1 + syn.bonus.haki);
+    if (syn.bonus.df) merged.df *= (1 + syn.bonus.df);
+    if (syn.bonus.healing) merged.healing += syn.bonus.healing;
+  }
+  return merged;
+}
+
+
 class BattleChar{
-  constructor(ch){
-    Object.assign(this,ch);
+  constructor(ch, synergyBonuses) {
+    // Default synergy bonuses if not provided
+    synergyBonuses = synergyBonuses || { atk: 1.0, def: 1.0, spd: 1.0, haki: 1.0, df: 1.0, healing: 0.0 };
+        Object.assign(this,ch);
+    // Apply synergy bonuses to base stats BEFORE HP calculation
+    this.atk = Math.floor(this.atk * synergyBonuses.atk);
+    this.def = Math.floor(this.def * synergyBonuses.def);
+    this.spd = Math.floor(this.spd * synergyBonuses.spd);
+    if (synergyBonuses.haki > 1.0) this.haki = Math.floor((this.haki || 0) * synergyBonuses.haki);
+    if (synergyBonuses.df > 1.0) this.df = Math.floor((this.df || 0) * synergyBonuses.df);
+    this._synergyHealing = synergyBonuses.healing;
     this.maxHP=calcMaxHP(ch);
     this.hp=this.maxHP;
     this.moves=(BATTLE_MOVES[ch.id]||[
@@ -335,7 +391,12 @@ class BattleChar{
 
 class Battle{
   constructor(pTeam,eTeam,diff){
-    this.pTeam=pTeam.map(c=>new BattleChar(c));
+    // Detect synergies for player team
+    const pSynergies = detectSynergies(pTeam.map(c => c.id));
+    const pSynergyBonuses = getSynergyBonuses(pSynergies);
+    this.pSynergies = pSynergies;
+    this.pSynergyBonuses = pSynergyBonuses;
+    this.pTeam=pTeam.map(c=>new BattleChar(c, pSynergyBonuses));
     this.eTeam=eTeam.map(c=>new BattleChar(c));
     this.diff=diff;
     this.pIdx=0; this.eIdx=0;
@@ -369,6 +430,13 @@ class Battle{
 
     // Status ticks
     this.tickStatus(p); this.tickStatus(e);
+
+    // Sannin healing: 3% HP per turn if synergy active
+    if (this.pSynergies && this.pSynergies.some(s => s.key === 'sannin')) {
+      const healAmount = Math.floor(p.maxHP * 0.03);
+      p.hp = Math.min(p.maxHP, p.hp + healAmount);
+      if (healAmount > 0) this.addLog(`${p.name} recovered ${healAmount} HP from Sannin synergy!`);
+    }
 
     // Check fainting
     this.checkFaint();
@@ -562,6 +630,31 @@ function renderBattleSetup(){
     potentialEl.textContent = currentBet > 0
       ? `Win: +${baseReward} base + ${betWin} bet payout = ${baseReward+betWin} total`
       : `Win: +${baseReward} coins`;
+  }
+
+  // Show active synergies
+  const synergyEl = document.getElementById('activeSynergies');
+  if(synergyEl) {
+    if(selectedBattleTeam.length >= 2) {
+      const synergies = detectSynergies(selectedBattleTeam);
+      if(synergies.length > 0) {
+        synergyEl.innerHTML = synergies.map(s => {
+          const bonusParts = [];
+          if(s.bonus.atk) bonusParts.push(`+${Math.round(s.bonus.atk*100)}% ATK`);
+          if(s.bonus.def) bonusParts.push(`+${Math.round(s.bonus.def*100)}% DEF`);
+          if(s.bonus.spd) bonusParts.push(`+${Math.round(s.bonus.spd*100)}% SPD`);
+          if(s.bonus.haki) bonusParts.push(`+${Math.round(s.bonus.haki*100)}% HAKI`);
+          if(s.bonus.df) bonusParts.push(`+${Math.round(s.bonus.df*100)}% DF`);
+          if(s.bonus.healing) bonusParts.push(`+${Math.round(s.bonus.healing*100)}% heal/turn`);
+          return `<div class="synergy-badge"><span class="syn-emoji">${s.emoji}</span> <strong>${s.name}</strong> <span class="syn-bonus">${bonusParts.join(', ')}</span></div>`;
+        }).join('');
+        synergyEl.style.display = 'block';
+      } else {
+        synergyEl.style.display = 'none';
+      }
+    } else {
+      synergyEl.style.display = 'none';
+    }
   }
 }
 
