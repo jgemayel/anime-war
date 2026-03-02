@@ -477,7 +477,7 @@ function renderBattle(){
     ).join('')}</div>
     <div class="battle-bottom-btns">
       <button class="switch-btn" onclick="showSwitchMenu()">Switch</button>
-      <button class="forfeit-btn" onclick="forfeitBattle()">Run</button>
+      <button class="forfeit-btn" onclick="quitBattle()">Quit</button>
     </div>`;
   }else if(b.phase==='switching'){
     const alive=b.pTeam.filter((c,i)=>!c.fainted&&i!==b.pIdx);
@@ -495,8 +495,11 @@ function renderBattle(){
     const bet = b.bet || 0;
     const betMult = b.diff==='easy'?1.5:b.diff==='medium'?2:3;
     const betWin = b.phase==='won' ? Math.floor(bet * betMult) : 0;
-    if(b.phase==='won'){saveData.wins++;addCoins(reward+bonus+betWin);playSound('win');}
-    else{saveData.losses++;saveSave();}
+    if(!b._resultHandled) {
+      b._resultHandled = true;
+      if(b.phase==='won'){saveData.wins++;addCoins(reward+bonus+betWin);playSound('win');}
+      else{saveData.losses++;saveSave();}
+    }
 
     let rewardHTML = '';
     if(b.phase==='won') {
@@ -588,6 +591,11 @@ function doSwitch(idx){
 }
 
 function forfeitBattle(){
+  // Bet is already deducted at start, so just lose it
+  if(currentBattle && currentBattle.bet > 0) {
+    saveData.losses++;
+    saveSave();
+  }
   currentBattle=null;
   closeBattle();
 }
@@ -597,6 +605,9 @@ function closeBattle(){
   document.getElementById('battleSetup').style.display='none';
   document.getElementById('title-screen').style.display='flex';
   currentBattle=null;
+  currentBet=0;
+  // Update menu stats
+  if(typeof updateMenuStats === 'function') updateMenuStats();
 }
 
 // ---- COLLECTION UI ----
@@ -663,6 +674,7 @@ function tryUnlock(id){
 function closeCollection(){
   document.getElementById('collectionScreen').style.display='none';
   document.getElementById('title-screen').style.display='flex';
+  if(typeof updateMenuStats === 'function') updateMenuStats();
 }
 
 
