@@ -2072,6 +2072,13 @@ function getFilteredChars() {
   return ALL_CHARS;
 }
 
+// ===== GLOBAL ERROR HANDLER =====
+window.onerror = function(msg, url, line, col, err) {
+  const d = document.getElementById('_dbg');
+  if(d) d.innerHTML += '<div style="color:red">ERROR: ' + msg + ' (line ' + line + ')</div>';
+  console.error('GLOBAL ERROR:', msg, url, line, col, err);
+};
+
 document.addEventListener('DOMContentLoaded', function() {
   // Both animes selected by default
   selectedAnimes.add('onepiece');
@@ -2080,6 +2087,28 @@ document.addEventListener('DOMContentLoaded', function() {
   // Enable mode buttons
   document.querySelectorAll('#btn-start, #btn-draft').forEach(b => b.disabled = false);
   updateMenuStats();
+
+  // Debug panel
+  const dbg = document.createElement('div');
+  dbg.id = '_dbg';
+  dbg.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#000;color:#0f0;font:10px monospace;padding:4px 8px;z-index:99999;max-height:120px;overflow-y:auto;border-top:1px solid #333';
+  dbg.innerHTML = 'DEBUG: DOMContentLoaded OK | selectedAnimes=' + [...selectedAnimes].join(',') +
+    ' | ALL_CHARS=' + (typeof ALL_CHARS !== 'undefined' ? ALL_CHARS.length : 'UNDEF') +
+    ' | getActiveChars=' + (typeof getActiveChars === 'function' ? getActiveChars().length : 'UNDEF') +
+    ' | showBattleSetup=' + (typeof showBattleSetup === 'function' ? 'OK' : 'UNDEF') +
+    ' | startGame=' + (typeof startGame === 'function' ? 'OK' : 'UNDEF') +
+    ' | startDraft=' + (typeof startDraft === 'function' ? 'OK' : 'UNDEF') +
+    ' | BATTLE_MOVES=' + (typeof BATTLE_MOVES !== 'undefined' ? Object.keys(BATTLE_MOVES).length : 'UNDEF');
+  document.body.appendChild(dbg);
+
+  // Wrap mode button clicks with debug logging
+  document.querySelectorAll('.mode-card').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      const d = document.getElementById('_dbg');
+      const fn = this.getAttribute('onclick');
+      if(d) d.innerHTML += '<div>CLICK: ' + fn + ' | selectedAnimes=[' + [...selectedAnimes].join(',') + '] | activeChars=' + getActiveChars().length + '</div>';
+    });
+  });
 });
 
 // Quit functions for modes
