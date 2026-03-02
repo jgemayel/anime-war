@@ -398,6 +398,12 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
     </div>
   </div>
 
+  <div class="coin-display" onclick="claimFreeCoins()" style="margin-top:14px;cursor:pointer;z-index:2;text-align:center">
+    <div style="font-family:'Chakra Petch',sans-serif;font-size:10px;color:#666;letter-spacing:2px">YOUR COINS</div>
+    <div id="menuCoinCount" style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#FFD700;letter-spacing:1px">0</div>
+    <div id="claimHint" style="font-family:'Chakra Petch',sans-serif;font-size:8px;color:#4CAF50;letter-spacing:1px;opacity:0.7">TAP TO CLAIM FREE COINS</div>
+  </div>
+
   <div class="bottom-links">
     <button class="btn-ghost" onclick="showCollection()" style="color:#4CAF50;border-color:#4CAF5044">📦 COLLECTION (<span id="menuUnlockCount">20</span>/202)</button>
     <button class="btn-ghost" onclick="openRoster()">📋 VIEW ALL FIGHTERS</button>
@@ -2072,7 +2078,27 @@ function updateMenuStats() {
   try {
     const el = document.getElementById('menuUnlockCount');
     if(el && typeof saveData !== 'undefined') el.textContent = saveData.unlocked.length;
+    const coinEl = document.getElementById('menuCoinCount');
+    if(coinEl && typeof saveData !== 'undefined') coinEl.textContent = saveData.coins.toLocaleString();
   } catch(e) {}
+}
+
+function claimFreeCoins() {
+  if(typeof saveData === 'undefined') return;
+  const amount = 5000;
+  saveData.coins += amount;
+  saveSave();
+  updateMenuStats();
+  // Quick flash animation
+  const el = document.getElementById('menuCoinCount');
+  if(el) {
+    el.style.transform = 'scale(1.3)';
+    el.style.transition = 'transform 0.2s';
+    setTimeout(() => { el.style.transform = 'scale(1)'; }, 200);
+  }
+  const hint = document.getElementById('claimHint');
+  if(hint) hint.textContent = '+' + amount.toLocaleString() + ' COINS!';
+  setTimeout(() => { if(hint) hint.textContent = 'TAP TO CLAIM FREE COINS'; }, 1500);
 }
 
 function getFilteredChars() {
