@@ -332,6 +332,197 @@ function buyItemUI(itemId){
   }
 }
 
+// ---- STORY MODE ----
+const STORY_KEY='animewar_story';
+const STORY_ARCS=[
+  // ONE PIECE
+  {id:'op_east_blue',name:'East Blue Saga',anime:'onepiece',difficulty:'easy',emoji:'⛵',
+    chapters:[
+      {name:'Romance Dawn',enemies:['op92','op102','op31'],reward:200},
+      {name:'Baratie Showdown',enemies:['op91','op90','op17'],reward:250},
+      {name:'Arlong Park',enemies:['op92','op66','op38'],reward:300}
+    ],
+    boss:{name:'Arlong - Tyrant of the East',bossId:'op92',allies:['op31','op102'],reward:500,bossHpMult:3,bossStatMult:1.3},
+    arcReward:1500
+  },
+  {id:'op_baroque',name:'Baroque Works',anime:'onepiece',difficulty:'medium',emoji:'🏜️',
+    chapters:[
+      {name:'Whiskey Peak',enemies:['op93','op95','op96'],reward:300},
+      {name:'Rain Dinners',enemies:['op94','op95','op32'],reward:350},
+      {name:'Alabasta Rebellion',enemies:['op15','op94','op96'],reward:400},
+      {name:'Royal Tomb',enemies:['op16','op15','op32'],reward:450}
+    ],
+    boss:{name:'Crocodile - Desert King',bossId:'op16',allies:['op15','op32'],reward:700,bossHpMult:3,bossStatMult:1.4},
+    arcReward:2000
+  },
+  {id:'op_marineford',name:'Marineford War',anime:'onepiece',difficulty:'hard',emoji:'⚓',
+    chapters:[
+      {name:'Gates of Justice',enemies:['op68','op67','op65'],reward:400},
+      {name:'Admiral Assault',enemies:['op36','op35','op55'],reward:500},
+      {name:'Whitebeard\'s Stand',enemies:['op22','op40','op56'],reward:500},
+      {name:'Ace\'s Execution',enemies:['op22','op36','op35'],reward:600}
+    ],
+    boss:{name:'Akainu - Absolute Justice',bossId:'op22',allies:['op40','op36'],reward:1000,bossHpMult:3.5,bossStatMult:1.5},
+    arcReward:3000
+  },
+  // NARUTO
+  {id:'nr_chunin',name:'Chunin Exams',anime:'naruto',difficulty:'easy',emoji:'📜',
+    chapters:[
+      {name:'Forest of Death',enemies:['nr44','nr61','nr62'],reward:200},
+      {name:'Preliminary Rounds',enemies:['nr65','nr34','nr82'],reward:250},
+      {name:'Finals Arena',enemies:['nr16','nr18','nr15'],reward:300}
+    ],
+    boss:{name:'Orochimaru - The Serpent',bossId:'nr12',allies:['nr44','nr21'],reward:500,bossHpMult:3,bossStatMult:1.3},
+    arcReward:1500
+  },
+  {id:'nr_akatsuki',name:'Akatsuki Hunt',anime:'naruto',difficulty:'medium',emoji:'☁️',
+    chapters:[
+      {name:'Kazekage Rescue',enemies:['nr22','nr23','nr58'],reward:300},
+      {name:'Immortal Duo',enemies:['nr25','nr26','nr59'],reward:350},
+      {name:'Itachi Pursuit',enemies:['nr5','nr24','nr21'],reward:400},
+      {name:'Path of Pain',enemies:['nr9','nr27','nr100'],reward:450}
+    ],
+    boss:{name:'Pain - God of the New World',bossId:'nr9',allies:['nr27','nr100'],reward:700,bossHpMult:3,bossStatMult:1.4},
+    arcReward:2000
+  },
+  {id:'nr_war',name:'Fourth Great Ninja War',anime:'naruto',difficulty:'hard',emoji:'🌀',
+    chapters:[
+      {name:'Edo Tensei Army',enemies:['nr60','nr48','nr49'],reward:400},
+      {name:'Jinchuriki Unleashed',enemies:['nr53','nr55','nr51'],reward:500},
+      {name:'Uchiha Legacy',enemies:['nr8','nr5','nr41'],reward:500},
+      {name:'Ten-Tails Assault',enemies:['nr6','nr8','nr33'],reward:600}
+    ],
+    boss:{name:'Madara Uchiha - Infinite Tsukuyomi',bossId:'nr6',allies:['nr8','nr33'],reward:1000,bossHpMult:3.5,bossStatMult:1.5},
+    arcReward:3000
+  }
+];
+
+function loadStory(){try{const s=localStorage.getItem(STORY_KEY);if(s)return JSON.parse(s);}catch(e){}return {completed:{},bossCleared:{}};}
+function saveStory(st){localStorage.setItem(STORY_KEY,JSON.stringify(st));}
+
+function showStoryMode(){
+  const modal=document.getElementById('gachaModal');
+  if(!modal) return;
+  const story=loadStory();
+  let html=`<div class="gacha-header">
+    <div class="gacha-title">📖 STORY MODE</div>
+    <div class="gacha-coins">💰 ${saveData.coins.toLocaleString()}</div>
+  </div>`;
+
+  // Group by anime
+  const opArcs=STORY_ARCS.filter(a=>a.anime==='onepiece');
+  const nrArcs=STORY_ARCS.filter(a=>a.anime==='naruto');
+
+  html+=`<div class="story-section-title">☠️ ONE PIECE</div>`;
+  html+=renderStoryArcs(opArcs,story);
+  html+=`<div class="story-section-title">🍥 NARUTO</div>`;
+  html+=renderStoryArcs(nrArcs,story);
+  html+=`<button class="gacha-close" onclick="closeGachaShop()">BACK</button>`;
+
+  modal.querySelector('.gacha-content').innerHTML=html;
+  modal.style.display='flex';
+}
+
+function renderStoryArcs(arcs,story){
+  let html='';
+  for(const arc of arcs){
+    const totalChapters=arc.chapters.length;
+    const completedCount=arc.chapters.filter((_,i)=>(story.completed[arc.id]||[]).includes(i)).length;
+    const bossCleared=story.bossCleared[arc.id]||false;
+    const allChaptersDone=completedCount===totalChapters;
+    const diffColor=arc.difficulty==='easy'?'#4CAF50':arc.difficulty==='medium'?'#FFD700':'#ff4444';
+    html+=`<div class="story-arc" style="--arc-color:${diffColor}">
+      <div class="arc-header">
+        <span class="arc-emoji">${arc.emoji}</span>
+        <span class="arc-name">${arc.name}</span>
+        <span class="arc-diff" style="color:${diffColor}">${arc.difficulty.toUpperCase()}</span>
+      </div>
+      <div class="arc-progress">${completedCount}/${totalChapters} chapters ${bossCleared?'· 👑 Boss Cleared':''}</div>
+      <div class="arc-chapters">`;
+    arc.chapters.forEach((ch,i)=>{
+      const done=(story.completed[arc.id]||[]).includes(i);
+      const prevDone=i===0||((story.completed[arc.id]||[]).includes(i-1));
+      const locked=!prevDone;
+      html+=`<button class="story-ch-btn ${done?'ch-done':''} ${locked?'ch-locked':''}"
+        onclick="${locked?'':`startStoryChapter('${arc.id}',${i})`}" ${locked?'disabled':''}>
+        ${done?'✅':'🔒'} ${ch.name} <span class="ch-reward">+${ch.reward}</span>
+      </button>`;
+    });
+    // Boss button
+    const bossLocked=!allChaptersDone;
+    html+=`<button class="story-ch-btn story-boss-btn ${bossCleared?'ch-done':''} ${bossLocked?'ch-locked':''}"
+      onclick="${bossLocked?'':`startStoryBoss('${arc.id}')`}" ${bossLocked?'disabled':''}>
+      ${bossCleared?'👑':'⚠️'} BOSS: ${arc.boss.name} <span class="ch-reward">+${arc.boss.reward}</span>
+    </button>`;
+    if(allChaptersDone&&bossCleared){
+      html+=`<div class="arc-complete">🏆 Arc Complete! +${arc.arcReward} coins earned</div>`;
+    }
+    html+=`</div></div>`;
+  }
+  return html;
+}
+
+let storyContext=null;
+function startStoryChapter(arcId,chIdx){
+  const arc=STORY_ARCS.find(a=>a.id===arcId);
+  if(!arc) return;
+  const ch=arc.chapters[chIdx];
+  const eTeam=ch.enemies.map(id=>ALL_CHARS.find(c=>c.id===id)).filter(Boolean);
+  if(eTeam.length===0) return;
+
+  storyContext={arcId,chIdx,type:'chapter',reward:ch.reward};
+  closeGachaShop();
+  // Show team selection for story
+  document.getElementById('title-screen').style.display='none';
+  document.getElementById('battleSetup').style.display='block';
+  selectedBattleTeam=[];
+  selectedDifficulty=arc.difficulty;
+  currentBet=0;
+  equippedItems=[];
+  renderBattleSetup();
+  // Override the fight button text
+  const btn=document.getElementById('btnBattleStart');
+  if(btn) btn.textContent='START CHAPTER: '+ch.name;
+}
+
+function startStoryBoss(arcId){
+  const arc=STORY_ARCS.find(a=>a.id===arcId);
+  if(!arc) return;
+  const boss=arc.boss;
+  storyContext={arcId,type:'boss',reward:boss.reward,arcReward:arc.arcReward,bossId:boss.bossId,allies:boss.allies,bossHpMult:boss.bossHpMult,bossStatMult:boss.bossStatMult};
+  closeGachaShop();
+  document.getElementById('title-screen').style.display='none';
+  document.getElementById('battleSetup').style.display='block';
+  selectedBattleTeam=[];
+  selectedDifficulty=arc.difficulty;
+  currentBet=0;
+  equippedItems=[];
+  renderBattleSetup();
+  const btn=document.getElementById('btnBattleStart');
+  if(btn) btn.textContent='FIGHT BOSS: '+boss.name;
+}
+
+function completeStoryChapter(arcId,chIdx,reward){
+  const story=loadStory();
+  if(!story.completed[arcId]) story.completed[arcId]=[];
+  if(!story.completed[arcId].includes(chIdx)){
+    story.completed[arcId].push(chIdx);
+    addCoins(reward);
+  }
+  saveStory(story);
+}
+
+function completeStoryBoss(arcId,reward,arcReward){
+  const story=loadStory();
+  const alreadyCleared=story.bossCleared[arcId];
+  story.bossCleared[arcId]=true;
+  if(!alreadyCleared){
+    addCoins(reward+arcReward);
+  }
+  saveStory(story);
+  return !alreadyCleared;
+}
+
 // ---- TYPE EFFECTIVENESS ----
 // physical/taijutsu beats: sword/kenjutsu (brute force overwhelms)
 // sword/kenjutsu beats: special/df/ninjutsu (precise cuts)
@@ -498,6 +689,7 @@ class BattleChar{
     if (synergyBonuses.df > 1.0) this.df = Math.floor((this.df || 0) * synergyBonuses.df);
     this._synergyHealing = synergyBonuses.healing;
     this.maxHP=calcMaxHP(ch);
+    if(ch._bossHpMult) this.maxHP=Math.floor(this.maxHP*ch._bossHpMult);
     this.hp=this.maxHP;
     this.moves=(BATTLE_MOVES[ch.id]||[
       {name:'Strike',type:'physical',power:50,acc:100,pp:30,effect:null},
@@ -853,11 +1045,34 @@ function startBattleFight(){
   if(selectedBattleTeam.length!==3) return;
   if(currentBet > saveData.coins) { currentBet = 0; }
   const pTeam=selectedBattleTeam.map(id=>ALL_CHARS.find(c=>c.id===id));
-  const eTeam=aiSelectTeam(selectedDifficulty);
+  let eTeam;
+
+  if(storyContext){
+    if(storyContext.type==='boss'){
+      // Boss fight: boss has boosted stats
+      const bossChar={...ALL_CHARS.find(c=>c.id===storyContext.bossId)};
+      bossChar.atk=Math.floor(bossChar.atk*storyContext.bossStatMult);
+      bossChar.def=Math.floor(bossChar.def*storyContext.bossStatMult);
+      bossChar.spd=Math.floor(bossChar.spd*storyContext.bossStatMult);
+      if(bossChar.haki) bossChar.haki=Math.floor(bossChar.haki*storyContext.bossStatMult);
+      if(bossChar.df) bossChar.df=Math.floor(bossChar.df*storyContext.bossStatMult);
+      bossChar._bossHpMult=storyContext.bossHpMult;
+      const allies=storyContext.allies.map(id=>ALL_CHARS.find(c=>c.id===id)).filter(Boolean);
+      eTeam=[bossChar,...allies];
+    }else{
+      const arc=STORY_ARCS.find(a=>a.id===storyContext.arcId);
+      const ch=arc.chapters[storyContext.chIdx];
+      eTeam=ch.enemies.map(id=>ALL_CHARS.find(c=>c.id===id)).filter(Boolean);
+    }
+  }else{
+    eTeam=aiSelectTeam(selectedDifficulty);
+  }
+
   currentBattle=new Battle(pTeam,eTeam,selectedDifficulty);
   currentBattle.bet = currentBet;
-  // Deduct bet upfront
-  if(currentBet > 0) { saveData.coins -= currentBet; saveSave(); }
+  currentBattle.storyContext = storyContext;
+  // Deduct bet upfront (no betting in story mode)
+  if(!storyContext && currentBet > 0) { saveData.coins -= currentBet; saveSave(); }
   document.getElementById('battleSetup').style.display='none';
   document.getElementById('battleArena').style.display='block';
   renderBattle();
@@ -938,12 +1153,39 @@ function renderBattle(){
     const betWin = b.phase==='won' ? Math.floor(bet * betMult) : 0;
     if(!b._resultHandled) {
       b._resultHandled = true;
-      if(b.phase==='won'){saveData.wins++;addCoins(reward+bonus+betWin);playSound('win');}
-      else{saveData.losses++;saveSave();}
+      const sc=b.storyContext;
+      if(sc && b.phase==='won'){
+        // Story mode rewards
+        if(sc.type==='chapter'){
+          completeStoryChapter(sc.arcId,sc.chIdx,sc.reward);
+        }else if(sc.type==='boss'){
+          b._bossFirstClear=completeStoryBoss(sc.arcId,sc.reward,sc.arcReward);
+        }
+        saveData.wins++;saveSave();playSound('win');
+      }else if(b.phase==='won'){
+        saveData.wins++;addCoins(reward+bonus+betWin);playSound('win');
+      }else{
+        saveData.losses++;saveSave();
+      }
     }
 
     let rewardHTML = '';
-    if(b.phase==='won') {
+    const sc=b.storyContext;
+    if(sc && b.phase==='won'){
+      if(sc.type==='chapter'){
+        rewardHTML=`<div class="reward-breakdown">
+          <div class="reward-line">📖 Chapter Complete!</div>
+          <div class="reward-total">+${sc.reward} coins</div>
+        </div>`;
+      }else if(sc.type==='boss'){
+        const arcR=b._bossFirstClear?sc.arcReward:0;
+        rewardHTML=`<div class="reward-breakdown">
+          <div class="reward-line">👑 Boss Defeated!</div>
+          <div class="reward-total">+${sc.reward} coins</div>
+          ${arcR>0?`<div class="reward-line reward-bet">🏆 Arc Complete Bonus: +${arcR}</div>`:''}
+        </div>`;
+      }
+    }else if(b.phase==='won') {
       rewardHTML = `<div class="reward-breakdown">
         <div class="reward-line">Base reward: +${reward+bonus}</div>
         ${betWin > 0 ? `<div class="reward-line reward-bet">Bet payout (${betMult}x): +${betWin}</div>` : ''}
@@ -953,12 +1195,14 @@ function renderBattle(){
       rewardHTML = `<div class="reward-breakdown loss"><div class="reward-line">Bet lost: -${bet} coins</div></div>`;
     }
 
+    const backBtnLabel=sc?'Back to Story':'Play Again';
+    const backBtnAction=sc?`storyContext=null;showStoryMode()`:'showBattleSetup()';
     actDiv.innerHTML=`<div class="battle-result ${b.phase}">
       <h2>${b.phase==='won'?'VICTORY!':'DEFEAT'}</h2>
       ${rewardHTML}
       <div class="result-btns">
-        <button onclick="showBattleSetup()">Play Again</button>
-        <button onclick="closeBattle()">Main Menu</button>
+        <button onclick="${backBtnAction}">${backBtnLabel}</button>
+        <button onclick="storyContext=null;closeBattle()">Main Menu</button>
       </div>
     </div>`;
   }

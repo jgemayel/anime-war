@@ -222,8 +222,8 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
 
 /* ===== REDESIGNED MENU ===== */
 .mode-section{margin-top:18px;z-index:2;width:100%;max-width:400px}
-.mode-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 10px}
-@media(max-width:500px){.mode-grid{grid-template-columns:1fr 1fr}.mode-grid .mode-card:first-child{grid-column:1/-1}}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 10px}
+@media(min-width:600px){.mode-grid{grid-template-columns:1fr 1fr 1fr 1fr}}
 .mode-card{display:flex;flex-direction:column;align-items:center;padding:14px 8px;border:2px solid #222;background:#0d0d14;border-radius:12px;cursor:pointer;transition:all .3s;text-align:center}
 .mode-card:hover{transform:translateY(-2px);box-shadow:0 4px 15px #0005}
 .mode-icon{font-size:28px;margin-bottom:6px}
@@ -472,6 +472,24 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
 .item-eq-btn:hover{border-color:#FFD700}
 .item-equipped{border-color:#4CAF50;background:#1a2e1a;box-shadow:0 0 8px #4CAF5055}
 .item-clear{border-color:#ff4444;color:#ff4444;font-size:10px}
+.mode-story{background:linear-gradient(135deg,#2d1b69,#1a0a3e);border-color:#9b59b644}
+.story-section-title{font-family:'Bebas Neue',sans-serif;font-size:20px;color:#FFD700;letter-spacing:3px;margin:14px 0 6px;text-align:center}
+.story-arc{background:#1a1a2e;border:1px solid var(--arc-color,#444);border-radius:12px;padding:12px;margin-bottom:10px}
+.arc-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.arc-emoji{font-size:22px}
+.arc-name{font-family:'Bebas Neue',sans-serif;font-size:18px;color:#fff;letter-spacing:1px;flex:1}
+.arc-diff{font-family:'Chakra Petch',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px}
+.arc-progress{font-size:11px;color:#aaa;margin-bottom:8px}
+.arc-chapters{display:flex;flex-direction:column;gap:4px}
+.story-ch-btn{background:#111;border:1px solid #333;color:#ccc;border-radius:6px;padding:8px 12px;font-size:12px;font-family:'Chakra Petch',sans-serif;cursor:pointer;text-align:left;display:flex;align-items:center;gap:6px;transition:all .2s}
+.story-ch-btn:hover:not(:disabled){border-color:#FFD700;color:#fff}
+.ch-done{border-color:#4CAF50;color:#4CAF50}
+.ch-locked{opacity:0.4;cursor:not-allowed}
+.ch-reward{margin-left:auto;color:#FFD700;font-size:10px}
+.story-boss-btn{border-color:#ff4444;background:#1a0a0a;color:#ff6666;font-weight:700}
+.story-boss-btn.ch-done{border-color:#FFD700;color:#FFD700}
+.arc-complete{text-align:center;color:#FFD700;font-size:12px;margin-top:6px;font-weight:700}
+
 .item-btn{background:linear-gradient(135deg,#4CAF50,#2E7D32);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;cursor:pointer}
 
 @keyframes synergy-glow {
@@ -511,6 +529,11 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
         <div class="mode-icon">👥</div>
         <div class="mode-title">TEAM DRAFT</div>
         <div class="mode-desc">Draft a 5-man squad with roles and synergy bonuses</div>
+      </button>
+      <button class="mode-card mode-story" onclick="showStoryMode()">
+        <div class="mode-icon">📖</div>
+        <div class="mode-title">STORY MODE</div>
+        <div class="mode-desc">Battle through 6 arcs with boss fights and big rewards</div>
       </button>
 
     </div>
@@ -2042,7 +2065,7 @@ function loadDraftTeamImages(){
 // PWA: Service Worker Registration
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js?v=13').then(r=>{
+    navigator.serviceWorker.register('sw.js?v=14').then(r=>{
       console.log('SW registered, scope:',r.scope);
       r.update();
     }).catch(e=>console.log('SW registration failed:',e));
