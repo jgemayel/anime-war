@@ -246,11 +246,11 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
 @keyframes typeFlash{0%{filter:brightness(1)}50%{filter:brightness(2)}100%{filter:brightness(1)}}
 
 /* ===== CHARACTER DETAIL MODAL ===== */
-#charDetailModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000c;z-index:10001;justify-content:center;align-items:center;padding:10px;overflow-y:auto;cursor:pointer}
+#charDetailModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000c;z-index:10001;justify-content:center;align-items:flex-start;padding:20px 10px;overflow-y:auto;cursor:pointer;-webkit-overflow-scrolling:touch}
 .detail-card{background:#111;border:2px solid #222;border-radius:14px;max-width:340px;width:100%;padding:14px;position:relative;cursor:default;max-height:90vh;overflow-y:auto}
 .detail-close{position:absolute;top:8px;right:10px;background:#000a;border:1px solid #333;color:#aaa;font-size:16px;cursor:pointer;z-index:10;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s}
 .detail-close:hover{background:#f44;color:#fff;border-color:#f44}
-.detail-card{position:relative;overflow:hidden}
+.detail-card{position:relative}
 .detail-tier{position:absolute;top:4px;right:4px;font-size:11px;padding:2px 6px;border-radius:4px;font-weight:bold;z-index:5}
 .detail-name{font-family:'Bebas Neue',sans-serif;font-size:18px;color:#fff;letter-spacing:1px}
 .detail-title{font-size:10px;color:#666;font-family:'Chakra Petch',sans-serif;margin-top:2px}
