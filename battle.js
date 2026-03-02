@@ -729,13 +729,14 @@ function showCharDetail(id) {
         <div class="dqs"><span class="dqs-val">${ch.atk}${boosts.atk?`<small>+${boosts.atk}</small>`:''}</span><span class="dqs-lbl">ATK</span></div>
         <div class="dqs"><span class="dqs-val">${ch.def}${boosts.def?`<small>+${boosts.def}</small>`:''}</span><span class="dqs-lbl">DEF</span></div>
         <div class="dqs"><span class="dqs-val">${ch.spd}${boosts.spd?`<small>+${boosts.spd}</small>`:''}</span><span class="dqs-lbl">SPD</span></div>
+        <div class="dqs"><span class="dqs-val">${(ch.haki||0)}${boosts.haki?`<small>+${boosts.haki}</small>`:''}</span><span class="dqs-lbl">HAKI</span></div>
       </div>
       <div class="detail-stats">
-        <div class="stat-row"><span class="stat-label">ATK</span><span class="stat-val">${ch.atk}${boosts.atk?`<span class="stat-boost">+${boosts.atk}</span>`:''}</span>${statBar(ch.atk,boosts.atk,100,'#f44336')}</div>
-        <div class="stat-row"><span class="stat-label">DEF</span><span class="stat-val">${ch.def}${boosts.def?`<span class="stat-boost">+${boosts.def}</span>`:''}</span>${statBar(ch.def,boosts.def,100,'#2196F3')}</div>
-        <div class="stat-row"><span class="stat-label">SPD</span><span class="stat-val">${ch.spd}${boosts.spd?`<span class="stat-boost">+${boosts.spd}</span>`:''}</span>${statBar(ch.spd,boosts.spd,100,'#4CAF50')}</div>
-        <div class="stat-row"><span class="stat-label">HAKI</span><span class="stat-val">${ch.haki||0}</span>${statBar(ch.haki||0,0,100,'#9C27B0')}</div>
-        <div class="stat-row"><span class="stat-label">${ch.anime==='onepiece'?'DF':'JUTSU'}</span><span class="stat-val">${ch.df||0}</span>${statBar(ch.df||0,0,100,'#FF9800')}</div>
+        <div class="stat-row"><span class="stat-label">ATK</span><span class="stat-val">${ch.atk}${boosts.atk?`<span class="stat-boost">+${boosts.atk}</span>`:''}</span>${statBar(ch.atk,boosts.atk,120,'#f44336')}</div>
+        <div class="stat-row"><span class="stat-label">DEF</span><span class="stat-val">${ch.def}${boosts.def?`<span class="stat-boost">+${boosts.def}</span>`:''}</span>${statBar(ch.def,boosts.def,120,'#2196F3')}</div>
+        <div class="stat-row"><span class="stat-label">SPD</span><span class="stat-val">${ch.spd}${boosts.spd?`<span class="stat-boost">+${boosts.spd}</span>`:''}</span>${statBar(ch.spd,boosts.spd,120,'#4CAF50')}</div>
+        <div class="stat-row"><span class="stat-label">HAKI</span><span class="stat-val">${ch.haki||0}${boosts.haki?`<span class="stat-boost">+${boosts.haki}</span>`:''}</span>${statBar(ch.haki||0,boosts.haki,120,'#9C27B0')}</div>
+        <div class="stat-row"><span class="stat-label">${ch.anime==='onepiece'?'DF':'JUTSU'}</span><span class="stat-val">${ch.df||0}${boosts.df?`<span class="stat-boost">+${boosts.df}</span>`:''}</span>${statBar(ch.df||0,boosts.df,120,'#FF9800')}</div>
       </div>
       <div class="detail-section-title">MOVES</div>
       <div class="detail-moves">${moves.map(m => `
@@ -785,33 +786,217 @@ function loadUpgrades(){
 function saveUpgrades(){localStorage.setItem(UPGRADE_KEY,JSON.stringify(upgradeData));}
 function getUpgradeLevel(id){return upgradeData[id]||0;}
 
-// Generic upgrade tiers per tier rank
-const UPGRADE_TEMPLATES = {
-  'S+': [
-    {cost:2000,atkBoost:5,defBoost:5,spdBoost:5,label:'Awakened'},
-    {cost:4000,atkBoost:10,defBoost:8,spdBoost:8,label:'Transcended'},
-    {cost:8000,atkBoost:15,defBoost:12,spdBoost:12,label:'Ultimate Form'}
-  ],
-  'S': [
-    {cost:1500,atkBoost:5,defBoost:4,spdBoost:4,label:'Awakened'},
-    {cost:3000,atkBoost:10,defBoost:8,spdBoost:7,label:'Ascended'},
-    {cost:6000,atkBoost:14,defBoost:11,spdBoost:10,label:'Final Form'}
-  ],
-  'A': [
-    {cost:1000,atkBoost:5,defBoost:4,spdBoost:4,label:'Enhanced'},
-    {cost:2000,atkBoost:9,defBoost:7,spdBoost:6,label:'Awakened'},
-    {cost:4000,atkBoost:13,defBoost:10,spdBoost:9,label:'Peak Form'}
-  ],
-  'B': [
-    {cost:600,atkBoost:4,defBoost:3,spdBoost:3,label:'Trained'},
-    {cost:1200,atkBoost:8,defBoost:6,spdBoost:5,label:'Enhanced'},
-    {cost:2500,atkBoost:12,defBoost:9,spdBoost:8,label:'Awakened'}
-  ],
-  'C': [
-    {cost:300,atkBoost:3,defBoost:2,spdBoost:2,label:'Trained'},
-    {cost:700,atkBoost:6,defBoost:5,spdBoost:4,label:'Enhanced'},
-    {cost:1500,atkBoost:10,defBoost:8,spdBoost:7,label:'Peak Form'}
-  ]
+const PER_CHAR_BOOSTS = {
+  'nr1':[{c:2500,atk:4,def:1,spd:1,haki:1,df:5},{c:5000,atk:9,def:1,spd:1,haki:3,df:12},{c:10000,atk:14,def:1,spd:3,haki:5,df:19}],
+  'nr10':[{c:1200,atk:4,def:1,spd:1,haki:2,df:1},{c:2500,atk:10,def:1,spd:1,haki:5,df:2},{c:5000,atk:15,def:2,spd:1,haki:8,df:4}],
+  'nr100':[{c:2000,atk:3,def:1,spd:1,haki:1,df:4},{c:4000,atk:6,def:3,spd:1,haki:4,df:8},{c:8000,atk:10,def:4,spd:2,haki:7,df:13}],
+  'nr11':[{c:1200,atk:2,def:4,spd:1,haki:1,df:1},{c:2500,atk:6,def:9,spd:1,haki:1,df:2},{c:5000,atk:10,def:13,spd:1,haki:2,df:4}],
+  'nr12':[{c:1200,atk:3,def:1,spd:1,haki:1,df:3},{c:2500,atk:5,def:2,spd:1,haki:4,df:7},{c:5000,atk:8,def:4,spd:2,haki:6,df:10}],
+  'nr13':[{c:2000,atk:3,def:1,spd:4,haki:1,df:1},{c:4000,atk:7,def:1,spd:10,haki:3,df:1},{c:8000,atk:12,def:1,spd:16,haki:4,df:3}],
+  'nr14':[{c:2000,atk:5,def:1,spd:3,haki:1},{c:4000,atk:10,def:2,spd:7,haki:3},{c:8000,atk:17,def:3,spd:12,haki:4}],
+  'nr15':[{c:700,atk:2,def:1,spd:4,haki:1},{c:1500,atk:5,def:2,spd:7,haki:2},{c:3000,atk:9,def:3,spd:12,haki:1}],
+  'nr16':[{c:1200,atk:1,def:4,spd:1,haki:1,df:2},{c:2500,atk:2,def:10,spd:1,haki:1,df:5},{c:5000,atk:4,def:15,spd:1,haki:2,df:8}],
+  'nr17':[{c:1200,atk:2,def:1,spd:1,haki:1,df:4},{c:2500,atk:6,def:2,spd:1,haki:1,df:9},{c:5000,atk:10,def:4,spd:2,haki:1,df:13}],
+  'nr18':[{c:700,atk:1,def:1,spd:4,haki:2},{c:1500,atk:2,def:2,spd:8,haki:4},{c:3000,atk:1,def:4,spd:13,haki:7}],
+  'nr19':[{c:400,atk:1,def:1,spd:1,haki:4},{c:800,atk:1,def:2,spd:4,haki:7},{c:1800,atk:2,def:3,spd:6,haki:11}],
+  'nr2':[{c:2500,atk:3,def:1,spd:1,haki:6,df:1},{c:5000,atk:7,def:1,spd:1,haki:13,df:4},{c:10000,atk:11,def:1,spd:3,haki:21,df:6}],
+  'nr20':[{c:700,atk:1,def:1,spd:1,haki:4,df:1},{c:1500,atk:1,def:1,spd:2,haki:7,df:5},{c:3000,atk:1,def:2,spd:3,haki:11,df:8}],
+  'nr21':[{c:1200,atk:3,def:1,spd:1,haki:1,df:3},{c:2500,atk:5,def:1,spd:2,haki:4,df:7},{c:5000,atk:8,def:2,spd:4,haki:6,df:10}],
+  'nr22':[{c:700,atk:1,def:1,spd:1,haki:1,df:4},{c:1500,atk:5,def:1,spd:2,haki:1,df:7},{c:3000,atk:8,def:1,spd:3,haki:2,df:11}],
+  'nr23':[{c:700,atk:2,def:1,spd:1,haki:1,df:3},{c:1500,atk:4,def:2,spd:1,haki:3,df:6},{c:3000,atk:7,def:3,spd:1,haki:5,df:9}],
+  'nr24':[{c:1200,atk:3,def:1,spd:1,haki:1,df:3},{c:2500,atk:7,def:4,spd:2,haki:1,df:5},{c:5000,atk:10,def:6,spd:4,haki:2,df:8}],
+  'nr25':[{c:700,atk:1,def:1,spd:1,haki:1,df:4},{c:1500,atk:5,def:1,spd:2,haki:1,df:7},{c:3000,atk:8,def:2,spd:3,haki:1,df:11}],
+  'nr26':[{c:700,atk:1,def:4,spd:1,haki:1,df:1},{c:1500,atk:5,def:7,spd:1,haki:1,df:2},{c:3000,atk:8,def:11,spd:1,haki:2,df:3}],
+  'nr27':[{c:700,atk:1,def:1,spd:1,haki:2,df:3},{c:1500,atk:3,def:1,spd:2,haki:4,df:6},{c:3000,atk:5,def:1,spd:3,haki:7,df:9}],
+  'nr28':[{c:700,atk:4,def:1,spd:1,haki:1,df:1},{c:1500,atk:8,def:2,spd:4,haki:1,df:1},{c:3000,atk:12,def:4,spd:6,haki:2,df:1}],
+  'nr29':[{c:400,atk:1,def:1,spd:3,haki:1,df:1},{c:800,atk:1,def:1,spd:6,haki:1,df:5},{c:1800,atk:3,def:1,spd:10,haki:1,df:7}],
+  'nr3':[{c:700,atk:3,def:2,spd:1,haki:1,df:1},{c:1500,atk:6,def:4,spd:2,haki:1,df:3},{c:3000,atk:9,def:7,spd:3,haki:1,df:5}],
+  'nr30':[{c:2000,atk:3,def:1,spd:1,haki:4,df:1},{c:4000,atk:7,def:1,spd:1,haki:10,df:3},{c:8000,atk:12,def:1,spd:3,haki:16,df:4}],
+  'nr31':[{c:1200,atk:3,def:1,spd:1,haki:3,df:1},{c:2500,atk:5,def:2,spd:1,haki:7,df:4},{c:5000,atk:8,def:4,spd:2,haki:10,df:6}],
+  'nr32':[{c:700,atk:1,def:1,spd:1,haki:1,df:4},{c:1500,atk:2,def:1,spd:1,haki:4,df:8},{c:3000,atk:4,def:2,spd:1,haki:6,df:12}],
+  'nr33':[{c:2500,atk:6,def:1,spd:1,haki:1,df:3},{c:5000,atk:13,def:4,spd:1,haki:1,df:7},{c:10000,atk:21,def:6,spd:1,haki:3,df:11}],
+  'nr34':[{c:400,atk:1,def:1,spd:1,haki:1,df:3},{c:800,atk:1,def:1,spd:4,haki:1,df:7},{c:1800,atk:3,def:1,spd:6,haki:1,df:11}],
+  'nr35':[{c:400,atk:1,def:1,spd:1,haki:2,df:2},{c:800,atk:1,def:1,spd:3,haki:5,df:4},{c:1800,atk:3,def:1,spd:4,haki:8,df:6}],
+  'nr36':[{c:400,atk:1,def:1,spd:3,haki:1,df:1},{c:800,atk:5,def:1,spd:6,haki:1,df:1},{c:1800,atk:7,def:3,spd:10,haki:1,df:1}],
+  'nr37':[{c:700,atk:4,def:1,spd:1,haki:1,df:1},{c:1500,atk:8,def:1,spd:4,haki:2,df:1},{c:3000,atk:12,def:2,spd:6,haki:4,df:1}],
+  'nr38':[{c:700,atk:1,def:2,spd:1,haki:1,df:3},{c:1500,atk:3,def:4,spd:1,haki:2,df:6},{c:3000,atk:5,def:7,spd:1,haki:3,df:9}],
+  'nr39':[{c:400,atk:1,def:1,spd:1,haki:1,df:3},{c:800,atk:1,def:1,spd:1,haki:4,df:7},{c:1800,atk:1,def:3,spd:1,haki:6,df:11}],
+  'nr4':[{c:1200,atk:2,def:1,spd:4,haki:1,df:1},{c:2500,atk:5,def:1,spd:10,haki:2,df:1},{c:5000,atk:8,def:2,spd:15,haki:4,df:1}],
+  'nr40':[{c:700,atk:4,def:1,spd:1,haki:1,df:1},{c:1500,atk:8,def:4,spd:1,haki:1,df:2},{c:3000,atk:12,def:6,spd:2,haki:1,df:4}],
+  'nr41':[{c:1200,atk:1,def:1,spd:4,haki:2,df:1},{c:2500,atk:1,def:1,spd:9,haki:6,df:2},{c:5000,atk:2,def:1,spd:13,haki:10,df:4}],
+  'nr42':[{c:1200,atk:3,def:2,spd:3,haki:1},{c:2500,atk:6,def:4,spd:7,haki:2},{c:5000,atk:9,def:6,spd:11,haki:4}],
+  'nr43':[{c:1200,atk:1,def:1,spd:1,haki:2,df:4},{c:2500,atk:2,def:1,spd:1,haki:5,df:10},{c:5000,atk:4,def:2,spd:1,haki:8,df:15}],
+  'nr44':[{c:700,atk:4,def:1,spd:1,haki:1,df:1},{c:1500,atk:8,def:1,spd:4,haki:1,df:2},{c:3000,atk:12,def:2,spd:6,haki:1,df:4}],
+  'nr45':[{c:2500,atk:4,def:1,spd:1,haki:5,df:1},{c:5000,atk:9,def:1,spd:1,haki:12,df:3},{c:10000,atk:14,def:3,spd:1,haki:19,df:5}],
+  'nr46':[{c:700,atk:1,def:1,spd:1,haki:1,df:4},{c:1500,atk:4,def:1,spd:1,haki:2,df:8},{c:3000,atk:6,def:2,spd:1,haki:4,df:12}],
+  'nr47':[{c:2000,atk:3,def:1,spd:1,haki:1,df:4},{c:4000,atk:7,def:1,spd:1,haki:3,df:10},{c:8000,atk:12,def:1,spd:3,haki:4,df:16}],
+  'nr48':[{c:2000,atk:3,def:5,spd:1,haki:1},{c:4000,atk:7,def:10,spd:3,haki:2},{c:8000,atk:12,def:17,spd:4,haki:3}],
+  'nr49':[{c:1200,atk:3,def:1,spd:1,haki:1,df:3},{c:2500,atk:5,def:1,spd:2,haki:4,df:7},{c:5000,atk:8,def:2,spd:4,haki:6,df:10}],
+  'nr5':[{c:2000,atk:3,def:1,spd:1,haki:4,df:1},{c:4000,atk:6,def:1,spd:3,haki:8,df:4},{c:8000,atk:10,def:2,spd:4,haki:13,df:7}],
+  'nr50':[{c:1200,atk:3,def:1,spd:1,haki:1,df:3},{c:2500,atk:5,def:1,spd:2,haki:4,df:7},{c:5000,atk:8,def:2,spd:4,haki:6,df:10}],
+  'nr51':[{c:1200,atk:3,def:1,spd:1,haki:1,df:3},{c:2500,atk:5,def:4,spd:2,haki:1,df:7},{c:5000,atk:8,def:6,spd:4,haki:2,df:10}],
+  'nr52':[{c:700,atk:2,def:1,spd:1,haki:1,df:3},{c:1500,atk:4,def:3,spd:1,haki:2,df:6},{c:3000,atk:7,def:5,spd:1,haki:3,df:9}],
+  'nr53':[{c:700,atk:1,def:1,spd:4,haki:1,df:1},{c:1500,atk:2,def:1,spd:8,haki:1,df:4},{c:3000,atk:4,def:2,spd:12,haki:1,df:6}],
+  'nr54':[{c:700,atk:1,def:1,spd:1,haki:1,df:4},{c:1500,atk:5,def:2,spd:1,haki:1,df:7},{c:3000,atk:8,def:3,spd:1,haki:2,df:11}],
+  'nr55':[{c:700,atk:3,def:2,spd:1,haki:1,df:1},{c:1500,atk:6,def:4,spd:2,haki:1,df:3},{c:3000,atk:9,def:7,spd:3,haki:1,df:5}],
+  'nr56':[{c:700,atk:2,def:1,spd:1,haki:1,df:3},{c:1500,atk:4,def:2,spd:3,haki:1,df:6},{c:3000,atk:7,def:3,spd:5,haki:1,df:9}],
+  'nr57':[{c:700,atk:1,def:1,spd:1,haki:1,df:4},{c:1500,atk:2,def:1,spd:5,haki:1,df:7},{c:3000,atk:3,def:2,spd:8,haki:1,df:11}],
+  'nr58':[{c:400,atk:1,def:1,spd:1,haki:3,df:1},{c:800,atk:1,def:1,spd:1,haki:7,df:4},{c:1800,atk:1,def:1,spd:3,haki:11,df:6}],
+  'nr59':[{c:400,atk:1,def:1,spd:1,haki:1,df:3},{c:800,atk:1,def:1,spd:5,haki:1,df:6},{c:1800,atk:1,def:3,spd:7,haki:1,df:10}],
+  'nr6':[{c:2500,atk:5,def:1,spd:1,haki:1,df:4},{c:5000,atk:12,def:1,spd:1,haki:3,df:9},{c:10000,atk:19,def:3,spd:1,haki:5,df:14}],
+  'nr60':[{c:1200,atk:3,def:1,spd:1,haki:3,df:1},{c:2500,atk:7,def:2,spd:1,haki:5,df:4},{c:5000,atk:10,def:4,spd:2,haki:8,df:6}],
+  'nr61':[{c:400,atk:1,def:1,spd:1,haki:2,df:2},{c:800,atk:3,def:1,spd:1,haki:4,df:5},{c:1800,atk:4,def:1,spd:3,haki:6,df:8}],
+  'nr62':[{c:400,atk:2,def:1,spd:2,haki:1,df:1},{c:800,atk:5,def:1,spd:4,haki:1,df:3},{c:1800,atk:8,def:1,spd:6,haki:3,df:4}],
+  'nr63':[{c:400,atk:1,def:2,spd:1,haki:1,df:2},{c:800,atk:3,def:5,spd:1,haki:1,df:4},{c:1800,atk:4,def:8,spd:3,haki:1,df:6}],
+  'nr64':[{c:400,atk:1,def:3,spd:1,haki:1,df:1},{c:800,atk:4,def:7,spd:1,haki:1,df:1},{c:1800,atk:6,def:11,spd:1,haki:1,df:3}],
+  'nr65':[{c:700,atk:1,def:1,spd:1,haki:1,df:4},{c:1500,atk:4,def:1,spd:1,haki:2,df:8},{c:3000,atk:6,def:2,spd:1,haki:4,df:12}],
+  'nr66':[{c:700,atk:1,def:1,spd:1,haki:4,df:1},{c:1500,atk:2,def:1,spd:1,haki:8,df:4},{c:3000,atk:4,def:2,spd:1,haki:12,df:6}],
+  'nr67':[{c:700,atk:1,def:1,spd:4,haki:1,df:1},{c:1500,atk:2,def:1,spd:7,haki:1,df:5},{c:3000,atk:3,def:2,spd:11,haki:1,df:8}],
+  'nr68':[{c:700,atk:4,def:1,spd:1,haki:1,df:1},{c:1500,atk:8,def:2,spd:1,haki:1,df:4},{c:3000,atk:12,def:4,spd:2,haki:1,df:6}],
+  'nr69':[{c:400,atk:1,def:1,spd:1,haki:3,df:1},{c:800,atk:1,def:1,spd:1,haki:6,df:5},{c:1800,atk:1,def:1,spd:3,haki:10,df:7}],
+  'nr7':[{c:2500,atk:4,def:1,spd:1,haki:1,df:5},{c:5000,atk:9,def:3,spd:1,haki:1,df:12},{c:10000,atk:14,def:5,spd:1,haki:3,df:19}],
+  'nr70':[{c:1200,atk:4,def:1,spd:1,haki:1,df:2},{c:2500,atk:9,def:1,spd:2,haki:1,df:6},{c:5000,atk:13,def:1,spd:4,haki:2,df:10}],
+  'nr71':[{c:400,atk:1,def:1,spd:3,haki:1,df:1},{c:800,atk:4,def:1,spd:7,haki:1,df:1},{c:1800,atk:6,def:1,spd:11,haki:3,df:1}],
+  'nr72':[{c:700,atk:3,def:1,spd:2,haki:2},{c:1500,atk:6,def:2,spd:5,haki:3},{c:3000,atk:9,def:4,spd:7,haki:5}],
+  'nr73':[{c:700,atk:1,def:1,spd:3,haki:1,df:2},{c:1500,atk:3,def:1,spd:6,haki:2,df:4},{c:3000,atk:5,def:1,spd:9,haki:3,df:7}],
+  'nr74':[{c:400,atk:2,def:1,spd:2,haki:1,df:1},{c:800,atk:4,def:1,spd:5,haki:1,df:3},{c:1800,atk:6,def:1,spd:8,haki:3,df:4}],
+  'nr75':[{c:400,atk:1,def:1,spd:1,haki:3,df:1},{c:800,atk:1,def:1,spd:1,haki:7,df:4},{c:1800,atk:1,def:1,spd:3,haki:11,df:6}],
+  'nr76':[{c:400,atk:1,def:1,spd:3,haki:1,df:1},{c:800,atk:1,def:1,spd:6,haki:1,df:5},{c:1800,atk:3,def:1,spd:10,haki:1,df:7}],
+  'nr77':[{c:400,atk:1,def:1,spd:2,haki:2,df:1},{c:800,atk:1,def:3,spd:4,haki:5,df:1},{c:1800,atk:1,def:4,spd:6,haki:8,df:3}],
+  'nr78':[{c:700,atk:4,def:1,spd:2,haki:1},{c:1500,atk:7,def:2,spd:5,haki:2},{c:3000,atk:12,def:1,spd:9,haki:3}],
+  'nr79':[{c:700,atk:1,def:2,spd:1,haki:4},{c:1500,atk:2,def:5,spd:2,haki:7},{c:3000,atk:3,def:9,spd:1,haki:12}],
+  'nr8':[{c:2000,atk:3,def:1,spd:1,haki:1,df:4},{c:4000,atk:7,def:1,spd:3,haki:1,df:10},{c:8000,atk:12,def:3,spd:4,haki:1,df:16}],
+  'nr80':[{c:700,atk:1,def:1,spd:1,haki:4,df:1},{c:1500,atk:2,def:1,spd:1,haki:8,df:4},{c:3000,atk:4,def:2,spd:1,haki:12,df:6}],
+  'nr81':[{c:700,atk:1,def:1,spd:1,haki:1,df:4},{c:1500,atk:2,def:1,spd:5,haki:1,df:7},{c:3000,atk:3,def:1,spd:8,haki:2,df:11}],
+  'nr82':[{c:400,atk:1,def:1,spd:2,haki:1,df:2},{c:800,atk:3,def:1,spd:5,haki:1,df:4},{c:1800,atk:4,def:1,spd:8,haki:3,df:6}],
+  'nr83':[{c:700,atk:4,def:1,spd:2,haki:1},{c:1500,atk:8,def:2,spd:4,haki:2},{c:3000,atk:13,def:4,spd:7,haki:1}],
+  'nr84':[{c:700,atk:1,def:1,spd:1,haki:1,df:4},{c:1500,atk:4,def:1,spd:2,haki:1,df:8},{c:3000,atk:6,def:1,spd:4,haki:2,df:12}],
+  'nr85':[{c:700,atk:3,def:1,spd:1,haki:1,df:2},{c:1500,atk:6,def:3,spd:2,haki:1,df:4},{c:3000,atk:9,def:5,spd:3,haki:1,df:7}],
+  'nr86':[{c:1200,atk:3,def:1,spd:1,haki:1,df:3},{c:2500,atk:7,def:4,spd:2,haki:1,df:5},{c:5000,atk:10,def:6,spd:4,haki:2,df:8}],
+  'nr87':[{c:700,atk:4,def:1,spd:1,haki:1,df:1},{c:1500,atk:7,def:1,spd:5,haki:1,df:2},{c:3000,atk:11,def:2,spd:8,haki:1,df:3}],
+  'nr88':[{c:400,atk:1,def:1,spd:1,haki:1,df:3},{c:800,atk:1,def:1,spd:5,haki:1,df:6},{c:1800,atk:1,def:1,spd:7,haki:3,df:10}],
+  'nr89':[{c:400,atk:1,def:1,spd:2,haki:3},{c:800,atk:2,def:1,spd:5,haki:6},{c:1800,atk:3,def:2,spd:7,haki:10}],
+  'nr9':[{c:2000,atk:3,def:1,spd:1,haki:1,df:4},{c:4000,atk:7,def:1,spd:1,haki:3,df:10},{c:8000,atk:12,def:3,spd:1,haki:4,df:16}],
+  'nr90':[{c:700,atk:4,def:1,spd:1,haki:1,df:1},{c:1500,atk:7,def:1,spd:1,haki:2,df:5},{c:3000,atk:11,def:2,spd:1,haki:3,df:8}],
+  'nr91':[{c:400,atk:1,def:1,spd:2,haki:1,df:2},{c:800,atk:3,def:1,spd:5,haki:1,df:4},{c:1800,atk:4,def:1,spd:8,haki:3,df:6}],
+  'nr92':[{c:400,atk:2,def:1,spd:3,haki:1},{c:800,atk:5,def:1,spd:6,haki:2},{c:1800,atk:7,def:2,spd:10,haki:3}],
+  'nr93':[{c:400,atk:1,def:1,spd:1,haki:4},{c:800,atk:2,def:4,spd:1,haki:7},{c:1800,atk:3,def:6,spd:2,haki:11}],
+  'nr94':[{c:700,atk:1,def:1,spd:1,haki:1,df:4},{c:1500,atk:2,def:1,spd:1,haki:4,df:8},{c:3000,atk:4,def:1,spd:2,haki:6,df:12}],
+  'nr95':[{c:1200,atk:4,def:1,spd:1,haki:1,df:2},{c:2500,atk:9,def:1,spd:2,haki:1,df:6},{c:5000,atk:13,def:1,spd:4,haki:2,df:10}],
+  'nr96':[{c:700,atk:1,def:1,spd:4,haki:1,df:1},{c:1500,atk:1,def:1,spd:8,haki:4,df:2},{c:3000,atk:2,def:1,spd:12,haki:6,df:4}],
+  'nr97':[{c:2000,atk:5,def:1,spd:3,haki:1},{c:4000,atk:10,def:2,spd:7,haki:3},{c:8000,atk:17,def:3,spd:12,haki:4}],
+  'nr98':[{c:400,atk:1,def:1,spd:3,haki:1,df:1},{c:800,atk:1,def:1,spd:7,haki:4,df:1},{c:1800,atk:3,def:1,spd:11,haki:6,df:1}],
+  'nr99':[{c:700,atk:1,def:1,spd:1,haki:1,df:4},{c:1500,atk:2,def:1,spd:4,haki:1,df:8},{c:3000,atk:4,def:1,spd:6,haki:2,df:12}],
+  'op1':[{c:2000,atk:3,def:1,spd:1,haki:4,df:1},{c:4000,atk:6,def:1,spd:3,haki:8,df:4},{c:8000,atk:10,def:2,spd:4,haki:13,df:7}],
+  'op10':[{c:400,atk:1,def:1,spd:4,haki:1},{c:800,atk:4,def:1,spd:7,haki:2},{c:1800,atk:6,def:2,spd:11,haki:3}],
+  'op100':[{c:1200,atk:1,def:1,spd:2,haki:5},{c:2500,atk:3,def:1,spd:5,haki:10},{c:5000,atk:4,def:3,spd:8,haki:15}],
+  'op101':[{c:2500,atk:4,def:2,spd:2,haki:3,df:1},{c:5000,atk:9,def:5,spd:2,haki:7,df:3},{c:10000,atk:15,def:8,spd:2,haki:12,df:5}],
+  'op102':[{c:400,atk:1,def:1,spd:3,haki:1,df:1},{c:800,atk:1,def:1,spd:6,haki:1,df:5},{c:1800,atk:3,def:1,spd:10,haki:1,df:7}],
+  'op11':[{c:1200,atk:2,def:1,spd:1,haki:1,df:4},{c:2500,atk:6,def:1,spd:2,haki:1,df:9},{c:5000,atk:10,def:1,spd:4,haki:2,df:13}],
+  'op12':[{c:1200,atk:4,def:1,spd:1,haki:1,df:2},{c:2500,atk:10,def:2,spd:1,haki:1,df:5},{c:5000,atk:15,def:4,spd:1,haki:2,df:8}],
+  'op13':[{c:2500,atk:5,def:4,spd:1,haki:1,df:1},{c:5000,atk:12,def:9,spd:1,haki:1,df:3},{c:10000,atk:19,def:14,spd:1,haki:3,df:5}],
+  'op14':[{c:2500,atk:4,def:3,spd:2,haki:1,df:2},{c:5000,atk:9,def:7,spd:2,haki:3,df:5},{c:10000,atk:15,def:12,spd:2,haki:5,df:8}],
+  'op15':[{c:1200,atk:2,def:1,spd:1,haki:1,df:4},{c:2500,atk:6,def:1,spd:2,haki:1,df:9},{c:5000,atk:10,def:1,spd:4,haki:2,df:13}],
+  'op16':[{c:1200,atk:2,def:1,spd:1,haki:1,df:4},{c:2500,atk:5,def:2,spd:1,haki:1,df:10},{c:5000,atk:8,def:4,spd:2,haki:1,df:15}],
+  'op17':[{c:1200,atk:2,def:1,spd:4,haki:1,df:1},{c:2500,atk:6,def:2,spd:9,haki:1,df:1},{c:5000,atk:10,def:4,spd:13,haki:1,df:2}],
+  'op18':[{c:2000,atk:5,def:1,spd:1,haki:3},{c:4000,atk:10,def:2,spd:3,haki:7},{c:8000,atk:17,def:3,spd:4,haki:12}],
+  'op19':[{c:2000,atk:3,def:1,spd:1,haki:1,df:4},{c:4000,atk:7,def:1,spd:1,haki:3,df:10},{c:8000,atk:12,def:3,spd:1,haki:4,df:16}],
+  'op2':[{c:2000,atk:4,def:2,spd:1,haki:3},{c:4000,atk:8,def:5,spd:3,haki:6},{c:8000,atk:13,def:8,spd:4,haki:11}],
+  'op20':[{c:2500,atk:4,def:1,spd:3,haki:4},{c:5000,atk:8,def:3,spd:5,haki:10},{c:10000,atk:12,def:6,spd:9,haki:15}],
+  'op21':[{c:2500,atk:5,def:1,spd:1,haki:1,df:4},{c:5000,atk:12,def:1,spd:1,haki:3,df:9},{c:10000,atk:19,def:3,spd:1,haki:5,df:14}],
+  'op22':[{c:2000,atk:3,def:1,spd:1,haki:1,df:4},{c:4000,atk:6,def:4,spd:1,haki:3,df:8},{c:8000,atk:10,def:7,spd:2,haki:4,df:13}],
+  'op23':[{c:1200,atk:2,def:1,spd:1,haki:1,df:4},{c:2500,atk:5,def:1,spd:2,haki:1,df:10},{c:5000,atk:8,def:2,spd:4,haki:1,df:15}],
+  'op24':[{c:2000,atk:3,def:1,spd:1,haki:4,df:1},{c:4000,atk:7,def:3,spd:1,haki:10,df:1},{c:8000,atk:12,def:4,spd:3,haki:16,df:1}],
+  'op25':[{c:1200,atk:3,def:3,spd:1,haki:1,df:1},{c:2500,atk:5,def:7,spd:2,haki:1,df:4},{c:5000,atk:8,def:10,spd:4,haki:2,df:6}],
+  'op26':[{c:1200,atk:2,def:4,spd:1,haki:1,df:1},{c:2500,atk:6,def:9,spd:1,haki:1,df:2},{c:5000,atk:10,def:13,spd:1,haki:2,df:4}],
+  'op27':[{c:700,atk:1,def:2,spd:3,haki:1,df:1},{c:1500,atk:3,def:4,spd:6,haki:1,df:2},{c:3000,atk:5,def:7,spd:9,haki:1,df:3}],
+  'op28':[{c:700,atk:1,def:1,spd:1,haki:1,df:4},{c:1500,atk:2,def:4,spd:1,haki:1,df:8},{c:3000,atk:4,def:6,spd:2,haki:1,df:12}],
+  'op29':[{c:700,atk:2,def:3,spd:1,haki:1,df:1},{c:1500,atk:4,def:6,spd:2,haki:1,df:3},{c:3000,atk:7,def:9,spd:3,haki:1,df:5}],
+  'op3':[{c:1200,atk:3,def:1,spd:4,haki:1},{c:2500,atk:6,def:2,spd:9,haki:2},{c:5000,atk:10,def:4,spd:14,haki:2}],
+  'op30':[{c:700,atk:1,def:1,spd:4,haki:1,df:1},{c:1500,atk:5,def:1,spd:7,haki:1,df:2},{c:3000,atk:8,def:2,spd:11,haki:1,df:3}],
+  'op31':[{c:400,atk:1,def:1,spd:2,df:3},{c:800,atk:2,def:3,spd:4,df:5},{c:1800,atk:3,def:5,spd:6,df:8}],
+  'op32':[{c:400,atk:2,def:1,spd:1,df:3},{c:800,atk:4,def:2,spd:3,df:5},{c:1800,atk:6,def:3,spd:5,df:8}],
+  'op33':[{c:2500,atk:3,def:2,spd:1,haki:6},{c:5000,atk:7,def:4,spd:2,haki:13},{c:10000,atk:11,def:6,spd:3,haki:22}],
+  'op34':[{c:2500,atk:4,def:3,spd:1,haki:4},{c:5000,atk:8,def:5,spd:3,haki:10},{c:10000,atk:12,def:9,spd:6,haki:15}],
+  'op35':[{c:2000,atk:3,def:1,spd:1,haki:1,df:4},{c:4000,atk:6,def:4,spd:1,haki:3,df:8},{c:8000,atk:10,def:7,spd:2,haki:4,df:13}],
+  'op36':[{c:2000,atk:1,def:1,spd:4,haki:1,df:3},{c:4000,atk:4,def:1,spd:8,haki:3,df:6},{c:8000,atk:7,def:2,spd:13,haki:4,df:10}],
+  'op37':[{c:2000,atk:3,def:1,spd:1,haki:5},{c:4000,atk:7,def:2,spd:3,haki:10},{c:8000,atk:12,def:3,spd:4,haki:17}],
+  'op38':[{c:700,atk:1,def:1,spd:2,haki:1,df:3},{c:1500,atk:3,def:1,spd:4,haki:2,df:6},{c:3000,atk:5,def:1,spd:7,haki:3,df:9}],
+  'op39':[{c:1200,atk:3,def:1,spd:1,haki:1,df:3},{c:2500,atk:7,def:4,spd:1,haki:2,df:5},{c:5000,atk:10,def:6,spd:2,haki:4,df:8}],
+  'op4':[{c:400,atk:3,def:1,spd:3},{c:800,atk:5,def:2,spd:7},{c:1800,atk:8,def:3,spd:11}],
+  'op40':[{c:2000,atk:3,def:4,spd:1,haki:1,df:1},{c:4000,atk:7,def:10,spd:1,haki:1,df:3},{c:8000,atk:12,def:16,spd:1,haki:3,df:4}],
+  'op41':[{c:1200,atk:1,def:1,spd:4,haki:1,df:2},{c:2500,atk:2,def:1,spd:9,haki:1,df:6},{c:5000,atk:4,def:1,spd:13,haki:2,df:10}],
+  'op42':[{c:2500,atk:5,def:1,spd:1,haki:4,df:1},{c:5000,atk:12,def:1,spd:1,haki:9,df:3},{c:10000,atk:19,def:3,spd:1,haki:14,df:5}],
+  'op43':[{c:1200,atk:1,def:1,spd:3,haki:1,df:3},{c:2500,atk:2,def:1,spd:5,haki:4,df:7},{c:5000,atk:4,def:2,spd:8,haki:6,df:10}],
+  'op44':[{c:1200,atk:1,def:4,spd:1,haki:1,df:2},{c:2500,atk:2,def:10,spd:1,haki:1,df:5},{c:5000,atk:4,def:15,spd:2,haki:1,df:8}],
+  'op45':[{c:700,atk:1,def:1,spd:1,haki:1,df:4},{c:1500,atk:2,def:5,spd:1,haki:1,df:7},{c:3000,atk:3,def:8,spd:2,haki:1,df:11}],
+  'op46':[{c:400,atk:1,def:1,spd:2,haki:1,df:2},{c:800,atk:3,def:1,spd:4,haki:1,df:5},{c:1800,atk:4,def:3,spd:6,haki:1,df:8}],
+  'op47':[{c:2000,atk:5,def:1,spd:1,haki:3},{c:4000,atk:10,def:3,spd:2,haki:7},{c:8000,atk:17,def:4,spd:3,haki:12}],
+  'op48':[{c:1200,atk:4,def:2,spd:1,haki:1,df:1},{c:2500,atk:10,def:5,spd:2,haki:1,df:1},{c:5000,atk:15,def:8,spd:4,haki:1,df:2}],
+  'op49':[{c:2000,atk:1,def:2,spd:1,haki:1,df:5},{c:4000,atk:3,def:6,spd:1,haki:1,df:11},{c:8000,atk:5,def:9,spd:3,haki:1,df:18}],
+  'op5':[{c:700,atk:2,def:1,spd:1,haki:1,df:3},{c:1500,atk:4,def:3,spd:2,haki:1,df:6},{c:3000,atk:7,def:5,spd:3,haki:1,df:9}],
+  'op50':[{c:1200,atk:1,def:4,spd:1,haki:1,df:2},{c:2500,atk:2,def:10,spd:1,haki:1,df:5},{c:5000,atk:4,def:15,spd:1,haki:2,df:8}],
+  'op51':[{c:1200,atk:4,def:1,spd:1,haki:3},{c:2500,atk:9,def:2,spd:2,haki:6},{c:5000,atk:14,def:2,spd:4,haki:10}],
+  'op52':[{c:1200,atk:4,def:1,spd:2,haki:1,df:1},{c:2500,atk:10,def:1,spd:5,haki:2,df:1},{c:5000,atk:15,def:1,spd:8,haki:4,df:2}],
+  'op53':[{c:2500,atk:5,def:1,spd:1,haki:1,df:4},{c:5000,atk:12,def:3,spd:1,haki:1,df:9},{c:10000,atk:19,def:5,spd:1,haki:3,df:14}],
+  'op54':[{c:2000,atk:3,def:1,spd:1,haki:1,df:4},{c:4000,atk:6,def:4,spd:1,haki:3,df:8},{c:8000,atk:10,def:7,spd:2,haki:4,df:13}],
+  'op55':[{c:2000,atk:1,def:3,spd:1,haki:1,df:4},{c:4000,atk:3,def:7,spd:1,haki:1,df:10},{c:8000,atk:4,def:12,spd:1,haki:3,df:16}],
+  'op56':[{c:2000,atk:2,def:1,spd:1,haki:1,df:5},{c:4000,atk:6,def:3,spd:1,haki:1,df:11},{c:8000,atk:9,def:5,spd:1,haki:3,df:18}],
+  'op57':[{c:2000,atk:3,def:1,spd:2,haki:4},{c:4000,atk:6,def:3,spd:5,haki:8},{c:8000,atk:11,def:4,spd:8,haki:13}],
+  'op58':[{c:700,atk:2,def:2,spd:3,haki:1},{c:1500,atk:5,def:3,spd:6,haki:2},{c:3000,atk:7,def:5,spd:9,haki:4}],
+  'op59':[{c:700,atk:4,def:1,spd:1,haki:1,df:1},{c:1500,atk:7,def:2,spd:1,haki:1,df:5},{c:3000,atk:11,def:3,spd:2,haki:1,df:8}],
+  'op6':[{c:700,atk:3,def:4,spd:1},{c:1500,atk:6,def:8,spd:2},{c:3000,atk:9,def:12,spd:4}],
+  'op60':[{c:700,atk:2,def:1,spd:1,haki:1,df:3},{c:1500,atk:4,def:3,spd:2,haki:1,df:6},{c:3000,atk:7,def:5,spd:3,haki:1,df:9}],
+  'op61':[{c:700,atk:1,def:1,spd:1,haki:1,df:4},{c:1500,atk:5,def:1,spd:2,haki:1,df:7},{c:3000,atk:8,def:2,spd:3,haki:1,df:11}],
+  'op62':[{c:700,atk:1,def:1,spd:1,haki:1,df:4},{c:1500,atk:2,def:4,spd:1,haki:1,df:8},{c:3000,atk:4,def:6,spd:1,haki:2,df:12}],
+  'op63':[{c:700,atk:3,def:2,spd:1,haki:1,df:1},{c:1500,atk:6,def:4,spd:2,haki:1,df:3},{c:3000,atk:9,def:7,spd:3,haki:1,df:5}],
+  'op64':[{c:700,atk:1,def:1,spd:1,haki:1,df:4},{c:1500,atk:2,def:1,spd:4,haki:1,df:8},{c:3000,atk:4,def:2,spd:6,haki:1,df:12}],
+  'op65':[{c:700,atk:1,def:1,spd:4,haki:2},{c:1500,atk:2,def:2,spd:7,haki:5},{c:3000,atk:3,def:1,spd:12,haki:9}],
+  'op66':[{c:700,atk:2,def:1,spd:1,haki:1,df:3},{c:1500,atk:4,def:3,spd:1,haki:2,df:6},{c:3000,atk:7,def:5,spd:1,haki:3,df:9}],
+  'op67':[{c:700,atk:2,def:3,spd:1,haki:2},{c:1500,atk:5,def:6,spd:2,haki:3},{c:3000,atk:7,def:9,spd:4,haki:5}],
+  'op68':[{c:1200,atk:2,def:1,spd:1,haki:1,df:4},{c:2500,atk:5,def:2,spd:1,haki:1,df:10},{c:5000,atk:8,def:4,spd:1,haki:2,df:15}],
+  'op69':[{c:700,atk:1,def:2,spd:1,haki:3,df:1},{c:1500,atk:2,def:4,spd:1,haki:6,df:3},{c:3000,atk:3,def:7,spd:1,haki:9,df:5}],
+  'op7':[{c:1200,atk:3,def:4,spd:1,haki:1},{c:2500,atk:6,def:9,spd:2,haki:2},{c:5000,atk:10,def:14,spd:2,haki:4}],
+  'op70':[{c:1200,atk:5,def:1,spd:1,haki:2},{c:2500,atk:10,def:3,spd:1,haki:5},{c:5000,atk:15,def:4,spd:3,haki:8}],
+  'op71':[{c:700,atk:1,def:1,spd:3,haki:1,df:2},{c:1500,atk:3,def:1,spd:6,haki:2,df:4},{c:3000,atk:5,def:1,spd:9,haki:3,df:7}],
+  'op72':[{c:700,atk:1,def:3,spd:1,haki:1,df:2},{c:1500,atk:3,def:6,spd:1,haki:2,df:4},{c:3000,atk:5,def:9,spd:1,haki:3,df:7}],
+  'op73':[{c:1200,atk:1,def:4,spd:1,haki:1,df:2},{c:2500,atk:2,def:10,spd:1,haki:1,df:5},{c:5000,atk:4,def:15,spd:1,haki:2,df:8}],
+  'op74':[{c:1200,atk:4,def:1,spd:1,haki:1,df:2},{c:2500,atk:10,def:2,spd:1,haki:1,df:5},{c:5000,atk:15,def:4,spd:1,haki:2,df:8}],
+  'op75':[{c:700,atk:1,def:1,spd:1,haki:1,df:4},{c:1500,atk:4,def:2,spd:1,haki:1,df:8},{c:3000,atk:6,def:4,spd:1,haki:2,df:12}],
+  'op76':[{c:700,atk:4,def:1,spd:1,haki:1,df:1},{c:1500,atk:7,def:5,spd:1,haki:1,df:2},{c:3000,atk:11,def:8,spd:1,haki:2,df:3}],
+  'op77':[{c:1200,atk:2,def:4,spd:1,haki:1,df:1},{c:2500,atk:5,def:10,spd:1,haki:1,df:2},{c:5000,atk:8,def:15,spd:1,haki:2,df:4}],
+  'op78':[{c:700,atk:2,def:3,spd:1,haki:1,df:1},{c:1500,atk:4,def:6,spd:2,haki:1,df:3},{c:3000,atk:7,def:9,spd:3,haki:1,df:5}],
+  'op79':[{c:700,atk:4,def:1,spd:1,haki:1,df:1},{c:1500,atk:7,def:2,spd:1,haki:5,df:1},{c:3000,atk:11,def:3,spd:2,haki:8,df:1}],
+  'op8':[{c:400,atk:1,def:1,spd:1,df:4},{c:800,atk:1,def:2,spd:4,df:7},{c:1800,atk:2,def:3,spd:6,df:11}],
+  'op80':[{c:700,atk:4,def:2,spd:1,haki:1},{c:1500,atk:8,def:4,spd:2,haki:2},{c:3000,atk:13,def:7,spd:4,haki:1}],
+  'op81':[{c:700,atk:4,def:1,spd:2,haki:1},{c:1500,atk:7,def:2,spd:5,haki:2},{c:3000,atk:12,def:3,spd:9,haki:1}],
+  'op82':[{c:700,atk:4,def:2,spd:1,haki:1},{c:1500,atk:7,def:5,spd:2,haki:2},{c:3000,atk:12,def:9,spd:3,haki:1}],
+  'op83':[{c:700,atk:4,def:2,spd:1,haki:1},{c:1500,atk:7,def:5,spd:2,haki:2},{c:3000,atk:12,def:9,spd:1,haki:3}],
+  'op84':[{c:700,atk:2,def:4,spd:1,haki:1},{c:1500,atk:4,def:8,spd:2,haki:2},{c:3000,atk:7,def:13,spd:4,haki:1}],
+  'op85':[{c:700,atk:3,def:1,spd:2,haki:2},{c:1500,atk:6,def:2,spd:5,haki:3},{c:3000,atk:9,def:4,spd:7,haki:5}],
+  'op86':[{c:700,atk:1,def:1,spd:2,haki:1,df:3},{c:1500,atk:3,def:2,spd:4,haki:1,df:6},{c:3000,atk:5,def:3,spd:7,haki:1,df:9}],
+  'op87':[{c:700,atk:1,def:4,spd:1,haki:1,df:1},{c:1500,atk:2,def:7,spd:1,haki:1,df:5},{c:3000,atk:3,def:11,spd:2,haki:1,df:8}],
+  'op88':[{c:700,atk:2,def:1,spd:4,haki:1},{c:1500,atk:5,def:2,spd:7,haki:2},{c:3000,atk:9,def:3,spd:12,haki:1}],
+  'op89':[{c:1200,atk:4,def:3,spd:1,haki:1},{c:2500,atk:9,def:6,spd:2,haki:2},{c:5000,atk:14,def:10,spd:2,haki:4}],
+  'op9':[{c:700,atk:1,def:1,spd:4,haki:1,df:1},{c:1500,atk:2,def:1,spd:7,haki:1,df:5},{c:3000,atk:3,def:2,spd:11,haki:1,df:8}],
+  'op90':[{c:700,atk:1,def:1,spd:4,haki:1,df:1},{c:1500,atk:4,def:2,spd:8,haki:1,df:1},{c:3000,atk:6,def:4,spd:12,haki:1,df:2}],
+  'op91':[{c:700,atk:1,def:4,spd:1,haki:1,df:1},{c:1500,atk:4,def:8,spd:2,haki:1,df:1},{c:3000,atk:6,def:12,spd:4,haki:1,df:2}],
+  'op92':[{c:400,atk:3,def:3,spd:1},{c:800,atk:5,def:7,spd:2},{c:1800,atk:8,def:11,spd:3}],
+  'op93':[{c:400,atk:1,def:1,spd:2,haki:1,df:2},{c:800,atk:3,def:1,spd:4,haki:1,df:5},{c:1800,atk:4,def:3,spd:6,haki:1,df:8}],
+  'op94':[{c:700,atk:2,def:3,spd:1,haki:2},{c:1500,atk:3,def:6,spd:2,haki:5},{c:3000,atk:5,def:9,spd:4,haki:7}],
+  'op95':[{c:700,atk:4,def:1,spd:1,haki:1,df:1},{c:1500,atk:7,def:5,spd:2,haki:1,df:1},{c:3000,atk:11,def:8,spd:3,haki:1,df:2}],
+  'op96':[{c:700,atk:1,def:3,spd:1,haki:1,df:2},{c:1500,atk:3,def:6,spd:1,haki:2,df:4},{c:3000,atk:5,def:9,spd:1,haki:3,df:7}],
+  'op97':[{c:700,atk:2,def:1,spd:4,haki:1},{c:1500,atk:4,def:2,spd:8,haki:2},{c:3000,atk:7,def:1,spd:13,haki:4}],
+  'op98':[{c:400,atk:1,def:1,spd:1,haki:1,df:3},{c:800,atk:1,def:4,spd:1,haki:1,df:7},{c:1800,atk:3,def:6,spd:1,haki:1,df:11}],
+  'op99':[{c:1200,atk:3,def:2,spd:1,haki:3},{c:2500,atk:7,def:4,spd:2,haki:6},{c:5000,atk:11,def:6,spd:4,haki:9}],
+};
+
+const GENERIC_LABELS = {
+  'S+': ['Awakened','Transcended','Ultimate Form'],
+  'S':  ['Awakened','Ascended','Final Form'],
+  'A':  ['Enhanced','Awakened','Peak Form'],
+  'B':  ['Trained','Enhanced','Awakened'],
+  'C':  ['Trained','Enhanced','Peak Form']
 };
 
 // Lore-accurate transformation names for key characters
@@ -838,20 +1023,23 @@ const CHAR_UPGRADES = {
 };
 
 function getCharUpgrades(id) {
-  if(CHAR_UPGRADES[id]) {
-    const base = UPGRADE_TEMPLATES[ALL_CHARS.find(c=>c.id===id)?.tier||'B'] || UPGRADE_TEMPLATES['B'];
-    return CHAR_UPGRADES[id].map((u,i) => ({...base[i], ...u}));
-  }
   const ch = ALL_CHARS.find(c=>c.id===id);
-  return UPGRADE_TEMPLATES[ch?.tier||'B'] || UPGRADE_TEMPLATES['B'];
+  const tier = ch?.tier||'B';
+  const boostData = PER_CHAR_BOOSTS[id] || [{c:500,atk:3,def:2,spd:2},{c:1200,atk:7,def:5,spd:4},{c:2500,atk:11,def:8,spd:7}];
+  const labels = CHAR_UPGRADES[id] ? CHAR_UPGRADES[id].map(u=>u.label) : (GENERIC_LABELS[tier]||GENERIC_LABELS['B']);
+  return boostData.map((b,i) => ({
+    cost: b.c,
+    label: labels[i] || ('Level '+(i+1)),
+    boosts: {atk:b.atk||0, def:b.def||0, spd:b.spd||0, haki:b.haki||0, df:b.df||0}
+  }));
 }
 
 function getUpgradeBoosts(id) {
   const level = getUpgradeLevel(id);
-  if(level === 0) return {atk:0,def:0,spd:0};
+  if(level === 0) return {atk:0,def:0,spd:0,haki:0,df:0};
   const upgrades = getCharUpgrades(id);
   const u = upgrades[level-1];
-  return {atk:u.atkBoost||0, def:u.defBoost||0, spd:u.spdBoost||0};
+  return u.boosts || {atk:0,def:0,spd:0,haki:0,df:0};
 }
 
 function purchaseUpgrade(id) {
@@ -870,7 +1058,13 @@ function purchaseUpgrade(id) {
 
 function renderUpgradeSection(id, ch, currentLevel, upgrades) {
   const boosts = getUpgradeBoosts(id);
-  const totalBoostStr = currentLevel > 0 ? `<div class="upg-current-boost">Current Boost: +${boosts.atk} ATK, +${boosts.def} DEF, +${boosts.spd} SPD</div>` : '';
+  const boostParts = [];
+  if(boosts.atk) boostParts.push('+'+boosts.atk+' ATK');
+  if(boosts.def) boostParts.push('+'+boosts.def+' DEF');
+  if(boosts.spd) boostParts.push('+'+boosts.spd+' SPD');
+  if(boosts.haki) boostParts.push('+'+boosts.haki+' HAKI');
+  if(boosts.df) boostParts.push('+'+boosts.df+' DF');
+  const totalBoostStr = currentLevel > 0 ? `<div class="upg-current-boost">${boostParts.join(', ')}</div>` : '';
 
   let html = `<div class="upgrade-section">
     <div class="upgrade-header">
@@ -892,9 +1086,11 @@ function renderUpgradeSection(id, ch, currentLevel, upgrades) {
       <div class="upg-step-body">
         <div class="upg-step-name">${u.label}</div>
         <div class="upg-step-stats">
-          <span class="upg-stat upg-atk">+${u.atkBoost} ATK</span>
-          <span class="upg-stat upg-def">+${u.defBoost} DEF</span>
-          <span class="upg-stat upg-spd">+${u.spdBoost} SPD</span>
+          ${u.boosts.atk?`<span class="upg-stat upg-atk">+${u.boosts.atk} ATK</span>`:''}
+          ${u.boosts.def?`<span class="upg-stat upg-def">+${u.boosts.def} DEF</span>`:''}
+          ${u.boosts.spd?`<span class="upg-stat upg-spd">+${u.boosts.spd} SPD</span>`:''}
+          ${u.boosts.haki?`<span class="upg-stat upg-haki">+${u.boosts.haki} HAKI</span>`:''}
+          ${u.boosts.df?`<span class="upg-stat upg-df">+${u.boosts.df} DF</span>`:''}
         </div>
         ${owned ? '<div class="upg-step-badge">UNLOCKED</div>' : ''}
         ${available ? `<button class="upg-buy-btn ${canAfford?'upg-can-buy':'upg-no-buy'}" onclick="purchaseUpgrade('${id}')" ${canAfford?'':'disabled'}>${canAfford ? '⬆ UPGRADE' : 'Need'} ${u.cost.toLocaleString()} coins</button>` : ''}
@@ -917,9 +1113,8 @@ const OrigBattleChar = BattleChar;
 (function() {
   const origCalcMaxHP = calcMaxHP;
   window.calcMaxHP = function(ch) {
-    // In battle mode, apply upgrade boosts
     const boosts = getUpgradeBoosts(ch.id);
-    const boosted = {...ch, def: ch.def + boosts.def};
+    const boosted = {...ch, def: ch.def + boosts.def, haki: (ch.haki||0) + boosts.haki};
     return origCalcMaxHP(boosted);
   };
 
@@ -927,8 +1122,20 @@ const OrigBattleChar = BattleChar;
   window.calcDamage = function(atk, def, move) {
     const atkBoosts = getUpgradeBoosts(atk.id);
     const defBoosts = getUpgradeBoosts(def.id);
-    const boostedAtk = {...atk, atk: atk.atk + atkBoosts.atk, spd: atk.spd + atkBoosts.spd};
-    const boostedDef = {...def, def: def.def + defBoosts.def, spd: def.spd + defBoosts.spd};
+    const boostedAtk = {...atk,
+      atk: atk.atk + atkBoosts.atk,
+      def: atk.def + atkBoosts.def,
+      spd: atk.spd + atkBoosts.spd,
+      haki: (atk.haki||0) + atkBoosts.haki,
+      df: (atk.df||0) + atkBoosts.df
+    };
+    const boostedDef = {...def,
+      atk: def.atk + defBoosts.atk,
+      def: def.def + defBoosts.def,
+      spd: def.spd + defBoosts.spd,
+      haki: (def.haki||0) + defBoosts.haki,
+      df: (def.df||0) + defBoosts.df
+    };
     return origCalcDamage(boostedAtk, boostedDef, move);
   };
 })();
