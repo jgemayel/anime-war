@@ -1485,7 +1485,10 @@ function shakeScreen(intensity) {
 
 // ---- HP & DAMAGE CALCULATIONS ----
 function calcMaxHP(ch){
-  return Math.floor((ch.def*2.5+150)*(TIER_MULT[ch.tier]||1));
+  // DEF is primary HP stat, haki/df add a small resilience bonus
+  const hakiBonus = (ch.haki||0) * 0.3;
+  const dfBonus = (ch.df||0) * 0.3;
+  return Math.floor((ch.def*2.5 + hakiBonus + dfBonus + 150)*(TIER_MULT[ch.tier]||1));
 }
 function calcDamage(atk,def,move){
   // Attack stat depends on move type
@@ -1501,18 +1504,24 @@ function calcDamage(atk,def,move){
   if(mt==='sword'||mt==='kenjutsu') defStat=Math.round((def.def+(def.spd||0))/2);
   else if(mt==='haki'||mt==='genjutsu') defStat=Math.round((def.def+(def.haki||0))/2);
   else if(mt==='df'||mt==='ninjutsu') defStat=Math.round((def.def+(def.df||0))/2);
-  const base=((move.power*(atkStat/50))*(50/(50+defStat)))+2;
+  // Tuned formula: lower divisors so stats hit harder
+  // ATK/30 means 60 ATK = 2x power multiplier (was 1.2x with /50)
+  // 35/(35+DEF) means 35 DEF blocks ~50% (was ~41% with 50/(50+DEF))
+  const base=((move.power*(atkStat/30))*(35/(35+defStat)))+2;
   const variance=0.85+Math.random()*0.15;
-  // Speed bonus scales with gap (max 12% at +40 spd diff)
+  // Speed bonus: max 20% at +40 spd gap (was 12%)
   const spdDiff=atk.spd-def.spd;
-  const spdBonus=spdDiff>0?1+Math.min(0.12,spdDiff*0.003):1.0;
+  const spdBonus=spdDiff>0?1+Math.min(0.20,spdDiff*0.005):1.0;
+  // Speed also gives dodge chance to defender (max 12%)
+  const dodgeChance=spdDiff<0?Math.min(0.12,Math.abs(spdDiff)*0.003):0;
+  if(Math.random()<dodgeChance) return {dmg:0,crit:false,typeMult:1,dodged:true};
   const typeMult=getTypeMultiplier(move.type, def._moves||[]);
   let dmg=Math.floor(base*variance*spdBonus*typeMult);
-  // Crit: base 6.25%, +0.1% per speed point above opponent
-  const critRate=Math.min(0.15,0.0625+(spdDiff>0?spdDiff*0.001:0));
+  // Crit: base 8%, +0.15% per speed point above opponent (max 20%)
+  const critRate=Math.min(0.20,0.08+(spdDiff>0?spdDiff*0.0015:0));
   const crit=Math.random()<critRate;
   if(crit) dmg=Math.floor(dmg*1.5);
-  return {dmg:Math.max(1,dmg),crit,typeMult};
+  return {dmg:Math.max(1,dmg),crit,typeMult,dodged:false};
 }
 
 // ---- BATTLE STATE ----
@@ -1716,7 +1725,15 @@ class Battle{
       this.addLog(`${atk.name}'s darkness negated ${def.name}'s passive!`);
     }
     // Calculate damage
-    let {dmg,crit,typeMult}=calcDamage(atk,def,move);
+    let {dmg,crit,typeMult,dodged}=calcDamage(atk,def,move);
+    // Speed dodge
+    if(dodged){
+      this.addLog(`${def.name} dodged ${atk.name}'s ${move.name}!`);
+      playSound('miss');
+      def._passive = defPassiveSaved;
+      this.updateHP();
+      return this.checkFainted(def)?this.handleFaint(def):this.nextTurn();
+    }
     // Passive crit boost
     if(!crit && atk._passive && atk._passive.type==='crit_boost'){
       if(Math.random()<atk._passive.value){crit=true;dmg=Math.floor(dmg*1.5);}
