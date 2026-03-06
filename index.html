@@ -578,6 +578,11 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
         <div class="mode-title">STORY MODE</div>
         <div class="mode-desc">Battle through 6 arcs with boss fights and big rewards</div>
       </button>
+      <button class="mode-card mode-endless" onclick="showEndlessSetup()">
+        <div class="mode-icon">♾️</div>
+        <div class="mode-title">ENDLESS MODE</div>
+        <div class="mode-desc">Pick one character and survive increasingly tough opponents</div>
+      </button>
 
     </div>
   </div>
@@ -2170,7 +2175,7 @@ function loadDraftTeamImages(){
 // PWA: Service Worker Registration
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js?v=23').then(r=>{
+    navigator.serviceWorker.register('sw.js?v=24').then(r=>{
       console.log('SW registered, scope:',r.scope);
       r.update();
     }).catch(e=>console.log('SW registration failed:',e));
@@ -2239,7 +2244,7 @@ window.addEventListener('appinstalled',()=>{
 <div id="battleArena">
   <div class="arena-top">
     <div class="fighter-card enemy-card">
-      <div class="fighter-header"><div class="fighter-name" id="eName"></div><span class="fighter-lvl" id="eLevel"></span><span class="fighter-evo" id="eEvoStage"></span></div>
+      <div class="fighter-header"><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div class="fighter-name" id="eName"></div><span class="fighter-lvl" id="eLevel"></span></div><span class="fighter-evo" id="eEvoStage"></span></div>
       <img id="eImg" class="fighter-img" src="">
       <div class="hp-bar-bg"><div class="hp-fill hp-green" id="eHPBar" style="width:100%"></div></div>
       <div class="hp-text" id="eHPText"></div>
@@ -2248,7 +2253,7 @@ window.addEventListener('appinstalled',()=>{
     </div>
     <div class="vs-text">VS</div>
     <div class="fighter-card player-card">
-      <div class="fighter-header"><div class="fighter-name" id="pName"></div><span class="fighter-lvl" id="pLevel"></span><span class="fighter-evo" id="pEvoStage"></span></div>
+      <div class="fighter-header"><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div class="fighter-name" id="pName"></div><span class="fighter-lvl" id="pLevel"></span></div><span class="fighter-evo" id="pEvoStage"></span></div>
       <img id="pImg" class="fighter-img" src="">
       <div class="hp-bar-bg"><div class="hp-fill hp-green" id="pHPBar" style="width:100%"></div></div>
       <div class="hp-text" id="pHPText"></div>

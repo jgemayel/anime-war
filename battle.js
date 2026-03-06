@@ -621,7 +621,7 @@ function getEvoStageData(id){const evo=CHAR_EVOLUTIONS[id];if(!evo)return null;c
 function getNextEvo(id){const evo=CHAR_EVOLUTIONS[id];if(!evo)return null;const stage=getEvoStage(id);if(stage>=evo.stages.length)return null;return evo.stages[stage];}
 function canEvolve(id){const evo=CHAR_EVOLUTIONS[id];if(!evo)return false;const stage=getEvoStage(id);if(stage>=evo.stages.length)return false;const next=evo.stages[stage];if(getCharLevelNum(id)<next.level)return false;return true;}
 function evolveCharacter(id){if(!canEvolve(id))return;const evo=CHAR_EVOLUTIONS[id];const stage=getEvoStage(id);const nextStage=stage+1;evoData[id]=nextStage;saveEvolutions(evoData);if(evo.learnMoves&&evo.learnMoves[nextStage]){const newMove=evo.learnMoves[nextStage];learnNewMove(id,newMove);}playSound('win');showCharDetail(id);}
-function learnNewMove(id,newMove){const moves=BATTLE_MOVES[id];if(!moves)return;let weakIdx=0;let weakPow=moves[0].power;for(let i=1;i<moves.length;i++){if(moves[i].power<weakPow){weakPow=moves[i].power;weakIdx=i;}}if(newMove.power>weakPow){moves[weakIdx]=newMove;}}
+function learnNewMove(id,newMove){const moves=BATTLE_MOVES[id];if(!moves)return;let weakIdx=0;let weakPow=moves[0].power;for(let i=1;i<moves.length;i++){if(moves[i].power<weakPow){weakPow=moves[i].power;weakIdx=i;}}if(newMove.power>weakPow){const safeMove={name:newMove.name||'Unknown Move',type:newMove.type||'normal',power:newMove.power||0,acc:newMove.acc!==undefined?newMove.acc:100,pp:newMove.pp!==undefined?newMove.pp:15,effect:newMove.effect||null};moves[weakIdx]=safeMove;}}
 function getEvoBoosts(id){const evo=CHAR_EVOLUTIONS[id];if(!evo)return{atk:0,def:0,spd:0,haki:0,df:0};const stage=getEvoStage(id);if(stage<=1)return{atk:0,def:0,spd:0,haki:0,df:0};let total={atk:0,def:0,spd:0,haki:0,df:0};for(let i=1;i<stage;i++){const b=evo.stages[i].boosts;total.atk+=b.atk||0;total.def+=b.def||0;total.spd+=b.spd||0;total.haki+=b.haki||0;total.df+=b.df||0;}return total;}
 function isEvolved(id){return getEvoStage(id)>1;}
 function getEvoFormName(id){const data=getEvoStageData(id);return data?data.name:null;}
@@ -1099,6 +1099,7 @@ function renderStoryArcs(arcs,story){
 
 let storyContext=null;
 let storyRunState=null; // tracks current arc run {arcId, chIdx, teamHP, coinsBanked}
+let endlessBattle={active:false,charId:null,wins:0,diff:'medium',totalExp:0,startingCoins:0}; // Endless mode state
 
 // Start a full arc run from the beginning (team selection)
 function startStoryArc(arcId){
@@ -1946,7 +1947,10 @@ function renderBattleSetup(){
     </div>`;
   }).join('');
   document.getElementById('battleTeamCount').textContent=`${selectedBattleTeam.length}/3`;
-  document.getElementById('btnBattleStart').disabled=selectedBattleTeam.length!==3;
+  const startBtn = document.getElementById('btnBattleStart');
+  startBtn.disabled=selectedBattleTeam.length!==3;
+  startBtn.textContent='FIGHT!';
+  startBtn.onclick=()=>startBattleFight();
 
   // Story mode anime restriction label
   const storyLabel=document.getElementById('storyAnimeLabel');
@@ -1966,8 +1970,9 @@ function renderBattleSetup(){
     b.classList.toggle('diff-active',b.dataset.diff===selectedDifficulty);
   });
 
-  // Bet buttons
+  // Show bet and item rows (hidden in endless mode)
   const betRow = document.getElementById('betRow');
+  if(betRow) betRow.style.display='block';
   if(betRow) {
     const betOpts = getBetOptions();
     betRow.innerHTML = betOpts.map(amt => {
@@ -1994,6 +1999,7 @@ function renderBattleSetup(){
   // Item equip row
   const itemRow = document.getElementById('itemEquipRow');
   if(itemRow) {
+    itemRow.style.display='block';
     const inv = loadInventory();
     const hasItems = Object.keys(inv).length > 0;
     if(hasItems) {
@@ -2330,6 +2336,37 @@ function renderBattle(){
       </div>`;
       resultBtns=`<button onclick="abandonStoryRun()">Back to Story</button>
         <button onclick="storyContext=null;storyRunState=null;closeBattle()">Main Menu</button>`;
+    }else if(endlessBattle.active && b.phase==='won'){
+      // Won in endless mode: continue or quit
+      endlessBattle.wins++;
+      const expMult=endlessBattle.diff==='easy'?1:endlessBattle.diff==='medium'?2:3;
+      const expGain=30*expMult;
+      addCharExp(endlessBattle.charId,expGain);
+      endlessBattle.totalExp+=expGain;
+      const reward=DIFF_REWARDS[endlessBattle.diff]||100;
+      addCoins(reward);
+      rewardHTML=`<div class="reward-breakdown">
+        <div class="reward-line">⭐ +${expGain} EXP</div>
+        <div class="reward-line">💰 +${reward} coins</div>
+        <div class="reward-line">🏆 Streak: ${endlessBattle.wins}</div>
+      </div>`;
+      resultBtns=`<button onclick="endlessNextRound()">Next Opponent</button>
+        <button onclick="endlessDefeat()">End Run</button>`;
+    }else if(endlessBattle.active && b.phase==='lost'){
+      // Lost in endless mode: show final stats
+      endlessBattle.active=false;
+      const expMult=endlessBattle.diff==='easy'?1:endlessBattle.diff==='medium'?2:3;
+      const expPerWin=30*expMult;
+      const totalExp=endlessBattle.wins*expPerWin;
+      const coinsDiff=saveData.coins-endlessBattle.startingCoins;
+      rewardHTML=`<div class="reward-breakdown loss">
+        <div class="reward-line">💀 Endless Run Failed!</div>
+        <div class="reward-line">🏆 Final Streak: ${endlessBattle.wins} wins</div>
+        <div class="reward-line">⭐ Total EXP: ${endlessBattle.totalExp}</div>
+        <div class="reward-line">💰 Coins Earned: ${coinsDiff}</div>
+      </div>`;
+      resultBtns=`<button onclick="showBattleSetup()">Try Again</button>
+        <button onclick="closeBattle()">Main Menu</button>`;
     }else{
       // Normal battle
       resultBtns=`<button onclick="showBattleSetup()">Play Again</button>
@@ -2592,6 +2629,7 @@ function closeCollection(){
 
 // ===== CHARACTER DETAIL PAGE =====
 function showCharDetail(id) {
+ console.log('showCharDetail called for', id);
  try{
   const ch = ALL_CHARS.find(c => c.id === id);
   if(!ch) return;
@@ -2657,20 +2695,27 @@ function showCharDetail(id) {
         <div class="stat-row"><span class="stat-label">${ch.anime==='onepiece'?'DF':'JUTSU'}</span><span class="stat-val">${ch.df||0}${boosts.df?`<span class="stat-boost">+${boosts.df}</span>`:''}</span>${statBar(ch.df||0,boosts.df,120,'#FF9800')}</div>
       </div>
       <div class="detail-section-title">MOVES</div>
-      <div class="detail-moves">${moves.map(m => `
-        <div class="detail-move move-${m.type}">
+      <div class="detail-moves">${moves.map(m => {
+        const safeName = (m && m.name) || 'Unknown Move';
+        const safeType = (m && m.type) || 'normal';
+        const safePower = (m && m.power !== undefined) ? m.power : 0;
+        const safeAcc = (m && m.acc !== undefined) ? m.acc : 100;
+        const safePP = (m && m.pp !== undefined) ? m.pp : 15;
+        const safeEffect = (m && m.effect) || null;
+        return `
+        <div class="detail-move move-${safeType}">
           <div class="dm-top">
-            <span class="dm-name">${m.name}</span>
-            <span class="dm-pwr">PWR ${m.power}</span>
+            <span class="dm-name">${safeName}</span>
+            <span class="dm-pwr">PWR ${safePower}</span>
           </div>
           <div class="dm-stats">
-            <span class="dm-type">${m.type}</span>
-            <span>Acc ${m.acc}%</span>
-            <span>PP ${m.pp}</span>
-            ${m.effect?`<span class="dm-effect">${m.effect}</span>`:''}
+            <span class="dm-type">${safeType}</span>
+            <span>Acc ${safeAcc}%</span>
+            <span>PP ${safePP}</span>
+            ${safeEffect?`<span class="dm-effect">${safeEffect}</span>`:''}
           </div>
         </div>
-      `).join('')}</div>
+      `;}).join('')}</div>
       ${unlocked ? renderUpgradeSection(id, ch, currentLevel, upgrades) : `
       `}
       ${unlocked ? renderEvoSection(id, ch) : ''}
@@ -3146,3 +3191,147 @@ const OrigBattleChar = BattleChar;
     return origCalcDamage(boostedAtk, boostedDef, move);
   };
 })();
+
+// ===== ENDLESS BATTLE MODE =====
+
+function showEndlessSetup(){
+  document.getElementById('title-screen').style.display='none';
+  document.getElementById('battleArena').style.display='none';
+  document.getElementById('battleSetup').style.display='block';
+  currentBattle=null;
+  selectedBattleTeam=[];
+  selectedDifficulty='medium';
+  currentBet=0;
+  equippedItems=[];
+
+  // Customize for endless: single char selection
+  const grid=document.getElementById('battleTeamGrid');
+  let unlocked=ALL_CHARS.filter(c=>isUnlocked(c.id));
+
+  grid.innerHTML=unlocked.map(c=>{
+    const sel=selectedBattleTeam.length===1 && selectedBattleTeam.includes(c.id);
+    const lvl = getUpgradeLevel(c.id);
+    const lvlTag = lvl > 0 ? `<div class="bt-char-lvl">Lv.${lvl}</div>` : '';
+    return `<div class="bt-char ${sel?'bt-selected':''}" onclick="toggleEndlessChar('${c.id}')">
+      <img src="${CHAR_IMGS[c.id]||'images/'+c.id+'.jpg'}" alt="${c.name}">
+      <div class="bt-char-name">${c.name}</div>
+      <div class="bt-char-tier tier-${c.tier.replace('+','p')}">${c.tier}</div>
+      ${lvlTag}
+    </div>`;
+  }).join('');
+
+  document.getElementById('battleTeamCount').textContent=`${selectedBattleTeam.length}/1`;
+  const startBtn = document.getElementById('btnBattleStart');
+  startBtn.disabled=selectedBattleTeam.length!==1;
+  startBtn.textContent='START ENDLESS';
+  startBtn.onclick=()=>startEndlessBattle();
+
+  // Hide bet and item rows for endless mode
+  const betRow = document.getElementById('betRow');
+  if(betRow) betRow.style.display='none';
+  const itemRow = document.getElementById('itemEquipRow');
+  if(itemRow) itemRow.style.display='none';
+
+  // Update difficulty buttons
+  document.querySelectorAll('.diff-btn').forEach(b=>{
+    b.classList.toggle('diff-active',b.dataset.diff===selectedDifficulty);
+  });
+}
+
+function toggleEndlessChar(id){
+  if(selectedBattleTeam.includes(id)){
+    selectedBattleTeam=[];
+  }else{
+    selectedBattleTeam=[id];
+  }
+  showEndlessSetup();
+}
+
+function startEndlessBattle(){
+  if(selectedBattleTeam.length!==1) return;
+  const charId=selectedBattleTeam[0];
+  const ch=ALL_CHARS.find(c=>c.id===charId);
+  if(!ch) return;
+
+  endlessBattle={
+    active:true,
+    charId:charId,
+    wins:0,
+    diff:selectedDifficulty,
+    totalExp:0,
+    startingCoins:saveData.coins
+  };
+
+  // Create initial team with just this one character
+  selectedBattleTeam=[charId];
+
+  // Start the first fight
+  endlessNextRound();
+}
+
+function getEndlessOpponent(wins){
+  // Get progressively harder opponents based on win count
+  let tiers=['C'];
+  if(wins>=2) tiers=['C','B'];
+  if(wins>=5) tiers=['B'];
+  if(wins>=10) tiers=['A','B'];
+  if(wins>=15) tiers=['A'];
+  if(wins>=20) tiers=['A','S'];
+  if(wins>=25) tiers=['S'];
+  if(wins>=30) tiers=['S','S+'];
+  if(wins>=35) tiers=['S+'];
+
+  let candidates=ALL_CHARS.filter(c=>tiers.includes(c.tier));
+  if(candidates.length===0) candidates=ALL_CHARS.filter(c=>c.tier==='S+');
+
+  const opponent=candidates[Math.floor(Math.random()*candidates.length)];
+  return opponent;
+}
+
+function endlessNextRound(){
+  if(!endlessBattle.active) return;
+
+  const playerChar=ALL_CHARS.find(c=>c.id===endlessBattle.charId);
+  if(!playerChar) return;
+
+  // Get opponent
+  const opponent=getEndlessOpponent(endlessBattle.wins);
+
+  // Create teams - pass as full character objects
+  const pTeam=[playerChar];
+  const eTeam=[opponent];
+
+  // Create the battle
+  currentBattle=new Battle(pTeam,eTeam,endlessBattle.diff);
+  currentBattle._endless=true;
+
+  document.getElementById('title-screen').style.display='none';
+  document.getElementById('battleSetup').style.display='none';
+  document.getElementById('battleArena').style.display='block';
+  renderBattle();
+}
+
+function endlessDefeat(){
+  // Called when user wants to end their run early from the "Next Opponent" menu
+  if(!endlessBattle.active) return;
+
+  endlessBattle.active=false;
+
+  const coinsDiff=saveData.coins-endlessBattle.startingCoins;
+
+  // Show end-of-run screen
+  const actDiv=document.getElementById('battleActions');
+  actDiv.innerHTML=`<div class="battle-result lost">
+    <h2>RUN ENDED</h2>
+    <div class="reward-breakdown">
+      <div class="reward-line">🏆 Final Streak: ${endlessBattle.wins} wins</div>
+      <div class="reward-line">⭐ Total EXP: ${endlessBattle.totalExp}</div>
+      <div class="reward-line">💰 Coins: +${coinsDiff}</div>
+    </div>
+    <div class="result-btns">
+      <button onclick="showBattleSetup()">Try Another</button>
+      <button onclick="closeBattle()">Main Menu</button>
+    </div>
+  </div>`;
+}
+
