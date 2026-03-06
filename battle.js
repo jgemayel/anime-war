@@ -513,7 +513,7 @@ function addCharExp(id, amount){
 // EXP rewards by context
 function calcBattleExp(won, diff, charTier, isStory, isBoss){
   const tierMult = {'C':1,'B':1.1,'A':1.2,'S':1.3,'S+':1.4}[charTier]||1;
-  const diffMult = {'easy':0.5,'medium':1,'hard':2,'extreme':3.5}[diff]||1;
+  const diffMult = {'easy':0.5,'medium':1.5,'hard':5,'extreme':10}[diff]||1;
   let base = won ? 60 : 15;
   if(isStory) base = won ? 80 : 20;
   if(isBoss && won) base = 150;
@@ -2229,28 +2229,9 @@ function renderBattleSetup(){
     }
   }
 
-  // EXP Wager row
-  const wagerRow = document.getElementById('expWagerRow');
-  if(wagerRow){
-    wagerRow.style.display = storyContext ? 'none' : 'block';
-    const wagerOpts = [1, 2, 5, 10];
-    wagerRow.innerHTML = wagerOpts.map(mult => {
-      const active = expWagerMult === mult;
-      const label = mult === 1 ? 'SAFE (1x)' : mult + 'x';
-      const cls = mult >= 10 ? 'wager-extreme' : mult >= 5 ? 'wager-high' : '';
-      return '<button class="wager-btn ' + (active ? 'wager-active ' : '') + cls + '" onclick="setExpWager(' + mult + ')">' + label + '</button>';
-    }).join('');
-  }
-  const wagerInfo = document.getElementById('expWagerInfo');
-  if(wagerInfo){
-    if(expWagerMult > 1){
-      wagerInfo.textContent = 'Win: ' + expWagerMult + 'x EXP | Lose: -' + expWagerMult + 'x EXP (can level DOWN!)';
-      wagerInfo.style.color = expWagerMult >= 10 ? '#f44' : expWagerMult >= 5 ? '#ff8c00' : '#ffd700';
-    } else {
-      wagerInfo.textContent = 'No risk. Normal EXP gain on win, reduced on loss.';
-      wagerInfo.style.color = '#4CAF50';
-    }
-  }
+  // Hide EXP wager in normal battle mode (EXP wager is endless-only)
+  const wagerSection = document.getElementById('expWagerSection');
+  if(wagerSection) wagerSection.style.display = 'none';
 
   // Show active synergies
   const synergyEl = document.getElementById('activeSynergies');
@@ -2599,7 +2580,7 @@ function renderBattle(){
     }else if(endlessBattle.active && b.phase==='won'){
       // Won in endless mode: continue or quit
       endlessBattle.wins++;
-      const expMult={'easy':1,'medium':2,'hard':3,'extreme':5}[endlessBattle.diff]||1;
+      const expMult={'easy':1,'medium':2,'hard':5,'extreme':10}[endlessBattle.diff]||1;
       const wgr=endlessBattle.expWager||1;
       const expGain=Math.floor(30*expMult*wgr);
       // Award EXP to all team members
@@ -2619,13 +2600,13 @@ function renderBattle(){
       endlessBattle.active=false;
       const wgr=endlessBattle.expWager||1;
       if(wgr > 1){
-        const expMult={'easy':1,'medium':2,'hard':3,'extreme':5}[endlessBattle.diff]||1;
+        const expMult={'easy':1,'medium':2,'hard':5,'extreme':10}[endlessBattle.diff]||1;
         const penalty = Math.floor(30 * expMult * wgr);
         (endlessBattle.teamIds||[]).forEach(cid=>addCharExp(cid, -penalty));
         endlessBattle.totalExp -= penalty;
       }
       const coinsDiff=saveData.coins-endlessBattle.startingCoins;
-      const wagerNote = wgr > 1 ? '<div class="reward-line" style="color:#f44">💢 EXP Wager Lost! -' + Math.floor(30 * ({'easy':1,'medium':2,'hard':3,'extreme':5}[endlessBattle.diff]||1) * wgr) + ' EXP</div>' : '';
+      const wagerNote = wgr > 1 ? '<div class="reward-line" style="color:#f44">💢 EXP Wager Lost! -' + Math.floor(30 * ({'easy':1,'medium':2,'hard':5,'extreme':10}[endlessBattle.diff]||1) * wgr) + ' EXP</div>' : '';
       rewardHTML=`<div class="reward-breakdown loss">
         <div class="reward-line">💀 Endless Run Failed!</div>
         <div class="reward-line">🏆 Final Streak: ${endlessBattle.wins} wins</div>
@@ -3556,17 +3537,20 @@ function showEndlessSetup(){
   if(wagerSection) wagerSection.style.display='block';
   const wagerRow = document.getElementById('expWagerRow');
   if(wagerRow){
-    const wagerOpts = [1, 2, 5, 10];
+    const wagerOpts = [1, 2, 5, 10, 25, 50];
     wagerRow.innerHTML = wagerOpts.map(mult => {
       const active = expWagerMult === mult;
-      const label = mult === 1 ? 'SAFE (1x)' : mult + 'x';
-      const cls = mult >= 10 ? 'wager-extreme' : mult >= 5 ? 'wager-high' : '';
+      const label = mult === 1 ? 'SAFE' : mult + 'x';
+      const cls = mult >= 25 ? 'wager-insane' : mult >= 10 ? 'wager-extreme' : mult >= 5 ? 'wager-high' : '';
       return '<button class="wager-btn ' + (active ? 'wager-active ' : '') + cls + '" onclick="setExpWager(' + mult + ');showEndlessSetup()">' + label + '</button>';
     }).join('');
   }
   const wagerInfo = document.getElementById('expWagerInfo');
   if(wagerInfo){
-    if(expWagerMult > 1){
+    if(expWagerMult >= 25){
+      wagerInfo.textContent = 'INSANE! Win: ' + expWagerMult + 'x EXP | Lose: -' + expWagerMult + 'x EXP (WILL level down!)';
+      wagerInfo.style.color = '#ff00ff';
+    } else if(expWagerMult > 1){
       wagerInfo.textContent = 'Win: ' + expWagerMult + 'x EXP | Lose: -' + expWagerMult + 'x EXP (can level DOWN!)';
       wagerInfo.style.color = expWagerMult >= 10 ? '#f44' : expWagerMult >= 5 ? '#ff8c00' : '#ffd700';
     } else {
