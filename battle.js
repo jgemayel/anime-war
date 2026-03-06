@@ -998,7 +998,13 @@ function showBattleSetup(){
 function renderBattleSetup(){
   const grid=document.getElementById('battleTeamGrid');
   let unlocked=ALL_CHARS.filter(c=>isUnlocked(c.id));
-  if(typeof globalAnimeFilter!=='undefined'&&globalAnimeFilter!=='both') unlocked=unlocked.filter(c=>c.anime===globalAnimeFilter);
+  // In story mode, restrict to matching anime
+  if(storyContext){
+    const arc=STORY_ARCS.find(a=>a.id===storyContext.arcId);
+    if(arc) unlocked=unlocked.filter(c=>c.anime===arc.anime);
+  } else if(typeof globalAnimeFilter!=='undefined'&&globalAnimeFilter!=='both'){
+    unlocked=unlocked.filter(c=>c.anime===globalAnimeFilter);
+  }
 
   // Show coin balance at top
   const coinEl = document.getElementById('setupCoins');
@@ -1017,6 +1023,19 @@ function renderBattleSetup(){
   }).join('');
   document.getElementById('battleTeamCount').textContent=`${selectedBattleTeam.length}/3`;
   document.getElementById('btnBattleStart').disabled=selectedBattleTeam.length!==3;
+
+  // Story mode anime restriction label
+  const storyLabel=document.getElementById('storyAnimeLabel');
+  if(storyLabel){
+    if(storyContext){
+      const arc=STORY_ARCS.find(a=>a.id===storyContext.arcId);
+      const animeName=arc&&arc.anime==='onepiece'?'One Piece':'Naruto';
+      storyLabel.style.display='block';
+      storyLabel.textContent=`${animeName} characters only`;
+    } else {
+      storyLabel.style.display='none';
+    }
+  }
 
   // Difficulty buttons
   document.querySelectorAll('.diff-btn').forEach(b=>{

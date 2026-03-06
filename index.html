@@ -2076,7 +2076,7 @@ function loadDraftTeamImages(){
 // PWA: Service Worker Registration
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js?v=15').then(r=>{
+    navigator.serviceWorker.register('sw.js?v=16').then(r=>{
       console.log('SW registered, scope:',r.scope);
       r.update();
     }).catch(e=>console.log('SW registration failed:',e));
@@ -2123,6 +2123,7 @@ window.addEventListener('appinstalled',()=>{
     <button class="diff-btn" data-diff="hard" onclick="setDifficulty('hard')">HARD<span class="diff-reward">+750</span></button>
   </div>
   <div class="team-count">SELECT YOUR TEAM: <span id="battleTeamCount">0/3</span></div>
+  <div id="storyAnimeLabel" style="display:none;text-align:center;color:#ffd700;font-size:0.85rem;font-weight:bold;margin:4px 0;text-transform:uppercase;letter-spacing:1px"></div>
   <div id="activeSynergies" class="synergy-display"></div>
 
   <div id="battleTeamGrid"></div>
