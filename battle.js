@@ -1512,6 +1512,9 @@ class BattleChar{
     // Default synergy bonuses if not provided
     synergyBonuses = synergyBonuses || { atk: 1.0, def: 1.0, spd: 1.0, haki: 1.0, df: 1.0, healing: 0.0 };
         Object.assign(this,ch);
+    // Store character level for display
+    this.charLevel = typeof getCharLevelNum==='function' ? getCharLevelNum(ch.id) : 1;
+    this.evoStage = typeof getEvoStage==='function' ? getEvoStage(ch.id) : 1;
     // Show evolution form name in battle
     const _evoName = typeof getEvoFormName==='function' ? getEvoFormName(ch.id) : null;
     if(_evoName) this.name = _evoName;
@@ -1906,7 +1909,9 @@ let selectedDifficulty='medium';
 
 function showBattleSetup(){
   document.getElementById('title-screen').style.display='none';
+  document.getElementById('battleArena').style.display='none';
   document.getElementById('battleSetup').style.display='block';
+  currentBattle=null;
   selectedBattleTeam=[];
   selectedDifficulty='medium';
   currentBet=0;
@@ -2124,6 +2129,14 @@ function renderBattle(){
   // Player side
   document.getElementById('pName').textContent=p.name;
   document.getElementById('pImg').src=CHAR_IMGS[p.id]||'images/'+p.id+'.jpg';
+  const pLvlEl=document.getElementById('pLevel');
+  if(pLvlEl) pLvlEl.textContent='Lv.'+p.charLevel;
+  const pEvoEl=document.getElementById('pEvoStage');
+  if(pEvoEl){const ms=getMaxEvoStage(p.id);pEvoEl.textContent=p.evoStage>1?'★'.repeat(p.evoStage-1):'';pEvoEl.className='fighter-evo evo-s'+p.evoStage;}
+  // Evo aura on player image
+  const pImgEl=document.getElementById('pImg');
+  pImgEl.src=CHAR_IMGS[p.id]||'images/'+p.id+'.jpg';
+  pImgEl.className='fighter-img'+(p.evoStage>=3?' evo-aura-3':p.evoStage>=2?' evo-aura-2':'');
   const pPct=Math.max(0,p.hp/p.maxHP*100);
   document.getElementById('pHPBar').style.width=pPct+'%';
   document.getElementById('pHPBar').className='hp-fill '+(pPct>50?'hp-green':pPct>20?'hp-yellow':'hp-red');
@@ -2135,7 +2148,14 @@ function renderBattle(){
 
   // Enemy side
   document.getElementById('eName').textContent=e.name;
-  document.getElementById('eImg').src=CHAR_IMGS[e.id]||'images/'+e.id+'.jpg';
+  const eLvlEl=document.getElementById('eLevel');
+  if(eLvlEl) eLvlEl.textContent='Lv.'+e.charLevel;
+  const eEvoEl=document.getElementById('eEvoStage');
+  if(eEvoEl){eEvoEl.textContent=e.evoStage>1?'★'.repeat(e.evoStage-1):'';eEvoEl.className='fighter-evo evo-s'+e.evoStage;}
+  // Evo aura on enemy image
+  const eImgEl=document.getElementById('eImg');
+  eImgEl.src=CHAR_IMGS[e.id]||'images/'+e.id+'.jpg';
+  eImgEl.className='fighter-img'+(e.evoStage>=3?' evo-aura-3':e.evoStage>=2?' evo-aura-2':'');
   const ePct=Math.max(0,e.hp/e.maxHP*100);
   document.getElementById('eHPBar').style.width=ePct+'%';
   document.getElementById('eHPBar').className='hp-fill '+(ePct>50?'hp-green':ePct>20?'hp-yellow':'hp-red');
@@ -2541,7 +2561,7 @@ function renderCollection(){
       ${unlocked&&fav?'<div class="coll-fav-star">⭐</div>':''}
       ${unlocked&&evo?'<div class="coll-evo-badge">★'+getEvoStage(c.id)+'</div>':''}
       <div class="coll-img-wrap">
-        <img src="${CHAR_IMGS[c.id]||'images/'+c.id+'.jpg'}" class="${unlocked?'':'coll-silhouette'}">
+        <img src="${CHAR_IMGS[c.id]||'images/'+c.id+'.jpg'}" class="${unlocked?''+(getEvoStage(c.id)>=3?' evo-aura-3':getEvoStage(c.id)>=2?' evo-aura-2':''):'coll-silhouette'}">
         ${!unlocked?`<div class="coll-cost ${canAfford?'can-afford':''}">${cost} coins</div>`:''}
       </div>
       <div class="coll-name">${unlocked?(getEvoFormName(c.id)||c.name):'???'}</div>

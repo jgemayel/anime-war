@@ -139,10 +139,17 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
 .arena-top{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 10px}
 .arena-mid{display:flex;justify-content:space-around;align-items:center;flex:1;min-height:200px}
 .fighter-card{text-align:center;width:140px}
-.fighter-card img{width:120px;height:144px;object-fit:cover;border-radius:10px;border:2px solid #333}
+.fighter-header{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:4px;flex-wrap:wrap}
+.fighter-card img{width:120px;height:144px;object-fit:cover;border-radius:10px;border:2px solid #333;transition:box-shadow .3s,border-color .3s}
 .fighter-card.player-card img{border-color:#4CAF50}
 .fighter-card.enemy-card img{border-color:#f44336}
-.fighter-name{font-family:'Bebas Neue',sans-serif;font-size:16px;color:#fff;margin-top:4px}
+.fighter-img.evo-aura-2{box-shadow:0 0 12px 4px rgba(100,149,237,0.5),0 0 24px 8px rgba(100,149,237,0.2);border-color:#6495ED!important}
+.fighter-img.evo-aura-3{box-shadow:0 0 14px 5px rgba(255,215,0,0.6),0 0 28px 10px rgba(255,165,0,0.3);border-color:#FFD700!important;animation:evo-pulse 2s ease-in-out infinite}
+@keyframes evo-pulse{0%,100%{box-shadow:0 0 14px 5px rgba(255,215,0,0.6),0 0 28px 10px rgba(255,165,0,0.3)}50%{box-shadow:0 0 18px 7px rgba(255,215,0,0.8),0 0 36px 14px rgba(255,165,0,0.4)}}
+.fighter-name{font-family:'Bebas Neue',sans-serif;font-size:16px;color:#fff}
+.fighter-lvl{font-size:11px;color:#aaa;font-weight:bold;background:#1a1a2e;padding:1px 5px;border-radius:4px;white-space:nowrap}
+.fighter-evo{font-size:12px;line-height:1}
+.evo-s1{color:#666}.evo-s2{color:#6495ED}.evo-s3{color:#FFD700}
 .hp-bar-bg{width:120px;height:10px;background:#222;border-radius:5px;margin:4px auto;overflow:hidden}
 .hp-fill{height:100%;border-radius:5px;transition:width .5s}
 .hp-green{background:linear-gradient(90deg,#4CAF50,#8BC34A)}
@@ -210,7 +217,10 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
 .coll-locked{border-color:#111;cursor:pointer}
 .coll-locked:hover{border-color:#FFD70066}
 .coll-img-wrap{position:relative}
-.coll-img-wrap img{width:100%;aspect-ratio:5/6;object-fit:cover}
+.coll-img-wrap img{width:100%;aspect-ratio:5/6;object-fit:cover;transition:box-shadow .3s}
+.coll-img-wrap img.evo-aura-2{box-shadow:0 0 8px 3px rgba(100,149,237,0.4)}
+.coll-img-wrap img.evo-aura-3{box-shadow:0 0 10px 4px rgba(255,215,0,0.5);animation:evo-pulse-sm 2.5s ease-in-out infinite}
+@keyframes evo-pulse-sm{0%,100%{box-shadow:0 0 10px 4px rgba(255,215,0,0.5)}50%{box-shadow:0 0 14px 6px rgba(255,215,0,0.7)}}
 .coll-silhouette{filter:brightness(0) saturate(0)}
 .coll-cost{position:absolute;bottom:0;left:0;right:0;background:#000a;font-size:10px;color:#FFD700;padding:3px;font-family:'Chakra Petch',sans-serif}
 .coll-cost.can-afford{color:#4CAF50}
@@ -2160,7 +2170,7 @@ function loadDraftTeamImages(){
 // PWA: Service Worker Registration
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js?v=20').then(r=>{
+    navigator.serviceWorker.register('sw.js?v=21').then(r=>{
       console.log('SW registered, scope:',r.scope);
       r.update();
     }).catch(e=>console.log('SW registration failed:',e));
@@ -2229,8 +2239,8 @@ window.addEventListener('appinstalled',()=>{
 <div id="battleArena">
   <div class="arena-top">
     <div class="fighter-card enemy-card">
-      <div class="fighter-name" id="eName"></div>
-      <img id="eImg" src="">
+      <div class="fighter-header"><div class="fighter-name" id="eName"></div><span class="fighter-lvl" id="eLevel"></span><span class="fighter-evo" id="eEvoStage"></span></div>
+      <img id="eImg" class="fighter-img" src="">
       <div class="hp-bar-bg"><div class="hp-fill hp-green" id="eHPBar" style="width:100%"></div></div>
       <div class="hp-text" id="eHPText"></div>
       <div class="status-icons" id="eStatus"></div>
@@ -2238,8 +2248,8 @@ window.addEventListener('appinstalled',()=>{
     </div>
     <div class="vs-text">VS</div>
     <div class="fighter-card player-card">
-      <div class="fighter-name" id="pName"></div>
-      <img id="pImg" src="">
+      <div class="fighter-header"><div class="fighter-name" id="pName"></div><span class="fighter-lvl" id="pLevel"></span><span class="fighter-evo" id="pEvoStage"></span></div>
+      <img id="pImg" class="fighter-img" src="">
       <div class="hp-bar-bg"><div class="hp-fill hp-green" id="pHPBar" style="width:100%"></div></div>
       <div class="hp-text" id="pHPText"></div>
       <div class="status-icons" id="pStatus"></div>
