@@ -2170,7 +2170,7 @@ function loadDraftTeamImages(){
 // PWA: Service Worker Registration
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js?v=21').then(r=>{
+    navigator.serviceWorker.register('sw.js?v=22').then(r=>{
       console.log('SW registered, scope:',r.scope);
       r.update();
     }).catch(e=>console.log('SW registration failed:',e));
