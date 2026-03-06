@@ -13,28 +13,124 @@ const DEFAULT_STARTERS = [...DEFAULT_STARTERS_OP,...DEFAULT_STARTERS_NR];
 // ---- COLLECTION / SAVE SYSTEM ----
 let saveData = loadSave();
 
-// === ONE-TIME HARD RESET v25 ===
-(function hardResetV25(){
-  if(localStorage.getItem('animewar_reset_v25')) return; // already ran
+// ===== PLAYER DATA SYSTEM =====
+const PLAYER_KEY = 'animewar_player';
+function loadPlayer(){
+  try{
+    const s=localStorage.getItem(PLAYER_KEY);
+    if(s)return JSON.parse(s);
+  }catch(e){}
+  return null;
+}
+function savePlayer(p){
+  localStorage.setItem(PLAYER_KEY, JSON.stringify(p));
+}
+let playerData = loadPlayer();
+
+// === ONE-TIME HARD RESET v29 ===
+(function hardResetV29(){
+  if(localStorage.getItem('animewar_reset_v29')) return; // already ran
   // Clear all game data
   ['animewar_save','animewar_charlevels','animewar_evolutions','animewar_upgrades',
-   'animewar_equipment','animewar_favorites','animewar_daily','animewar_prestige'].forEach(k=>localStorage.removeItem(k));
-  // Pick 5 random characters from the full roster after DOM ready
-  function doReset(){
-    const pool=[...ALL_CHARS];
-    const picked=[];
-    while(picked.length<5 && pool.length>0){
-      const idx=Math.floor(Math.random()*pool.length);
-      picked.push(pool[idx].id);
-      pool.splice(idx,1);
-    }
-    saveData={unlocked:picked, coins:0, wins:0, losses:0};
-    saveSave();
-    localStorage.setItem('animewar_reset_v25','done');
-  }
-  if(typeof ALL_CHARS!=='undefined' && ALL_CHARS.length>0){ doReset(); }
-  else{ document.addEventListener('DOMContentLoaded',()=>{ setTimeout(doReset,100); }); }
+   'animewar_equipment','animewar_favorites','animewar_daily','animewar_prestige','animewar_player'].forEach(k=>localStorage.removeItem(k));
+  // Set new reset flag
+  localStorage.setItem('animewar_reset_v29','done');
+  // Initialize with empty unlocked - onboarding will handle it
+  saveData={unlocked:[], coins:0, wins:0, losses:0};
+  saveSave();
+  playerData=null;
 })();
+
+// ===== ONBOARDING SYSTEM =====
+let onboardingStep = 'name'; // 'name' or 'characters'
+let onboardingName = '';
+let onboardingSelected = [];
+
+function showOnboarding(){
+  const screen = document.getElementById('onboarding-screen');
+  screen.style.display='flex';
+  renderOnboardingStep();
+}
+
+function renderOnboardingStep(){
+  const screen = document.getElementById('onboarding-screen');
+  if(onboardingStep === 'name'){
+    screen.innerHTML = `
+      <div class="onboard-title">ANIME WAR</div>
+      <div class="onboard-sub">Welcome, Fighter!</div>
+      <div style="text-align:center;margin-top:20px">
+        <div class="onboard-sub" style="font-size:16px;margin-bottom:15px">What's your name?</div>
+        <input type="text" class="onboard-input" id="onboardName" placeholder="Enter your name" maxlength="20" style="width:250px">
+        <button class="onboard-btn" onclick="onboardingNextStep()" style="margin-top:20px">NEXT</button>
+      </div>
+    `;
+    setTimeout(()=>{document.getElementById('onboardName')?.focus();},100);
+  } else if(onboardingStep === 'characters'){
+    const allChars = ALL_CHARS;
+    screen.innerHTML = `
+      <div class="onboard-title">PICK YOUR TEAM</div>
+      <div class="onboard-sub">Choose 3 starting characters</div>
+      <div class="onboard-counter"><span id="onboardCounter">0</span>/3 selected</div>
+      <div class="onboard-grid">
+        ${allChars.map(c => `
+          <div class="onboard-char ${onboardingSelected.includes(c.id) ? 'selected' : ''}" onclick="toggleOnboardingChar('${c.id}')">
+            <img src="${CHAR_IMGS[c.id]||'images/'+c.id+'.jpg'}" alt="${c.name}">
+            <div class="onboard-char-name">${c.name}</div>
+            <div class="tier-badge tier-${c.tier.replace('+','p')}">${c.tier}</div>
+          </div>
+        `).join('')}
+      </div>
+      <button class="onboard-btn" onclick="completeOnboarding()" ${onboardingSelected.length !== 3 ? 'disabled' : ''}>START GAME</button>
+    `;
+  }
+}
+
+function onboardingNextStep(){
+  const nameInput = document.getElementById('onboardName');
+  onboardingName = (nameInput?.value || '').trim();
+  if(!onboardingName){
+    alert('Please enter a name');
+    return;
+  }
+  onboardingStep = 'characters';
+  onboardingSelected = [];
+  renderOnboardingStep();
+}
+
+function toggleOnboardingChar(id){
+  if(onboardingSelected.includes(id)){
+    onboardingSelected = onboardingSelected.filter(c => c !== id);
+  } else {
+    if(onboardingSelected.length < 3){
+      onboardingSelected.push(id);
+    } else {
+      return; // Can't select more than 3
+    }
+  }
+  renderOnboardingStep();
+  document.getElementById('onboardCounter').textContent = onboardingSelected.length;
+}
+
+function completeOnboarding(){
+  if(onboardingSelected.length !== 3){
+    alert('Please select exactly 3 characters');
+    return;
+  }
+  // Save player data
+  playerData = {name: onboardingName};
+  savePlayer(playerData);
+  // Set unlocked characters
+  saveData.unlocked = [...onboardingSelected];
+  saveData.coins = 0;
+  saveData.wins = 0;
+  saveData.losses = 0;
+  saveSave();
+  // Hide onboarding and show title screen
+  const screen = document.getElementById('onboarding-screen');
+  screen.style.display='none';
+  updateMenuStats();
+  showScreen('title-screen');
+}
 
 function loadSave(){
   try{
@@ -1150,6 +1246,7 @@ function renderStoryArcs(arcs,story){
 let storyContext=null;
 let storyRunState=null; // tracks current arc run {arcId, chIdx, teamHP, coinsBanked}
 let endlessBattle={active:false,charId:null,wins:0,diff:'medium',totalExp:0,startingCoins:0}; // Endless mode state
+let lastBattleTeam = []; // Store the last team used for "Play Again"
 
 // Start a full arc run from the beginning (team selection)
 function startStoryArc(arcId){
@@ -1622,12 +1719,24 @@ class BattleChar{
     this.maxHP=calcMaxHP(this);
     if(ch._bossHpMult) this.maxHP=Math.floor(this.maxHP*ch._bossHpMult);
     this.hp=this.maxHP;
-    this.moves=(BATTLE_MOVES[ch.id]||[
+
+    // Move progression system based on character level
+    const allMoves = BATTLE_MOVES[ch.id]||[
       {name:'Strike',type:'physical',power:50,acc:100,pp:30,effect:null},
       {name:'Power Hit',type:'physical',power:75,acc:90,pp:15,effect:null},
       {name:'Special',type:'special',power:90,acc:85,pp:8,effect:null},
       {name:'Ultimate',type:'special',power:110,acc:78,pp:4,effect:null}
-    ]).map(m=>({...m,curPP:m.pp}));
+    ];
+
+    // Determine available moves based on character level
+    const lvl = this.charLevel;
+    let moveCount = 1;
+    if(lvl >= 35) moveCount = 4;
+    else if(lvl >= 20) moveCount = 3;
+    else if(lvl >= 10) moveCount = 2;
+
+    const availMoves = allMoves.slice(0, moveCount);
+    this.moves = availMoves.map(m=>({...m,curPP:m.pp}));
     this.status=[];
     this.statMod={atk:0,def:0,spd:0};
     this.fainted=false;
@@ -2173,6 +2282,9 @@ function startBattleFight(){
   const pTeam=selectedBattleTeam.map(id=>ALL_CHARS.find(c=>c.id===id));
   let eTeam;
 
+  // Save the last team used for "Play Again"
+  lastBattleTeam = [...selectedBattleTeam];
+
   if(storyContext){
     if(storyContext.type==='boss'){
       // Boss fight: boss has boosted stats
@@ -2448,11 +2560,13 @@ function renderBattle(){
         <div class="reward-line">⭐ Total EXP: ${endlessBattle.totalExp}</div>
         <div class="reward-line">💰 Coins Earned: ${coinsDiff}</div>
       </div>`;
-      resultBtns=`<button onclick="showBattleSetup()">Try Again</button>
+      const savedTeamIds = [...(endlessBattle.teamIds || [])];
+      resultBtns=`<button onclick="playAgainEndless(${JSON.stringify(savedTeamIds).replace(/"/g, '&quot;')})">Play Again</button>
+        <button onclick="showBattleSetup()">Try Another</button>
         <button onclick="closeBattle()">Main Menu</button>`;
     }else{
       // Normal battle
-      resultBtns=`<button onclick="showBattleSetup()">Play Again</button>
+      resultBtns=`<button onclick="playAgainNormalBattle()">Play Again</button>
         <button onclick="closeBattle()">Main Menu</button>`;
     }
 
@@ -2788,24 +2902,34 @@ function showCharDetail(id) {
         <div class="stat-row"><span class="stat-label">${ch.anime==='onepiece'?'DF':'JUTSU'}</span><span class="stat-val">${eff.df}${boosts.df?`<span class="stat-boost">+${boosts.df}</span>`:''}</span>${statBar(eff.df,boosts.df,ch.df||0,'#FF9800')}</div>
       </div>
       <div class="detail-section-title">MOVES</div>
-      <div class="detail-moves">${moves.map(m => {
+      <div class="detail-moves">${moves.map((m, moveIdx) => {
         const safeName = (m && m.name) || 'Unknown Move';
         const safeType = (m && m.type) || 'normal';
         const safePower = (m && m.power !== undefined) ? m.power : 0;
         const safeAcc = (m && m.acc !== undefined) ? m.acc : 100;
         const safePP = (m && m.pp !== undefined) ? m.pp : 15;
         const safeEffect = (m && m.effect) || null;
+        // Determine if this move is locked based on character level
+        const charLvl = getCharLevelNum(id);
+        let isLocked = false;
+        let unlocksAt = 0;
+        if(moveIdx === 1 && charLvl < 10) { isLocked = true; unlocksAt = 10; }
+        else if(moveIdx === 2 && charLvl < 20) { isLocked = true; unlocksAt = 20; }
+        else if(moveIdx === 3 && charLvl < 35) { isLocked = true; unlocksAt = 35; }
+        const moveClass = isLocked ? 'detail-move-locked' : '';
         return `
-        <div class="detail-move move-${safeType}">
+        <div class="detail-move move-${safeType} ${moveClass}">
           <div class="dm-top">
-            <span class="dm-name">${safeName}</span>
-            <span class="dm-pwr">PWR ${safePower}</span>
+            <span class="dm-name">${isLocked ? '🔒 ' : ''}${safeName}</span>
+            <span class="dm-pwr">${isLocked ? 'LOCKED' : 'PWR '+safePower}</span>
           </div>
           <div class="dm-stats">
-            <span class="dm-type">${safeType}</span>
-            <span>Acc ${safeAcc}%</span>
-            <span>PP ${safePP}</span>
-            ${safeEffect?`<span class="dm-effect">${safeEffect}</span>`:''}
+            ${isLocked ? `<span class="dm-locked-text">Unlocks at Lv.${unlocksAt}</span>` : `
+              <span class="dm-type">${safeType}</span>
+              <span>Acc ${safeAcc}%</span>
+              <span>PP ${safePP}</span>
+              ${safeEffect?`<span class="dm-effect">${safeEffect}</span>`:''}
+            `}
           </div>
         </div>
       `;}).join('')}</div>
@@ -3287,22 +3411,44 @@ const OrigBattleChar = BattleChar;
 
 // ===== ENDLESS BATTLE MODE =====
 
+let endlessTeamSize = 1; // 1 or 3
+
 function showEndlessSetup(){
   document.getElementById('title-screen').style.display='none';
   document.getElementById('battleArena').style.display='none';
   document.getElementById('battleSetup').style.display='block';
   currentBattle=null;
-  selectedBattleTeam=[];
+  // Only clear team if switching modes, otherwise keep pre-filled team
+  if(!endlessBattle || !endlessBattle.teamIds){
+    selectedBattleTeam=[];
+  }
   selectedDifficulty='medium';
   currentBet=0;
   equippedItems=[];
 
-  // Customize for endless: single char selection
+  // Add mode toggle at top
+  const setupHead = document.getElementById('battleSetup').querySelector('h2');
+  if(setupHead && !document.getElementById('endlessToggleContainer')){
+    const toggleDiv = document.createElement('div');
+    toggleDiv.id='endlessToggleContainer';
+    toggleDiv.className='endless-toggle';
+    toggleDiv.innerHTML=`
+      <button class="endless-toggle-btn ${endlessTeamSize===1?'active':''}" onclick="setEndlessMode(1)">1v1</button>
+      <button class="endless-toggle-btn ${endlessTeamSize===3?'active':''}" onclick="setEndlessMode(3)">3v3</button>
+    `;
+    setupHead.parentNode.insertBefore(toggleDiv, setupHead.nextSibling);
+  } else if(document.getElementById('endlessToggleContainer')){
+    document.querySelectorAll('.endless-toggle-btn').forEach(b=>{
+      b.classList.toggle('active', (endlessTeamSize===1 && b.textContent==='1v1') || (endlessTeamSize===3 && b.textContent==='3v3'));
+    });
+  }
+
+  // Character selection grid
   const grid=document.getElementById('battleTeamGrid');
   let unlocked=ALL_CHARS.filter(c=>isUnlocked(c.id));
 
   grid.innerHTML=unlocked.map(c=>{
-    const sel=selectedBattleTeam.length===1 && selectedBattleTeam.includes(c.id);
+    const sel=selectedBattleTeam.includes(c.id);
     const lvl = getUpgradeLevel(c.id);
     const lvlTag = lvl > 0 ? `<div class="bt-char-lvl">Lv.${lvl}</div>` : '';
     return `<div class="bt-char ${sel?'bt-selected':''}" onclick="toggleEndlessChar('${c.id}')">
@@ -3313,9 +3459,10 @@ function showEndlessSetup(){
     </div>`;
   }).join('');
 
-  document.getElementById('battleTeamCount').textContent=`${selectedBattleTeam.length}/1`;
+  const teamCountText = endlessTeamSize === 1 ? '1' : '3';
+  document.getElementById('battleTeamCount').textContent=`${selectedBattleTeam.length}/${teamCountText}`;
   const startBtn = document.getElementById('btnBattleStart');
-  startBtn.disabled=selectedBattleTeam.length!==1;
+  startBtn.disabled=selectedBattleTeam.length!==endlessTeamSize;
   startBtn.textContent='START ENDLESS';
   startBtn.onclick=()=>startEndlessBattle();
 
@@ -3331,32 +3478,38 @@ function showEndlessSetup(){
   });
 }
 
+function setEndlessMode(size){
+  endlessTeamSize = size;
+  selectedBattleTeam = []; // Reset team selection when mode changes
+  showEndlessSetup();
+}
+
 function toggleEndlessChar(id){
   if(selectedBattleTeam.includes(id)){
-    selectedBattleTeam=[];
+    selectedBattleTeam = selectedBattleTeam.filter(c => c !== id);
   }else{
-    selectedBattleTeam=[id];
+    if(selectedBattleTeam.length < endlessTeamSize){
+      selectedBattleTeam.push(id);
+    }
   }
   showEndlessSetup();
 }
 
 function startEndlessBattle(){
-  if(selectedBattleTeam.length!==1) return;
-  const charId=selectedBattleTeam[0];
-  const ch=ALL_CHARS.find(c=>c.id===charId);
-  if(!ch) return;
+  if(selectedBattleTeam.length !== endlessTeamSize) return;
+  const charIds = [...selectedBattleTeam];
+  const chars = charIds.map(id => ALL_CHARS.find(c => c.id === id)).filter(c => c);
+  if(chars.length === 0) return;
 
   endlessBattle={
     active:true,
-    charId:charId,
+    teamIds:charIds,
     wins:0,
     diff:selectedDifficulty,
     totalExp:0,
-    startingCoins:saveData.coins
+    startingCoins:saveData.coins,
+    teamSize:endlessTeamSize
   };
-
-  // Create initial team with just this one character
-  selectedBattleTeam=[charId];
 
   // Start the first fight
   endlessNextRound();
@@ -3384,22 +3537,23 @@ function getEndlessOpponent(wins){
 function endlessNextRound(){
   if(!endlessBattle.active) return;
 
-  const playerChar=ALL_CHARS.find(c=>c.id===endlessBattle.charId);
-  if(!playerChar) return;
+  // Get player team
+  const pTeam = endlessBattle.teamIds.map(id => ALL_CHARS.find(c => c.id === id)).filter(c => c);
+  if(pTeam.length === 0) return;
 
-  // Get opponent
-  const opponent=getEndlessOpponent(endlessBattle.wins);
-
-  // Create teams - pass as full character objects
-  const pTeam=[playerChar];
-  // Scale enemy level with wins (start at 10, cap at 50)
-  const eLvl = Math.min(50, 10 + endlessBattle.wins);
-  opponent._forcedLevel = eLvl;
-  const eTeam=[opponent];
+  // Get opponents
+  const eTeam = [];
+  const teamSize = endlessBattle.teamSize || 1;
+  for(let i = 0; i < teamSize; i++){
+    const opponent = getEndlessOpponent(endlessBattle.wins);
+    const eLvl = Math.min(50, 10 + endlessBattle.wins);
+    opponent._forcedLevel = eLvl;
+    eTeam.push(opponent);
+  }
 
   // Create the battle
-  currentBattle=new Battle(pTeam,eTeam,endlessBattle.diff);
-  currentBattle._endless=true;
+  currentBattle = new Battle(pTeam, eTeam, endlessBattle.diff);
+  currentBattle._endless = true;
 
   document.getElementById('title-screen').style.display='none';
   document.getElementById('battleSetup').style.display='none';
@@ -3414,6 +3568,7 @@ function endlessDefeat(){
   endlessBattle.active=false;
 
   const coinsDiff=saveData.coins-endlessBattle.startingCoins;
+  const savedTeamIds = [...(endlessBattle.teamIds || [])];
 
   // Show end-of-run screen
   const actDiv=document.getElementById('battleActions');
@@ -3425,9 +3580,25 @@ function endlessDefeat(){
       <div class="reward-line">💰 Coins: +${coinsDiff}</div>
     </div>
     <div class="result-btns">
+      <button onclick="playAgainEndless(${JSON.stringify(savedTeamIds).replace(/"/g, '&quot;')})">Play Again</button>
       <button onclick="showBattleSetup()">Try Another</button>
       <button onclick="closeBattle()">Main Menu</button>
     </div>
   </div>`;
+}
+
+function playAgainEndless(teamIds){
+  selectedBattleTeam = teamIds;
+  endlessTeamSize = teamIds.length;
+  showEndlessSetup();
+}
+
+function playAgainNormalBattle(){
+  if(lastBattleTeam.length > 0){
+    selectedBattleTeam = [...lastBattleTeam];
+  } else {
+    selectedBattleTeam = [];
+  }
+  showBattleSetup();
 }
 

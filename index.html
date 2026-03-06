@@ -305,6 +305,9 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
 .detail-move.move-df,.detail-move.move-genjutsu{border-left:3px solid #2196F3}
 .detail-move.move-sword,.detail-move.move-kenjutsu{border-left:3px solid #FF9800}
 .detail-move.move-special{border-left:3px solid #FFD700}
+.detail-move-locked{opacity:0.5;border-left:3px solid #666 !important}
+.dm-pwr{font-family:'Bebas Neue',sans-serif}
+.dm-locked-text{color:#666;font-weight:bold}
 .detail-locked-msg{text-align:center;padding:15px;color:#666;font-size:12px}
 .detail-cost{color:#FFD700;font-size:14px;margin-top:5px}
 /* Upgrade section - redesigned */
@@ -545,12 +548,35 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
   }
 }
 
+/* ===== ONBOARDING STYLES ===== */
+#onboarding-screen{position:fixed;inset:0;z-index:9999;background:#0a0a0f;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+.onboard-title{font-family:'Bebas Neue',sans-serif;font-size:48px;color:#E03131;letter-spacing:4px;margin-bottom:10px}
+.onboard-sub{font-family:'Chakra Petch',sans-serif;font-size:14px;color:#888;letter-spacing:2px;margin-bottom:20px}
+.onboard-input{font-family:'Chakra Petch',sans-serif;font-size:18px;padding:12px 24px;background:#1a1a2e;border:2px solid #333;border-radius:8px;color:#fff;text-align:center;width:250px;outline:none}
+.onboard-input:focus{border-color:#E03131}
+.onboard-btn{font-family:'Bebas Neue',sans-serif;font-size:22px;padding:12px 40px;background:linear-gradient(135deg,#E03131,#c92a2a);color:#fff;border:none;border-radius:8px;cursor:pointer;letter-spacing:3px;margin-top:16px}
+.onboard-btn:disabled{opacity:0.4;cursor:not-allowed}
+.onboard-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;max-height:50vh;overflow-y:auto;width:100%;max-width:600px;padding:10px}
+.onboard-char{border:2px solid #333;border-radius:8px;padding:4px;text-align:center;cursor:pointer;transition:all 0.2s;background:#1a1a2e}
+.onboard-char.selected{border-color:#E03131;background:#2a1a2e;box-shadow:0 0 10px rgba(224,49,49,0.3)}
+.onboard-char img{width:60px;height:60px;border-radius:6px;object-fit:cover}
+.onboard-char-name{font-size:9px;color:#ccc;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.onboard-char .tier-badge{font-size:8px;font-weight:700;margin-top:1px}
+.onboard-counter{font-family:'Chakra Petch',sans-serif;font-size:16px;color:#E03131;font-weight:700;margin:10px 0}
+
+/* ===== ENDLESS MODE TOGGLE STYLES ===== */
+.endless-toggle{display:flex;gap:8px;margin-bottom:12px;justify-content:center}
+.endless-toggle-btn{font-family:'Chakra Petch',sans-serif;padding:8px 20px;border:2px solid #333;border-radius:6px;background:#1a1a2e;color:#888;cursor:pointer;font-size:14px;font-weight:700}
+.endless-toggle-btn.active{border-color:#E03131;color:#E03131;background:#2a1a2e}
+
 </style>
 </head>
 <body>
+<div id="onboarding-screen" style="display:none"></div>
 <div id="title-screen" class="screen active">
   <div class="ck" style="font-size:14px;color:#E03131;letter-spacing:8px;font-weight:700;z-index:1">⚔️ CARD BATTLE ⚔️</div>
   <div class="title-main">ANIME WAR</div>
+  <div id="playerGreeting" class="ck" style="font-size:18px;color:#FFD700;letter-spacing:3px;margin-bottom:12px;z-index:1"></div>
   <div class="ck" style="font-size:11px;color:#555;letter-spacing:4px;margin-top:4px;z-index:1">SELECT YOUR ANIME</div>
   <div class="anime-select">
     <button class="anime-btn selected" data-anime="onepiece" onclick="toggleAnimeSelect(this)" style="--ac:#E03131">☠️ ONE PIECE<span class="tag" style="color:#E03131">102</span></button>
@@ -2176,7 +2202,7 @@ function loadDraftTeamImages(){
 // PWA: Service Worker Registration
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js?v=27').then(r=>{
+    navigator.serviceWorker.register('sw.js?v=29').then(r=>{
       console.log('SW registered, scope:',r.scope);
       r.update();
     }).catch(e=>console.log('SW registration failed:',e));
@@ -2389,6 +2415,17 @@ document.addEventListener('DOMContentLoaded', function() {
   // Enable mode buttons
   document.querySelectorAll('#btn-start, #btn-draft').forEach(b => b.disabled = false);
   updateMenuStats();
+  // Check if onboarding is needed
+  if(!loadPlayer()) {
+    showOnboarding();
+  } else {
+    // Show player greeting
+    const player = loadPlayer();
+    if(player && player.name) {
+      const greeting = document.getElementById('playerGreeting');
+      if(greeting) greeting.textContent = `Welcome, ${player.name}!`;
+    }
+  }
 });
 
 // Quit functions for modes
