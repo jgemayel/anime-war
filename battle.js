@@ -427,52 +427,56 @@ function renderStoryArcs(arcs,story){
   let html='';
   for(const arc of arcs){
     const totalChapters=arc.chapters.length;
-    const completedCount=arc.chapters.filter((_,i)=>(story.completed[arc.id]||[]).includes(i)).length;
     const bossCleared=story.bossCleared[arc.id]||false;
-    const allChaptersDone=completedCount===totalChapters;
     const diffColor=arc.difficulty==='easy'?'#4CAF50':arc.difficulty==='medium'?'#FFD700':'#ff4444';
+    const totalCoins=arc.chapters.reduce((s,ch)=>s+ch.reward,0)+arc.boss.reward+arc.arcReward;
     html+=`<div class="story-arc" style="--arc-color:${diffColor}">
       <div class="arc-header">
         <span class="arc-emoji">${arc.emoji}</span>
         <span class="arc-name">${arc.name}</span>
         <span class="arc-diff" style="color:${diffColor}">${arc.difficulty.toUpperCase()}</span>
-      </div>
-      <div class="arc-progress">${completedCount}/${totalChapters} chapters ${bossCleared?'· 👑 Boss Cleared':''}</div>
-      <div class="arc-chapters">`;
-    arc.chapters.forEach((ch,i)=>{
-      const done=(story.completed[arc.id]||[]).includes(i);
-      const prevDone=i===0||((story.completed[arc.id]||[]).includes(i-1));
-      const locked=!prevDone;
-      html+=`<button class="story-ch-btn ${done?'ch-done':''} ${locked?'ch-locked':''}"
-        onclick="${locked?'':`startStoryChapter('${arc.id}',${i})`}" ${locked?'disabled':''}>
-        ${done?'✅':'🔒'} ${ch.name} <span class="ch-reward">+${ch.reward}</span>
-      </button>`;
-    });
-    // Boss button
-    const bossLocked=!allChaptersDone;
-    html+=`<button class="story-ch-btn story-boss-btn ${bossCleared?'ch-done':''} ${bossLocked?'ch-locked':''}"
-      onclick="${bossLocked?'':`startStoryBoss('${arc.id}')`}" ${bossLocked?'disabled':''}>
-      ${bossCleared?'👑':'⚠️'} BOSS: ${arc.boss.name} <span class="ch-reward">+${arc.boss.reward}</span>
-    </button>`;
-    if(allChaptersDone&&bossCleared){
-      html+=`<div class="arc-complete">🏆 Arc Complete! +${arc.arcReward} coins earned</div>`;
+      </div>`;
+    if(bossCleared){
+      html+=`<div class="arc-progress">🏆 Arc Cleared!</div>`;
+    }else{
+      html+=`<div class="arc-progress">${totalChapters} chapters + Boss</div>`;
     }
+    // Chapter preview (non-interactive, just shows what you'll face)
+    html+=`<div class="arc-chapters">`;
+    arc.chapters.forEach((ch,i)=>{
+      html+=`<div class="story-ch-preview">
+        <span>${i+1}. ${ch.name}</span><span class="ch-reward">+${ch.reward}</span>
+      </div>`;
+    });
+    html+=`<div class="story-ch-preview story-boss-preview">
+      <span>⚠️ BOSS: ${arc.boss.name}</span><span class="ch-reward">+${arc.boss.reward}</span>
+    </div>`;
+    // Action button
+    if(bossCleared){
+      html+=`<button class="story-start-btn story-replay-btn" onclick="startStoryArc('${arc.id}')">
+        🔄 Replay Arc <span class="ch-reward">+${totalCoins-arc.arcReward} coins</span>
+      </button>`;
+    }else{
+      html+=`<button class="story-start-btn" onclick="startStoryArc('${arc.id}')">
+        ⚔️ Begin Arc <span class="ch-reward">+${totalCoins} coins</span>
+      </button>`;
+    }
+    html+=`<div class="arc-rules">Must clear all chapters + boss in one run. HP carries over between fights. Fainted allies revive at 20% HP.</div>`;
     html+=`</div></div>`;
   }
   return html;
 }
 
 let storyContext=null;
-function startStoryChapter(arcId,chIdx){
+let storyRunState=null; // tracks current arc run {arcId, chIdx, teamHP, coinsBanked}
+
+// Start a full arc run from the beginning (team selection)
+function startStoryArc(arcId){
   const arc=STORY_ARCS.find(a=>a.id===arcId);
   if(!arc) return;
-  const ch=arc.chapters[chIdx];
-  const eTeam=ch.enemies.map(id=>ALL_CHARS.find(c=>c.id===id)).filter(Boolean);
-  if(eTeam.length===0) return;
-
-  storyContext={arcId,chIdx,type:'chapter',reward:ch.reward};
+  storyRunState={arcId,chIdx:0,coinsBanked:0,teamHP:null};
+  storyContext={arcId,chIdx:0,type:'chapter',reward:arc.chapters[0].reward};
   closeGachaShop();
-  // Show team selection for story
   document.getElementById('title-screen').style.display='none';
   document.getElementById('battleSetup').style.display='block';
   selectedBattleTeam=[];
@@ -480,15 +484,16 @@ function startStoryChapter(arcId,chIdx){
   currentBet=0;
   equippedItems=[];
   renderBattleSetup();
-  // Override the fight button text
   const btn=document.getElementById('btnBattleStart');
-  if(btn) btn.textContent='START CHAPTER: '+ch.name;
+  if(btn) btn.textContent='START: '+arc.chapters[0].name+' (1/'+arc.chapters.length+')';
 }
 
+// Start just the boss fight (team selection)
 function startStoryBoss(arcId){
   const arc=STORY_ARCS.find(a=>a.id===arcId);
   if(!arc) return;
   const boss=arc.boss;
+  storyRunState={arcId,chIdx:'boss',coinsBanked:0,teamHP:null};
   storyContext={arcId,type:'boss',reward:boss.reward,arcReward:arc.arcReward,bossId:boss.bossId,allies:boss.allies,bossHpMult:boss.bossHpMult,bossStatMult:boss.bossStatMult};
   closeGachaShop();
   document.getElementById('title-screen').style.display='none';
@@ -502,24 +507,119 @@ function startStoryBoss(arcId){
   if(btn) btn.textContent='FIGHT BOSS: '+boss.name;
 }
 
-function completeStoryChapter(arcId,chIdx,reward){
-  const story=loadStory();
-  if(!story.completed[arcId]) story.completed[arcId]=[];
-  if(!story.completed[arcId].includes(chIdx)){
-    story.completed[arcId].push(chIdx);
-    addCoins(reward);
+// Auto-advance to the next chapter/boss without team re-selection
+function storyAdvanceNext(){
+  if(!storyRunState) return;
+  const arc=STORY_ARCS.find(a=>a.id===storyRunState.arcId);
+  if(!arc) return;
+  const nextIdx=storyRunState.chIdx+1;
+  // Save team HP state from current battle before advancing
+  const teamHP=currentBattle?currentBattle.pTeam.map(c=>({id:c.id,hp:c.hp,maxHP:c.maxHP,fainted:c.fainted,moves:c.moves.map(m=>({curPP:m.curPP}))})):storyRunState.teamHP;
+  if(nextIdx<arc.chapters.length){
+    // Next chapter
+    storyRunState.chIdx=nextIdx;
+    const ch=arc.chapters[nextIdx];
+    storyContext={arcId:arc.id,chIdx:nextIdx,type:'chapter',reward:ch.reward};
+    // Build enemy team
+    const eTeam=ch.enemies.map(id=>ALL_CHARS.find(c=>c.id===id)).filter(Boolean);
+    const pTeam=selectedBattleTeam.map(id=>ALL_CHARS.find(c=>c.id===id));
+    currentBattle=new Battle(pTeam,eTeam,arc.difficulty);
+    currentBattle.storyContext=storyContext;
+    // Restore player team HP/PP from previous chapter
+    if(teamHP){
+      currentBattle.pTeam.forEach((bc,i)=>{
+        const saved=teamHP[i];
+        if(saved){
+          bc.hp=Math.max(1,saved.hp); // at least 1 HP to keep them alive
+          if(saved.fainted){bc.hp=Math.max(1,Math.floor(bc.maxHP*0.2));} // revive fainted at 20%
+          if(saved.moves) saved.moves.forEach((sm,mi)=>{if(bc.moves[mi]) bc.moves[mi].curPP=sm.curPP;});
+        }
+      });
+      // Make sure active character isn't fainted
+      if(currentBattle.pTeam[currentBattle.pIdx].hp<=0) currentBattle.pTeam[currentBattle.pIdx].hp=1;
+    }
+    document.getElementById('battleArena').style.display='block';
+    renderBattle();
+  }else{
+    // All chapters done, advance to boss
+    const boss=arc.boss;
+    storyRunState.chIdx='boss';
+    storyContext={arcId:arc.id,type:'boss',reward:boss.reward,arcReward:arc.arcReward,bossId:boss.bossId,allies:boss.allies,bossHpMult:boss.bossHpMult,bossStatMult:boss.bossStatMult};
+    const bossChar={...ALL_CHARS.find(c=>c.id===boss.bossId)};
+    bossChar.atk=Math.floor(bossChar.atk*boss.bossStatMult);
+    bossChar.def=Math.floor(bossChar.def*boss.bossStatMult);
+    bossChar.spd=Math.floor(bossChar.spd*boss.bossStatMult);
+    if(bossChar.haki) bossChar.haki=Math.floor(bossChar.haki*boss.bossStatMult);
+    if(bossChar.df) bossChar.df=Math.floor(bossChar.df*boss.bossStatMult);
+    bossChar._bossHpMult=boss.bossHpMult;
+    const allies=boss.allies.map(id=>ALL_CHARS.find(c=>c.id===id)).filter(Boolean);
+    const eTeam=[bossChar,...allies];
+    const pTeam=selectedBattleTeam.map(id=>ALL_CHARS.find(c=>c.id===id));
+    currentBattle=new Battle(pTeam,eTeam,arc.difficulty);
+    currentBattle.storyContext=storyContext;
+    // Restore HP/PP
+    if(teamHP){
+      currentBattle.pTeam.forEach((bc,i)=>{
+        const saved=teamHP[i];
+        if(saved){
+          bc.hp=Math.max(1,saved.hp);
+          if(saved.fainted){bc.hp=Math.max(1,Math.floor(bc.maxHP*0.2));}
+          if(saved.moves) saved.moves.forEach((sm,mi)=>{if(bc.moves[mi]) bc.moves[mi].curPP=sm.curPP;});
+        }
+      });
+      if(currentBattle.pTeam[currentBattle.pIdx].hp<=0) currentBattle.pTeam[currentBattle.pIdx].hp=1;
+    }
+    document.getElementById('battleArena').style.display='block';
+    renderBattle();
   }
-  saveStory(story);
+}
+
+// Abandon a story run (quit mid-arc)
+function abandonStoryRun(){
+  // Bank any coins earned so far in this run
+  if(storyRunState && storyRunState.coinsBanked>0){
+    addCoins(storyRunState.coinsBanked);
+  }
+  storyRunState=null;
+  storyContext=null;
+  currentBattle=null;
+  document.getElementById('battleArena').style.display='none';
+  document.getElementById('battleSetup').style.display='none';
+  document.getElementById('title-screen').style.display='flex';
+  showStoryMode();
+}
+
+// Legacy compat: startStoryChapter now starts the full arc
+function startStoryChapter(arcId,chIdx){
+  startStoryArc(arcId);
+}
+
+function completeStoryChapter(arcId,chIdx,reward){
+  // Don't save permanently yet, just bank the coins for this run
+  if(storyRunState){
+    storyRunState.coinsBanked+=reward;
+  }
 }
 
 function completeStoryBoss(arcId,reward,arcReward){
   const story=loadStory();
   const alreadyCleared=story.bossCleared[arcId];
-  story.bossCleared[arcId]=true;
-  if(!alreadyCleared){
-    addCoins(reward+arcReward);
+  // Mark ALL chapters and boss as complete for this arc
+  const arc=STORY_ARCS.find(a=>a.id===arcId);
+  if(arc){
+    story.completed[arcId]=arc.chapters.map((_,i)=>i);
   }
+  story.bossCleared[arcId]=true;
   saveStory(story);
+  // Pay out everything: banked chapter coins + boss reward + arc reward
+  const banked=(storyRunState?storyRunState.coinsBanked:0);
+  if(!alreadyCleared){
+    addCoins(banked+reward+arcReward);
+  } else {
+    // Replaying: still pay chapter coins + boss reward, but no arc bonus
+    addCoins(banked+reward);
+  }
+  storyRunState=null;
   return !alreadyCleared;
 }
 
@@ -1252,7 +1352,7 @@ function renderBattle(){
     <div class="battle-bottom-btns">
       <button class="switch-btn" onclick="showSwitchMenu()">Switch</button>
       ${equippedItems.length>0?`<button class="item-btn" onclick="showBattleItems()">🧪 Items (${equippedItems.length})</button>`:''}
-      <button class="forfeit-btn" onclick="quitBattle()">Quit</button>
+      <button class="forfeit-btn" onclick="${storyContext?'abandonStoryRun()':'closeBattle()'}">Quit</button>
     </div>`;
   }else if(b.phase==='switching'){
     const alive=b.pTeam.filter((c,i)=>!c.fainted&&i!==b.pIdx);
@@ -1307,15 +1407,22 @@ function renderBattle(){
     const sc=b.storyContext;
     if(sc && b.phase==='won'){
       if(sc.type==='chapter'){
+        const arc=STORY_ARCS.find(a=>a.id===sc.arcId);
+        const chTotal=arc?arc.chapters.length:0;
+        const nextIsLast=sc.chIdx+1>=chTotal;
         rewardHTML=`<div class="reward-breakdown">
-          <div class="reward-line">📖 Chapter Complete!</div>
-          <div class="reward-total">+${sc.reward} coins</div>
+          <div class="reward-line">📖 Chapter Complete! (${sc.chIdx+1}/${chTotal})</div>
+          <div class="reward-total">+${sc.reward} coins banked</div>
+          <div class="reward-line" style="font-size:0.75rem;opacity:0.7">Coins paid out after full arc clear</div>
+          ${nextIsLast?'<div class="reward-line" style="color:#ff4444;font-weight:bold;margin-top:4px">⚠️ BOSS FIGHT NEXT</div>':''}
         </div>`;
       }else if(sc.type==='boss'){
         const arcR=b._bossFirstClear?sc.arcReward:0;
+        const banked=storyRunState?0:(b._bankedCoins||0); // already paid out in completeStoryBoss
         rewardHTML=`<div class="reward-breakdown">
           <div class="reward-line">👑 Boss Defeated!</div>
-          <div class="reward-total">+${sc.reward} coins</div>
+          <div class="reward-line">📖 All chapter rewards paid out</div>
+          <div class="reward-total">+${sc.reward} boss reward</div>
           ${arcR>0?`<div class="reward-line reward-bet">🏆 Arc Complete Bonus: +${arcR}</div>`:''}
         </div>`;
       }
@@ -1329,16 +1436,42 @@ function renderBattle(){
       rewardHTML = `<div class="reward-breakdown loss"><div class="reward-line">Bet lost: -${bet} coins</div></div>`;
     }
 
-    const backBtnLabel=sc?'Back to Story':'Play Again';
-    const backBtnAction=sc?`storyContext=null;showStoryMode()`:'showBattleSetup()';
+    // Story mode: determine buttons
+    let resultBtns='';
     const dailyNote=b._dailyCompleted?'<div class="daily-complete-note">🎯 Daily Challenge Completed!</div>':'';
+    if(sc && b.phase==='won' && sc.type==='chapter'){
+      // Won a chapter: auto-advance
+      const arc=STORY_ARCS.find(a=>a.id===sc.arcId);
+      const nextIdx=sc.chIdx+1;
+      const nextLabel=nextIdx<arc.chapters.length?'Next Chapter: '+arc.chapters[nextIdx].name:'FIGHT THE BOSS';
+      resultBtns=`<button onclick="storyAdvanceNext()" style="background:linear-gradient(135deg,#ff6600,#ff3300);font-weight:bold">⚔️ ${nextLabel}</button>
+        <button onclick="abandonStoryRun()" style="font-size:0.8rem;opacity:0.7">Abandon Run</button>`;
+    }else if(sc && b.phase==='won' && sc.type==='boss'){
+      // Beat the boss: arc complete
+      resultBtns=`<button onclick="storyContext=null;storyRunState=null;showStoryMode()">Back to Story</button>
+        <button onclick="storyContext=null;storyRunState=null;closeBattle()">Main Menu</button>`;
+    }else if(sc && b.phase==='lost'){
+      // Lost in story mode: run failed
+      const banked=storyRunState?storyRunState.coinsBanked:0;
+      rewardHTML+=`<div class="reward-breakdown loss">
+        <div class="reward-line">💀 Run Failed!</div>
+        ${banked>0?`<div class="reward-line">You keep ${banked} banked coins from cleared chapters</div>`:''}
+        <div class="reward-line" style="font-size:0.75rem;opacity:0.7">You must clear the entire arc in one run</div>
+      </div>`;
+      resultBtns=`<button onclick="abandonStoryRun()">Back to Story</button>
+        <button onclick="storyContext=null;storyRunState=null;closeBattle()">Main Menu</button>`;
+    }else{
+      // Normal battle
+      resultBtns=`<button onclick="showBattleSetup()">Play Again</button>
+        <button onclick="closeBattle()">Main Menu</button>`;
+    }
+
     actDiv.innerHTML=`<div class="battle-result ${b.phase}">
       <h2>${b.phase==='won'?'VICTORY!':'DEFEAT'}</h2>
       ${rewardHTML}
       ${dailyNote}
       <div class="result-btns">
-        <button onclick="${backBtnAction}">${backBtnLabel}</button>
-        <button onclick="storyContext=null;closeBattle()">Main Menu</button>
+        ${resultBtns}
       </div>
     </div>`;
   }

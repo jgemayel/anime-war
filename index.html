@@ -481,13 +481,13 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
 .arc-diff{font-family:'Chakra Petch',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px}
 .arc-progress{font-size:11px;color:#aaa;margin-bottom:8px}
 .arc-chapters{display:flex;flex-direction:column;gap:4px}
-.story-ch-btn{background:#111;border:1px solid #333;color:#ccc;border-radius:6px;padding:8px 12px;font-size:12px;font-family:'Chakra Petch',sans-serif;cursor:pointer;text-align:left;display:flex;align-items:center;gap:6px;transition:all .2s}
-.story-ch-btn:hover:not(:disabled){border-color:#FFD700;color:#fff}
-.ch-done{border-color:#4CAF50;color:#4CAF50}
-.ch-locked{opacity:0.4;cursor:not-allowed}
+.story-ch-preview{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;font-size:11px;color:#999;border-left:2px solid #333;margin-left:4px}
+.story-boss-preview{border-left-color:#ff4444;color:#ff8888;font-weight:700}
 .ch-reward{margin-left:auto;color:#FFD700;font-size:10px}
-.story-boss-btn{border-color:#ff4444;background:#1a0a0a;color:#ff6666;font-weight:700}
-.story-boss-btn.ch-done{border-color:#FFD700;color:#FFD700}
+.story-start-btn{width:100%;background:linear-gradient(135deg,#ff6600,#e65500);border:none;color:#fff;border-radius:8px;padding:12px;font-size:14px;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;cursor:pointer;margin-top:8px;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.story-start-btn:hover{transform:scale(1.02);filter:brightness(1.2)}
+.story-replay-btn{background:linear-gradient(135deg,#444,#333)}
+.arc-rules{font-size:10px;color:#666;text-align:center;margin-top:6px;font-style:italic}
 .arc-complete{text-align:center;color:#FFD700;font-size:12px;margin-top:6px;font-weight:700}
 .daily-streak{font-size:14px;color:#ff6b35;font-weight:700;margin-top:4px}
 .daily-grid{display:flex;flex-direction:column;gap:8px;padding:10px 0}
@@ -2076,7 +2076,7 @@ function loadDraftTeamImages(){
 // PWA: Service Worker Registration
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js?v=16').then(r=>{
+    navigator.serviceWorker.register('sw.js?v=17').then(r=>{
       console.log('SW registered, scope:',r.scope);
       r.update();
     }).catch(e=>console.log('SW registration failed:',e));
@@ -2138,7 +2138,7 @@ window.addEventListener('appinstalled',()=>{
     <div id="itemEquipRow"></div>
   </div>
   <button id="btnBattleStart" disabled onclick="startBattleFight()">FIGHT!</button>
-  <button class="bt-back" onclick="closeBattle()">Back</button>
+  <button class="bt-back" onclick="storyContext?abandonStoryRun():closeBattle()">Back</button>
 </div>
 
 <!-- ===== BATTLE ARENA ===== -->
