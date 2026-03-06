@@ -414,29 +414,44 @@ function calcBattleExp(won, diff, charTier, isStory, isBoss){
   return Math.floor(base * diffMult * tierMult);
 }
 
-// Stat bonuses from levels - percentage-based so all tiers benefit equally
-// At max level 50: +98% ATK, +73.5% DEF, +49% SPD, +49% HAKI, +49% DF
-function getLevelStatBonus(id, baseStats){
+// Growth system: base stats = max potential. Characters start at 40% and grow to 100%.
+// Level 1 = 40%, Level 50 = 100%. Each level adds ~1.22% of potential.
+// Returns the multiplier for a character's stats at their current level.
+const GROWTH_FLOOR = 0.40; // starting strength (40% of potential)
+const GROWTH_CEIL = 1.00;  // full potential at max level
+const MAX_LEVEL = 50;
+
+function getLevelMultiplier(id){
   const lvl = getCharLevelNum(id);
-  if(lvl<=1) return {atk:0,def:0,spd:0,haki:0,df:0};
-  const scale = lvl - 1; // 0-49
-  // If base stats provided, use percentage scaling
-  if(baseStats){
-    return {
-      atk: Math.floor((baseStats.atk||0) * scale * 0.02),
-      def: Math.floor((baseStats.def||0) * scale * 0.015),
-      spd: Math.floor((baseStats.spd||0) * scale * 0.01),
-      haki: Math.floor((baseStats.haki||0) * scale * 0.01),
-      df: Math.floor((baseStats.df||0) * scale * 0.01)
-    };
-  }
-  // Fallback flat bonuses (stronger than before)
+  if(lvl >= MAX_LEVEL) return GROWTH_CEIL;
+  // Linear interpolation from floor to ceiling
+  return GROWTH_FLOOR + (GROWTH_CEIL - GROWTH_FLOOR) * ((lvl - 1) / (MAX_LEVEL - 1));
+}
+
+// Returns the actual stats for a character at their current level
+function getEffectiveStats(id, ch){
+  const mult = getLevelMultiplier(id);
   return {
-    atk: Math.floor(scale * 1.5),
-    def: Math.floor(scale * 1.0),
-    spd: Math.floor(scale * 0.7),
-    haki: Math.floor(scale * 0.5),
-    df: Math.floor(scale * 0.5)
+    atk: Math.floor((ch.atk||0) * mult),
+    def: Math.floor((ch.def||0) * mult),
+    spd: Math.floor((ch.spd||0) * mult),
+    haki: Math.floor((ch.haki||0) * mult),
+    df: Math.floor((ch.df||0) * mult)
+  };
+}
+
+// For detail view: shows how much stats grew from leveling (current - base level 1 value)
+function getLevelStatBonus(id, baseStats){
+  const mult = getLevelMultiplier(id);
+  const floor = GROWTH_FLOOR;
+  const gain = mult - floor; // how much we gained beyond starting point
+  if(gain <= 0) return {atk:0,def:0,spd:0,haki:0,df:0};
+  return {
+    atk: Math.floor((baseStats.atk||0) * gain),
+    def: Math.floor((baseStats.def||0) * gain),
+    spd: Math.floor((baseStats.spd||0) * gain),
+    haki: Math.floor((baseStats.haki||0) * gain),
+    df: Math.floor((baseStats.df||0) * gain)
   };
 }
 
@@ -1188,6 +1203,8 @@ function storyAdvanceNext(){
     storyContext={arcId:arc.id,chIdx:nextIdx,type:'chapter',reward:ch.reward};
     // Build enemy team
     const eTeam=ch.enemies.map(id=>ALL_CHARS.find(c=>c.id===id)).filter(Boolean);
+    const STORY_DIFF_LVL={easy:20,medium:35,hard:50};
+    eTeam.forEach(c=>{c._forcedLevel=STORY_DIFF_LVL[arc.difficulty]||35;});
     const pTeam=selectedBattleTeam.map(id=>ALL_CHARS.find(c=>c.id===id));
     currentBattle=new Battle(pTeam,eTeam,arc.difficulty);
     currentBattle.storyContext=storyContext;
@@ -1558,16 +1575,23 @@ class BattleChar{
     synergyBonuses = synergyBonuses || { atk: 1.0, def: 1.0, spd: 1.0, haki: 1.0, df: 1.0, healing: 0.0 };
         Object.assign(this,ch);
     // Store character level for display
-    this.charLevel = typeof getCharLevelNum==='function' ? getCharLevelNum(ch.id) : 1;
+    // _forcedLevel lets enemies fight at a set strength (e.g. difficulty-scaled)
+    const isPlayer = typeof isUnlocked==='function' && isUnlocked(ch.id) && !ch._forcedLevel;
+    this.charLevel = ch._forcedLevel || (typeof getCharLevelNum==='function' ? getCharLevelNum(ch.id) : 1);
     this.evoStage = typeof getEvoStage==='function' ? getEvoStage(ch.id) : 1;
     // Show evolution form name in battle
     const _evoName = typeof getEvoFormName==='function' ? getEvoFormName(ch.id) : null;
     if(_evoName) this.name = _evoName;
-    // Apply evolution stat boosts
-    const lvlB = typeof getLevelStatBonus==='function' ? getLevelStatBonus(ch.id, {atk:this.atk,def:this.def,spd:this.spd,haki:this.haki||0,df:this.df||0}) : {atk:0,def:0,spd:0,haki:0,df:0};
-    this.atk += lvlB.atk; this.def += lvlB.def; this.spd += lvlB.spd;
-    if(lvlB.haki) this.haki = (this.haki||0) + lvlB.haki;
-    if(lvlB.df) this.df = (this.df||0) + lvlB.df;
+    // GROWTH SYSTEM: base stats represent max potential, scale by level
+    // For enemies with _forcedLevel, compute growth directly
+    const _lvl = this.charLevel;
+    const _growthMult = _lvl >= MAX_LEVEL ? GROWTH_CEIL : GROWTH_FLOOR + (GROWTH_CEIL - GROWTH_FLOOR) * ((_lvl - 1) / (MAX_LEVEL - 1));
+    const effStats = isPlayer && typeof getEffectiveStats==='function'
+      ? getEffectiveStats(ch.id, ch)
+      : {atk:Math.floor((ch.atk||0)*_growthMult), def:Math.floor((ch.def||0)*_growthMult), spd:Math.floor((ch.spd||0)*_growthMult), haki:Math.floor((ch.haki||0)*_growthMult), df:Math.floor((ch.df||0)*_growthMult)};
+    this.atk = effStats.atk; this.def = effStats.def; this.spd = effStats.spd;
+    this.haki = effStats.haki; this.df = effStats.df;
+    // Evolution boosts stack on top (beyond potential)
     const evoB = typeof getEvoBoosts==='function' ? getEvoBoosts(ch.id) : {atk:0,def:0,spd:0,haki:0,df:0};
     this.atk += evoB.atk; this.def += evoB.def; this.spd += evoB.spd;
     if(evoB.haki) this.haki = (this.haki||0) + evoB.haki;
@@ -1594,7 +1618,8 @@ class BattleChar{
     if (synergyBonuses.haki > 1.0) this.haki = Math.floor((this.haki || 0) * synergyBonuses.haki);
     if (synergyBonuses.df > 1.0) this.df = Math.floor((this.df || 0) * synergyBonuses.df);
     this._synergyHealing = synergyBonuses.healing;
-    this.maxHP=calcMaxHP(ch);
+    // HP uses current effective stats (growth-scaled), not raw potential
+    this.maxHP=calcMaxHP(this);
     if(ch._bossHpMult) this.maxHP=Math.floor(this.maxHP*ch._bossHpMult);
     this.hp=this.maxHP;
     this.moves=(BATTLE_MOVES[ch.id]||[
@@ -2159,7 +2184,9 @@ function startBattleFight(){
       if(bossChar.haki) bossChar.haki=Math.floor(bossChar.haki*storyContext.bossStatMult*_pMult);
       if(bossChar.df) bossChar.df=Math.floor(bossChar.df*storyContext.bossStatMult*_pMult);
       bossChar._bossHpMult=storyContext.bossHpMult;
+      bossChar._forcedLevel=50; // bosses always fight at full potential
       const allies=storyContext.allies.map(id=>ALL_CHARS.find(c=>c.id===id)).filter(Boolean);
+      allies.forEach(a=>{a._forcedLevel=50;});
       eTeam=[bossChar,...allies];
     }else{
       const arc=STORY_ARCS.find(a=>a.id===storyContext.arcId);
@@ -2170,6 +2197,10 @@ function startBattleFight(){
     eTeam=aiSelectTeam(selectedDifficulty);
   }
 
+  // Set enemy level based on difficulty so growth system scales them
+  const DIFF_ENEMY_LEVEL = {easy:20, medium:35, hard:50};
+  const eLvl = DIFF_ENEMY_LEVEL[selectedDifficulty] || 35;
+  eTeam.forEach(c=>{ if(!c._forcedLevel) c._forcedLevel = eLvl; });
   currentBattle=new Battle(pTeam,eTeam,selectedDifficulty);
   currentBattle.bet = currentBet;
   currentBattle.storyContext = storyContext;
@@ -2690,17 +2721,24 @@ function showCharDetail(id) {
   const upgrades = getCharUpgrades(id);
   const currentLevel = getUpgradeLevel(id);
   const upgBoosts = getUpgradeBoosts(id);
-  const lvlBoosts = getLevelStatBonus(id, {atk:ch.atk,def:ch.def,spd:ch.spd,haki:ch.haki||0,df:ch.df||0});
-  const boosts = {atk:upgBoosts.atk+lvlBoosts.atk, def:upgBoosts.def+lvlBoosts.def, spd:upgBoosts.spd+lvlBoosts.spd, haki:upgBoosts.haki+lvlBoosts.haki, df:upgBoosts.df+lvlBoosts.df};
-  const maxHP = calcMaxHP(ch);
+  const evoBoosts = typeof getEvoBoosts==='function' ? getEvoBoosts(id) : {atk:0,def:0,spd:0,haki:0,df:0};
+  // Effective stats = growth-scaled base (what character currently has from leveling)
+  const eff = typeof getEffectiveStats==='function' ? getEffectiveStats(id, ch) : {atk:ch.atk,def:ch.def,spd:ch.spd,haki:ch.haki||0,df:ch.df||0};
+  // Boosts from upgrades + evolution (shown as bonus on top)
+  const boosts = {atk:upgBoosts.atk+evoBoosts.atk, def:upgBoosts.def+evoBoosts.def, spd:upgBoosts.spd+evoBoosts.spd, haki:upgBoosts.haki+evoBoosts.haki, df:upgBoosts.df+evoBoosts.df};
+  const maxHP = calcMaxHP({def:eff.def+boosts.def, haki:eff.haki+boosts.haki, df:eff.df+boosts.df, tier:ch.tier});
   const clampedLevel = Math.min(currentLevel, upgrades.length);
   const upgLabel = clampedLevel > 0 ? upgrades[clampedLevel-1].label : 'Base Form';
+  const growthPct = Math.round((typeof getLevelMultiplier==='function' ? getLevelMultiplier(id) : 1) * 100);
 
-  // Stat bar helper - shows base + boost
-  function statBar(val, boost, max, color) {
-    const basePct = Math.min(100, val/max*100);
-    const boostPct = Math.min(100, (val+boost)/max*100);
+  // Stat bar: current effective + boost, with potential shown as faint background
+  function statBar(val, boost, potential, color) {
+    const cap = Math.max(potential * 1.3, val + boost + 10);
+    const basePct = Math.min(100, val/cap*100);
+    const boostPct = Math.min(100, (val+boost)/cap*100);
+    const potPct = Math.min(100, potential/cap*100);
     return `<div class="stat-bar-bg">
+      <div class="stat-bar-fill" style="width:${potPct}%;background:#555;opacity:0.15"></div>
       <div class="stat-bar-fill" style="width:${boostPct}%;background:${color};opacity:0.4"></div>
       <div class="stat-bar-fill stat-bar-base" style="width:${basePct}%;background:${color}"></div>
     </div>`;
@@ -2732,21 +2770,22 @@ function showCharDetail(id) {
           + (_cl.level >= MAX_CHAR_LEVEL ? '<span class="detail-level-max">MAX</span>' : '<span class="detail-level-exp">' + _cl.exp + ' / ' + _nxt + ' EXP</span>')
           + '</div>'
           + '<div class="detail-exp-bar"><div class="detail-exp-fill" style="width:' + _pct + '%"></div></div>'
+          + '<div class="detail-growth-tag">Power: ' + growthPct + '% of potential</div>'
           + '</div>';
       })() : ''}
       <div class="detail-quick-stats">
         <div class="dqs"><span class="dqs-val">${maxHP}</span><span class="dqs-lbl">HP</span></div>
-        <div class="dqs"><span class="dqs-val">${ch.atk}${boosts.atk?`<small>+${boosts.atk}</small>`:''}</span><span class="dqs-lbl">ATK</span></div>
-        <div class="dqs"><span class="dqs-val">${ch.def}${boosts.def?`<small>+${boosts.def}</small>`:''}</span><span class="dqs-lbl">DEF</span></div>
-        <div class="dqs"><span class="dqs-val">${ch.spd}${boosts.spd?`<small>+${boosts.spd}</small>`:''}</span><span class="dqs-lbl">SPD</span></div>
-        <div class="dqs"><span class="dqs-val">${(ch.haki||0)}${boosts.haki?`<small>+${boosts.haki}</small>`:''}</span><span class="dqs-lbl">HAKI</span></div>
+        <div class="dqs"><span class="dqs-val">${eff.atk}${boosts.atk?`<small>+${boosts.atk}</small>`:''}</span><span class="dqs-lbl">ATK</span></div>
+        <div class="dqs"><span class="dqs-val">${eff.def}${boosts.def?`<small>+${boosts.def}</small>`:''}</span><span class="dqs-lbl">DEF</span></div>
+        <div class="dqs"><span class="dqs-val">${eff.spd}${boosts.spd?`<small>+${boosts.spd}</small>`:''}</span><span class="dqs-lbl">SPD</span></div>
+        <div class="dqs"><span class="dqs-val">${eff.haki}${boosts.haki?`<small>+${boosts.haki}</small>`:''}</span><span class="dqs-lbl">HAKI</span></div>
       </div>
       <div class="detail-stats">
-        <div class="stat-row"><span class="stat-label">ATK</span><span class="stat-val">${ch.atk}${boosts.atk?`<span class="stat-boost">+${boosts.atk}</span>`:''}</span>${statBar(ch.atk,boosts.atk,120,'#f44336')}</div>
-        <div class="stat-row"><span class="stat-label">DEF</span><span class="stat-val">${ch.def}${boosts.def?`<span class="stat-boost">+${boosts.def}</span>`:''}</span>${statBar(ch.def,boosts.def,120,'#2196F3')}</div>
-        <div class="stat-row"><span class="stat-label">SPD</span><span class="stat-val">${ch.spd}${boosts.spd?`<span class="stat-boost">+${boosts.spd}</span>`:''}</span>${statBar(ch.spd,boosts.spd,120,'#4CAF50')}</div>
-        <div class="stat-row"><span class="stat-label">HAKI</span><span class="stat-val">${ch.haki||0}${boosts.haki?`<span class="stat-boost">+${boosts.haki}</span>`:''}</span>${statBar(ch.haki||0,boosts.haki,120,'#9C27B0')}</div>
-        <div class="stat-row"><span class="stat-label">${ch.anime==='onepiece'?'DF':'JUTSU'}</span><span class="stat-val">${ch.df||0}${boosts.df?`<span class="stat-boost">+${boosts.df}</span>`:''}</span>${statBar(ch.df||0,boosts.df,120,'#FF9800')}</div>
+        <div class="stat-row"><span class="stat-label">ATK</span><span class="stat-val">${eff.atk}${boosts.atk?`<span class="stat-boost">+${boosts.atk}</span>`:''}</span>${statBar(eff.atk,boosts.atk,ch.atk,'#f44336')}</div>
+        <div class="stat-row"><span class="stat-label">DEF</span><span class="stat-val">${eff.def}${boosts.def?`<span class="stat-boost">+${boosts.def}</span>`:''}</span>${statBar(eff.def,boosts.def,ch.def,'#2196F3')}</div>
+        <div class="stat-row"><span class="stat-label">SPD</span><span class="stat-val">${eff.spd}${boosts.spd?`<span class="stat-boost">+${boosts.spd}</span>`:''}</span>${statBar(eff.spd,boosts.spd,ch.spd,'#4CAF50')}</div>
+        <div class="stat-row"><span class="stat-label">HAKI</span><span class="stat-val">${eff.haki}${boosts.haki?`<span class="stat-boost">+${boosts.haki}</span>`:''}</span>${statBar(eff.haki,boosts.haki,ch.haki||0,'#9C27B0')}</div>
+        <div class="stat-row"><span class="stat-label">${ch.anime==='onepiece'?'DF':'JUTSU'}</span><span class="stat-val">${eff.df}${boosts.df?`<span class="stat-boost">+${boosts.df}</span>`:''}</span>${statBar(eff.df,boosts.df,ch.df||0,'#FF9800')}</div>
       </div>
       <div class="detail-section-title">MOVES</div>
       <div class="detail-moves">${moves.map(m => {
@@ -3353,6 +3392,9 @@ function endlessNextRound(){
 
   // Create teams - pass as full character objects
   const pTeam=[playerChar];
+  // Scale enemy level with wins (start at 10, cap at 50)
+  const eLvl = Math.min(50, 10 + endlessBattle.wins);
+  opponent._forcedLevel = eLvl;
   const eTeam=[opponent];
 
   // Create the battle
