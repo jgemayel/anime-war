@@ -616,7 +616,7 @@ const CHAR_EVOLUTIONS={
 'nr100':{stages:[{name:'Crippled Nagato',level:1,boosts:{atk:0,def:0,spd:0,haki:0,df:0}},{name:'Rinnegan Nagato',level:15,boosts:{atk:7,def:5,spd:4,haki:4,df:4}},{name:'Edo Nagato Restored',level:35,boosts:{atk:12,def:10,spd:8,haki:8,df:8}}],learnMoves:{2:{name:'Rinnegan Six Paths',type:'special',power:96,acc:85,pp:7,effect:null},3:{name:'Edo Rinnegan Mastery',type:'special',power:128,acc:78,pp:4,effect:null}}},
 };
 
-function getEvoStage(id){const saved=evoData[id];return saved||1;}
+function getEvoStage(id){const saved=evoData[id];if(saved===true)return 2;return(typeof saved==='number'&&saved>=1)?saved:1;}
 function getEvoStageData(id){const evo=CHAR_EVOLUTIONS[id];if(!evo)return null;const stage=getEvoStage(id);return evo.stages[stage-1]||evo.stages[0];}
 function getNextEvo(id){const evo=CHAR_EVOLUTIONS[id];if(!evo)return null;const stage=getEvoStage(id);if(stage>=evo.stages.length)return null;return evo.stages[stage];}
 function canEvolve(id){const evo=CHAR_EVOLUTIONS[id];if(!evo)return false;const stage=getEvoStage(id);if(stage>=evo.stages.length)return false;const next=evo.stages[stage];if(getCharLevelNum(id)<next.level)return false;return true;}
@@ -2592,6 +2592,7 @@ function closeCollection(){
 
 // ===== CHARACTER DETAIL PAGE =====
 function showCharDetail(id) {
+ try{
   const ch = ALL_CHARS.find(c => c.id === id);
   if(!ch) return;
   const moves = BATTLE_MOVES[id] || [];
@@ -2600,7 +2601,8 @@ function showCharDetail(id) {
   const currentLevel = getUpgradeLevel(id);
   const boosts = getUpgradeBoosts(id);
   const maxHP = calcMaxHP(ch);
-  const upgLabel = currentLevel > 0 ? upgrades[currentLevel-1].label : 'Base Form';
+  const clampedLevel = Math.min(currentLevel, upgrades.length);
+  const upgLabel = clampedLevel > 0 ? upgrades[clampedLevel-1].label : 'Base Form';
 
   // Stat bar helper - shows base + boost
   function statBar(val, boost, max, color) {
@@ -2688,6 +2690,7 @@ function showCharDetail(id) {
   modal.onclick = function(e) {
     if(e.target === modal) closeCharDetail();
   };
+ }catch(err){console.error('showCharDetail error:',err);alert('Error opening character: '+err.message);}
 }
 
 
@@ -3041,8 +3044,9 @@ function getUpgradeBoosts(id) {
   const level = getUpgradeLevel(id);
   if(level === 0) return {atk:0,def:0,spd:0,haki:0,df:0};
   const upgrades = getCharUpgrades(id);
-  const u = upgrades[level-1];
-  return u.boosts || {atk:0,def:0,spd:0,haki:0,df:0};
+  const clamped = Math.min(level, upgrades.length);
+  const u = upgrades[clamped-1];
+  return u ? (u.boosts || {atk:0,def:0,spd:0,haki:0,df:0}) : {atk:0,def:0,spd:0,haki:0,df:0};
 }
 
 function purchaseUpgrade(id) {
