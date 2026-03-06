@@ -1876,8 +1876,7 @@ class Battle{
       this.addLog(`${def.name} dodged ${atk.name}'s ${move.name}!`);
       playSound('miss');
       def._passive = defPassiveSaved;
-      this.updateHP();
-      return this.checkFainted(def)?this.handleFaint(def):this.nextTurn();
+      return; // exit execAttack; doTurn handles faint checking
     }
     // Passive crit boost
     if(!crit && atk._passive && atk._passive.type==='crit_boost'){
@@ -2642,8 +2641,9 @@ function renderBattle(){
 
 function doPlayerMove(idx){
   if(!currentBattle||currentBattle.phase!=='action') return;
-  const logs=currentBattle.doTurn(idx);
-  // Animate with delays
+  let logs;
+  try{ logs=currentBattle.doTurn(idx); }catch(err){ console.error('doTurn error:',err); currentBattle.phase='action'; renderBattle(); return; }
+  if(!logs||!logs.length){ renderBattle(); return; }
   animateLogs(logs,()=>renderBattle());
 }
 
@@ -3537,19 +3537,21 @@ function showEndlessSetup(){
   if(wagerSection) wagerSection.style.display='block';
   const wagerRow = document.getElementById('expWagerRow');
   if(wagerRow){
-    const wagerOpts = [1, 2, 5, 10, 25, 50];
+    const wagerOpts = [1, 2, 5, 10, 25, 50, 100];
     wagerRow.innerHTML = wagerOpts.map(mult => {
       const active = expWagerMult === mult;
       const label = mult === 1 ? 'SAFE' : mult + 'x';
-      const cls = mult >= 25 ? 'wager-insane' : mult >= 10 ? 'wager-extreme' : mult >= 5 ? 'wager-high' : '';
+      const cls = mult >= 100 ? 'wager-suicidal' : mult >= 25 ? 'wager-insane' : mult >= 10 ? 'wager-extreme' : mult >= 5 ? 'wager-high' : '';
       return '<button class="wager-btn ' + (active ? 'wager-active ' : '') + cls + '" onclick="setExpWager(' + mult + ');showEndlessSetup()">' + label + '</button>';
     }).join('');
   }
   const wagerInfo = document.getElementById('expWagerInfo');
   if(wagerInfo){
-    if(expWagerMult >= 25){
+    if(expWagerMult >= 100){
+      wagerInfo.textContent = 'SUICIDAL! Win: ' + expWagerMult + 'x EXP | Lose: -' + expWagerMult + 'x EXP (TOTAL DESTRUCTION!)';
+    } else if(expWagerMult >= 25){
       wagerInfo.textContent = 'INSANE! Win: ' + expWagerMult + 'x EXP | Lose: -' + expWagerMult + 'x EXP (WILL level down!)';
-      wagerInfo.style.color = '#ff00ff';
+      wagerInfo.style.color = expWagerMult >= 100 ? '#ff0000' : '#ff00ff';
     } else if(expWagerMult > 1){
       wagerInfo.textContent = 'Win: ' + expWagerMult + 'x EXP | Lose: -' + expWagerMult + 'x EXP (can level DOWN!)';
       wagerInfo.style.color = expWagerMult >= 10 ? '#f44' : expWagerMult >= 5 ? '#ff8c00' : '#ffd700';
@@ -3677,17 +3679,27 @@ function endlessDefeat(){
 }
 
 function playAgainEndless(teamIds){
-  selectedBattleTeam = teamIds;
-  endlessTeamSize = teamIds.length;
+  const savedDiff = selectedDifficulty;
+  const savedWager = expWagerMult;
+  const savedSize = teamIds.length;
+  endlessTeamSize = savedSize;
   showEndlessSetup();
+  // Restore settings that showEndlessSetup reset
+  selectedDifficulty = savedDiff;
+  expWagerMult = savedWager;
+  selectedBattleTeam = [...teamIds];
+  renderBattleSetup();
 }
 
 function playAgainNormalBattle(){
-  if(lastBattleTeam.length > 0){
-    selectedBattleTeam = [...lastBattleTeam];
-  } else {
-    selectedBattleTeam = [];
-  }
+  const savedDiff = selectedDifficulty;
+  const savedBet = currentBet;
+  const savedTeam = lastBattleTeam.length > 0 ? [...lastBattleTeam] : [];
   showBattleSetup();
+  // Restore settings that showBattleSetup reset
+  selectedDifficulty = savedDiff;
+  currentBet = savedBet;
+  selectedBattleTeam = savedTeam;
+  renderBattleSetup();
 }
 

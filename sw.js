@@ -1,4 +1,4 @@
-const CACHE_NAME = 'anime-war-v32';
+const CACHE_NAME = 'anime-war-v33';
 const ASSETS = [
   './',
   './index.html',

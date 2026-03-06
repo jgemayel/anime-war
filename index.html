@@ -376,6 +376,9 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
 .wager-btn.wager-insane.wager-active{border-color:#ff00ff;color:#ff00ff;background:#1a001a;animation:pulse-insane 1s infinite;text-shadow:0 0 6px #ff00ff80}
 @keyframes pulse-red{0%,100%{box-shadow:0 0 4px #f4400040}50%{box-shadow:0 0 12px #f44000a0}}
 @keyframes pulse-insane{0%,100%{box-shadow:0 0 4px #ff00ff40}50%{box-shadow:0 0 16px #ff00ffa0}}
+.wager-btn.wager-suicidal{border-color:#666;color:#aaa}
+.wager-btn.wager-suicidal.wager-active{border-color:#ff0000;color:#ff0000;background:#1a0000;animation:pulse-suicidal .5s infinite;text-shadow:0 0 8px #ff000080;font-weight:bold}
+@keyframes pulse-suicidal{0%,100%{box-shadow:0 0 6px #ff000060;transform:scale(1)}50%{box-shadow:0 0 20px #ff0000c0;transform:scale(1.05)}}
 .exp-wager-info{font-size:11px;margin-top:4px;font-family:'Chakra Petch',sans-serif}
 .exp-amount-loss{color:#f44!important;font-weight:bold}
 .exp-leveldown{color:#f44!important;font-weight:bold;animation:shake .3s 2}
@@ -2219,7 +2222,7 @@ function loadDraftTeamImages(){
 // PWA: Service Worker Registration
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js?v=32').then(r=>{
+    navigator.serviceWorker.register('sw.js?v=33').then(r=>{
       console.log('SW registered, scope:',r.scope);
       r.update();
     }).catch(e=>console.log('SW registration failed:',e));
