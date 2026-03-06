@@ -1310,7 +1310,7 @@ function storyAdvanceNext(){
     storyContext={arcId:arc.id,chIdx:nextIdx,type:'chapter',reward:ch.reward};
     // Build enemy team
     const eTeam=ch.enemies.map(id=>ALL_CHARS.find(c=>c.id===id)).filter(Boolean);
-    const STORY_DIFF_LVL={easy:1,medium:10,hard:25,extreme:50};
+    const STORY_DIFF_LVL={easy:1,medium:15,hard:35,extreme:50};
     eTeam.forEach(c=>{c._forcedLevel=STORY_DIFF_LVL[arc.difficulty]||35;});
     const pTeam=selectedBattleTeam.map(id=>ALL_CHARS.find(c=>c.id===id));
     currentBattle=new Battle(pTeam,eTeam,arc.difficulty);
@@ -1684,6 +1684,7 @@ class BattleChar{
     // Store character level for display
     // _forcedLevel lets enemies fight at a set strength (e.g. difficulty-scaled)
     const isPlayer = typeof isUnlocked==='function' && isUnlocked(ch.id) && !ch._forcedLevel;
+    this._isPlayer = isPlayer; // flag so upgrade boosts only apply to player chars
     this.charLevel = ch._forcedLevel || (typeof getCharLevelNum==='function' ? getCharLevelNum(ch.id) : 1);
     this.evoStage = typeof getEvoStage==='function' ? getEvoStage(ch.id) : 1;
     // Show evolution form name in battle
@@ -2358,7 +2359,7 @@ function startBattleFight(){
   }
 
   // Set enemy level based on difficulty so growth system scales them
-  const DIFF_ENEMY_LEVEL = {easy:1, medium:10, hard:25, extreme:50};
+  const DIFF_ENEMY_LEVEL = {easy:1, medium:15, hard:35, extreme:50};
   const eLvl = DIFF_ENEMY_LEVEL[selectedDifficulty] || 35;
   eTeam.forEach(c=>{ if(!c._forcedLevel) c._forcedLevel = eLvl; });
   currentBattle=new Battle(pTeam,eTeam,selectedDifficulty);
@@ -3374,13 +3375,18 @@ function getCharUpgrades(id) {
   }));
 }
 
+const UPGRADE_BOOST_MULT = 4; // multiplier so powerups feel impactful
+
 function getUpgradeBoosts(id) {
   const level = getUpgradeLevel(id);
   if(level === 0) return {atk:0,def:0,spd:0,haki:0,df:0};
   const upgrades = getCharUpgrades(id);
   const clamped = Math.min(level, upgrades.length);
   const u = upgrades[clamped-1];
-  return u ? (u.boosts || {atk:0,def:0,spd:0,haki:0,df:0}) : {atk:0,def:0,spd:0,haki:0,df:0};
+  if(!u) return {atk:0,def:0,spd:0,haki:0,df:0};
+  const b = u.boosts || {atk:0,def:0,spd:0,haki:0,df:0};
+  const m = UPGRADE_BOOST_MULT;
+  return {atk:b.atk*m, def:b.def*m, spd:b.spd*m, haki:b.haki*m, df:b.df*m};
 }
 
 function purchaseUpgrade(id) {
@@ -3450,19 +3456,21 @@ const _origInitBattleChar = Battle.prototype.pTeam; // just need to override Bat
 // Override BattleChar to apply upgrades
 const OrigBattleChar = BattleChar;
 
-// Patch: apply upgrade boosts in battle mode
+// Patch: apply upgrade boosts in battle mode (PLAYER ONLY - AI never gets powerups)
 (function() {
   const origCalcMaxHP = calcMaxHP;
   window.calcMaxHP = function(ch) {
+    if(!ch._isPlayer) return origCalcMaxHP(ch);
     const boosts = getUpgradeBoosts(ch.id);
-    const boosted = {...ch, def: ch.def + boosts.def, haki: (ch.haki||0) + boosts.haki};
+    const boosted = {...ch, def: ch.def + boosts.def, haki: (ch.haki||0) + boosts.haki, df: (ch.df||0) + boosts.df};
     return origCalcMaxHP(boosted);
   };
 
   const origCalcDamage = calcDamage;
   window.calcDamage = function(atk, def, move) {
-    const atkBoosts = getUpgradeBoosts(atk.id);
-    const defBoosts = getUpgradeBoosts(def.id);
+    // Only apply upgrade boosts to player characters
+    const atkBoosts = atk._isPlayer ? getUpgradeBoosts(atk.id) : {atk:0,def:0,spd:0,haki:0,df:0};
+    const defBoosts = def._isPlayer ? getUpgradeBoosts(def.id) : {atk:0,def:0,spd:0,haki:0,df:0};
     const boostedAtk = {...atk,
       atk: atk.atk + atkBoosts.atk,
       def: atk.def + atkBoosts.def,
@@ -3642,7 +3650,7 @@ function endlessNextRound(){
   const teamSize = endlessBattle.teamSize || 1;
   for(let i = 0; i < teamSize; i++){
     const opponent = getEndlessOpponent(endlessBattle.wins);
-    const baseLvl = {'easy':1,'medium':10,'hard':25,'extreme':50}[endlessBattle.diff]||10;
+    const baseLvl = {'easy':1,'medium':15,'hard':35,'extreme':50}[endlessBattle.diff]||15;
     const eLvl = Math.min(50, baseLvl + endlessBattle.wins);
     opponent._forcedLevel = eLvl;
     eTeam.push(opponent);
