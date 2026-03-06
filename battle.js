@@ -334,6 +334,79 @@ function buyItemUI(itemId){
 
 
 // ---- EVOLUTION / TRANSFORMATION SYSTEM ----
+
+// ---- CHARACTER LEVEL / EXP SYSTEM ----
+const CHAR_LEVEL_KEY = 'animewar_charlevels';
+const MAX_CHAR_LEVEL = 50;
+const EVO_LEVEL_REQ = 30; // Level needed to evolve
+
+// EXP curve: each level needs more EXP
+function expForLevel(lvl){
+  if(lvl<=1) return 0;
+  return Math.floor(80 * Math.pow(lvl-1, 1.5));
+}
+function totalExpForLevel(lvl){
+  let total=0;
+  for(let i=1;i<=lvl;i++) total+=expForLevel(i);
+  return total;
+}
+
+function loadCharLevels(){try{const s=localStorage.getItem(CHAR_LEVEL_KEY);if(s)return JSON.parse(s);}catch(e){}return {};}
+function saveCharLevels(){localStorage.setItem(CHAR_LEVEL_KEY,JSON.stringify(charLevelData));}
+let charLevelData = loadCharLevels();
+
+function getCharLevel(id){
+  const d=charLevelData[id];
+  if(!d) return {level:1,exp:0};
+  return {level:d.level||1, exp:d.exp||0};
+}
+
+function getCharLevelNum(id){return getCharLevel(id).level;}
+
+function addCharExp(id, amount){
+  if(!isUnlocked(id)) return {levelUps:0,newLevel:1};
+  let d=charLevelData[id]||{level:1,exp:0};
+  d.exp += amount;
+  let levelUps=0;
+  while(d.level < MAX_CHAR_LEVEL){
+    const needed = expForLevel(d.level+1);
+    if(d.exp >= needed){
+      d.exp -= needed;
+      d.level++;
+      levelUps++;
+    } else break;
+  }
+  if(d.level >= MAX_CHAR_LEVEL){d.level=MAX_CHAR_LEVEL;d.exp=0;}
+  charLevelData[id]=d;
+  saveCharLevels();
+  return {levelUps, newLevel:d.level};
+}
+
+// EXP rewards by context
+function calcBattleExp(won, diff, charTier, isStory, isBoss){
+  const tierMult = {'C':1,'B':1.1,'A':1.2,'S':1.3,'S+':1.4}[charTier]||1;
+  const diffMult = {'easy':0.7,'medium':1,'hard':1.5}[diff]||1;
+  let base = won ? 60 : 15;
+  if(isStory) base = won ? 80 : 20;
+  if(isBoss && won) base = 150;
+  return Math.floor(base * diffMult * tierMult);
+}
+
+// Stat bonuses from levels (small but meaningful)
+function getLevelStatBonus(id){
+  const lvl = getCharLevelNum(id);
+  if(lvl<=1) return {atk:0,def:0,spd:0,haki:0,df:0};
+  const scale = lvl - 1; // 0-49
+  return {
+    atk: Math.floor(scale * 0.4),
+    def: Math.floor(scale * 0.3),
+    spd: Math.floor(scale * 0.2),
+    haki: Math.floor(scale * 0.15),
+    df: Math.floor(scale * 0.15)
+  };
+}
+
+
 const EVO_KEY = 'animewar_evolutions';
 function loadEvolutions(){try{const s=localStorage.getItem(EVO_KEY);if(s)return JSON.parse(s);}catch(e){}return {};}
 function saveEvolutions(ev){localStorage.setItem(EVO_KEY,JSON.stringify(ev));}
@@ -373,7 +446,7 @@ function canEvolve(id){
   const evo=EVOLUTION_DATA[id];
   if(!evo) return false;
   if(isEvolved(id)) return false;
-  if(getUpgradeLevel(id)<3) return false;
+  if(getCharLevelNum(id)<EVO_LEVEL_REQ) return false;
   if(saveData.coins<evo.cost) return false;
   return true;
 }
@@ -705,6 +778,7 @@ function setCollSort(s){
     btn.classList.toggle('sort-active', btn.getAttribute('data-sort')===s);
   });
 }
+
 
 // ---- STORY MODE ----
 const STORY_KEY='animewar_story';
@@ -1266,6 +1340,10 @@ class BattleChar{
     synergyBonuses = synergyBonuses || { atk: 1.0, def: 1.0, spd: 1.0, haki: 1.0, df: 1.0, healing: 0.0 };
         Object.assign(this,ch);
     // Apply evolution stat boosts
+    const lvlB = typeof getLevelStatBonus==='function' ? getLevelStatBonus(ch.id) : {atk:0,def:0,spd:0,haki:0,df:0};
+    this.atk += lvlB.atk; this.def += lvlB.def; this.spd += lvlB.spd;
+    if(lvlB.haki) this.haki = (this.haki||0) + lvlB.haki;
+    if(lvlB.df) this.df = (this.df||0) + lvlB.df;
     const evoB = typeof getEvoBoosts==='function' ? getEvoBoosts(ch.id) : {atk:0,def:0,spd:0,haki:0,df:0};
     this.atk += evoB.atk; this.def += evoB.def; this.spd += evoB.spd;
     if(evoB.haki) this.haki = (this.haki||0) + evoB.haki;
@@ -1952,6 +2030,18 @@ function renderBattle(){
         saveData.losses++;saveSave();
       }
       // Check daily challenges
+      // Award EXP to team
+      const expResults = [];
+      if(b.pTeam){
+        const sc2=b.storyContext;
+        b.pTeam.forEach(bc=>{
+          const expAmt = calcBattleExp(b.phase==='won', b.diff, bc.tier||'B', !!sc2, !!(sc2&&sc2.type==='boss'));
+          const result = addCharExp(bc.id, expAmt);
+          expResults.push({id:bc.id, name:bc.name, exp:expAmt, levelUps:result.levelUps, newLevel:result.newLevel});
+        });
+      }
+      b._expResults = expResults;
+
       const daily=loadDaily();
       const battleResult={
         won:b.phase==='won',
@@ -2000,6 +2090,24 @@ function renderBattle(){
       </div>`;
     } else if(bet > 0) {
       rewardHTML = `<div class="reward-breakdown loss"><div class="reward-line">Bet lost: -${bet} coins</div></div>`;
+    }
+
+    // Show EXP gains
+    if(b._expResults && b._expResults.length > 0){
+      rewardHTML += '<div class="exp-results">';
+      rewardHTML += '<div class="exp-results-title">EXP GAINED</div>';
+      b._expResults.forEach(er=>{
+        const lvlInfo = getCharLevel(er.id);
+        const nextExp = er.newLevel >= MAX_CHAR_LEVEL ? 1 : expForLevel(er.newLevel+1);
+        const pct = nextExp > 0 ? Math.floor(lvlInfo.exp/nextExp*100) : 100;
+        rewardHTML += '<div class="exp-result-row">'
+          + '<span class="exp-char-name">'+er.name+'</span>'
+          + '<span class="exp-amount">+'+er.exp+' EXP</span>'
+          + (er.levelUps>0?'<span class="exp-levelup">LEVEL UP! Lv.'+er.newLevel+'</span>':'<span class="exp-level">Lv.'+er.newLevel+'</span>')
+          + '<div class="exp-bar-mini"><div class="exp-bar-fill" style="width:'+pct+'%"></div></div>'
+          + '</div>';
+      });
+      rewardHTML += '</div>';
     }
 
     // Story mode: determine buttons
@@ -2233,6 +2341,7 @@ function renderCollection(){
     const fa=isFavorite(a.id)?0:1, fb=isFavorite(b.id)?0:1;
     if(fa!==fb) return fa-fb;
     // Then sort by selected criteria
+    if(collectionSort==='level') return getCharLevelNum(b.id)-getCharLevelNum(a.id);
     if(collectionSort==='atk') return (b.atk||0)-(a.atk||0);
     if(collectionSort==='def') return (b.def||0)-(a.def||0);
     if(collectionSort==='spd') return (b.spd||0)-(a.spd||0);
@@ -2247,6 +2356,10 @@ function renderCollection(){
     const canAfford=saveData.coins>=cost;
     const fav=isFavorite(c.id);
     const evo=isEvolved(c.id);
+    const clvl = getCharLevel(c.id);
+    const clvlNum = clvl.level;
+    const nxtExp = clvlNum >= MAX_CHAR_LEVEL ? 1 : expForLevel(clvlNum+1);
+    const expPct = clvlNum >= MAX_CHAR_LEVEL ? 100 : Math.floor(clvl.exp/nxtExp*100);
     return `<div class="coll-card ${unlocked?'coll-unlocked':'coll-locked'} ${fav?'coll-fav':''}" onclick="${unlocked?`showCharDetail('${c.id}')`:(canAfford?`tryUnlock('${c.id}')`:'')}">
       ${unlocked&&fav?'<div class="coll-fav-star">⭐</div>':''}
       ${unlocked&&evo?'<div class="coll-evo-badge">✦</div>':''}
@@ -2256,6 +2369,7 @@ function renderCollection(){
       </div>
       <div class="coll-name">${unlocked?c.name:'???'}</div>
       <div class="coll-tier tier-${c.tier.replace('+','p')}">${c.tier}</div>
+      ${unlocked?`<div class="coll-level-row"><span class="coll-lvl-num">Lv.${clvlNum}</span><div class="coll-exp-bar"><div class="coll-exp-fill" style="width:${expPct}%"></div></div></div>`:''}
     </div>`;
   }).join('');
 
@@ -2317,6 +2431,18 @@ function showCharDetail(id) {
         </div>
       </div>
       ${unlocked && currentLevel > 0 ? `<div class="detail-form-tag">${upgLabel}</div>` : ''}
+      ${unlocked ? (()=>{
+        const _cl = getCharLevel(id);
+        const _nxt = _cl.level >= MAX_CHAR_LEVEL ? 1 : expForLevel(_cl.level+1);
+        const _pct = _cl.level >= MAX_CHAR_LEVEL ? 100 : Math.floor(_cl.exp/_nxt*100);
+        return '<div class="detail-level-section">'
+          + '<div class="detail-level-info">'
+          + '<span class="detail-level-num">Level ' + _cl.level + '</span>'
+          + (_cl.level >= MAX_CHAR_LEVEL ? '<span class="detail-level-max">MAX</span>' : '<span class="detail-level-exp">' + _cl.exp + ' / ' + _nxt + ' EXP</span>')
+          + '</div>'
+          + '<div class="detail-exp-bar"><div class="detail-exp-fill" style="width:' + _pct + '%"></div></div>'
+          + '</div>';
+      })() : ''}
       <div class="detail-quick-stats">
         <div class="dqs"><span class="dqs-val">${maxHP}</span><span class="dqs-lbl">HP</span></div>
         <div class="dqs"><span class="dqs-val">${ch.atk}${boosts.atk?`<small>+${boosts.atk}</small>`:''}</span><span class="dqs-lbl">ATK</span></div>
@@ -2376,9 +2502,9 @@ function renderEvoSection(id, ch){
     return '<div class="detail-section-title">EVOLUTION</div><div class="evo-section evo-done"><div class="evo-name">'+evo.emoji+' '+evo.evoName+'</div><div class="evo-desc">'+evo.desc+'</div></div>';
   }
   const canDo = canEvolve(id);
-  const lvl = getUpgradeLevel(id);
+  const charLvl = getCharLevelNum(id);
   let reason = '';
-  if(lvl < 3) reason = 'Requires max upgrade (Lv.3)';
+  if(charLvl < EVO_LEVEL_REQ) reason = 'Requires Level '+EVO_LEVEL_REQ+' (currently Lv.'+charLvl+')';
   else if(saveData.coins < evo.cost) reason = 'Need '+evo.cost.toLocaleString()+' coins';
   return '<div class="detail-section-title">EVOLUTION</div><div class="evo-section"><div class="evo-name">'+evo.emoji+' '+evo.evoName+'</div><div class="evo-desc">'+evo.desc+'</div><div class="evo-stats">ATK+'+evo.atkBonus+' DEF+'+(evo.defBonus||0)+' SPD+'+(evo.spdBonus||0)+'</div>'+(canDo?'<button class="evo-btn" onclick="evolveCharacter(\''+id+'\')">EVOLVE ('+evo.cost.toLocaleString()+' coins)</button>':'<div class="evo-locked">'+reason+'</div>')+'</div>';
 }

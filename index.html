@@ -245,6 +245,29 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
 .type-flash{animation:typeFlash 0.3s ease}
 @keyframes typeFlash{0%{filter:brightness(1)}50%{filter:brightness(2)}100%{filter:brightness(1)}}
 
+/* ---- CHARACTER LEVEL / EXP ---- */
+.coll-level-row{display:flex;align-items:center;gap:4px;margin-top:2px;padding:0 4px}
+.coll-lvl-num{font-size:0.6rem;color:#ffdd57;font-weight:700;min-width:28px;text-shadow:0 1px 2px rgba(0,0,0,0.8)}
+.coll-exp-bar{flex:1;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;overflow:hidden}
+.coll-exp-fill{height:100%;background:linear-gradient(90deg,#4CAF50,#8BC34A);border-radius:2px;transition:width 0.3s}
+.detail-level-section{margin:8px 12px;padding:8px 12px;background:rgba(255,221,87,0.08);border:1px solid rgba(255,221,87,0.25);border-radius:10px}
+.detail-level-info{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.detail-level-num{font-size:1.1rem;font-weight:700;color:#ffdd57;text-shadow:0 1px 4px rgba(255,221,87,0.3)}
+.detail-level-max{font-size:0.75rem;font-weight:700;color:#ff6600;background:rgba(255,102,0,0.15);padding:2px 8px;border-radius:6px}
+.detail-level-exp{font-size:0.75rem;color:rgba(255,255,255,0.6)}
+.detail-exp-bar{height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden}
+.detail-exp-fill{height:100%;background:linear-gradient(90deg,#4CAF50,#8BC34A);border-radius:4px;transition:width 0.3s}
+.exp-results{margin-top:8px;padding:8px;background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);border-radius:8px}
+.exp-results-title{font-size:0.75rem;font-weight:700;color:#4CAF50;text-align:center;margin-bottom:6px;letter-spacing:2px}
+.exp-result-row{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:4px 0;font-size:0.7rem}
+.exp-char-name{color:#fff;font-weight:600;min-width:80px}
+.exp-amount{color:#8BC34A;font-weight:600}
+.exp-level{color:rgba(255,255,255,0.5);font-size:0.65rem}
+.exp-levelup{color:#ffdd57;font-weight:700;font-size:0.7rem;animation:levelUpPulse 0.6s ease}
+.exp-bar-mini{flex:1;min-width:40px;height:3px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden}
+.exp-bar-fill{height:100%;background:linear-gradient(90deg,#4CAF50,#8BC34A);border-radius:2px}
+@keyframes levelUpPulse{0%{transform:scale(1)}50%{transform:scale(1.3);color:#ff6600}100%{transform:scale(1)}}
+
 /* ===== CHARACTER DETAIL MODAL ===== */
 #charDetailModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000c;z-index:10001;justify-content:center;align-items:flex-start;padding:20px 10px;overflow-y:auto;cursor:pointer;-webkit-overflow-scrolling:touch}
 .detail-card{background:#111;border:2px solid #222;border-radius:14px;max-width:340px;width:100%;padding:14px;position:relative;cursor:default;max-height:90vh;overflow-y:auto}
@@ -2127,7 +2150,7 @@ function loadDraftTeamImages(){
 // PWA: Service Worker Registration
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js?v=18').then(r=>{
+    navigator.serviceWorker.register('sw.js?v=19').then(r=>{
       console.log('SW registered, scope:',r.scope);
       r.update();
     }).catch(e=>console.log('SW registration failed:',e));
@@ -2235,6 +2258,7 @@ window.addEventListener('appinstalled',()=>{
   </div>
   <div class="coll-sort-row">
     <button class="sort-btn sort-active" data-sort="tier" onclick="setCollSort('tier')">Tier</button>
+    <button class="sort-btn" data-sort="level" onclick="setCollSort('level')">Level</button>
     <button class="sort-btn" data-sort="atk" onclick="setCollSort('atk')">ATK</button>
     <button class="sort-btn" data-sort="def" onclick="setCollSort('def')">DEF</button>
     <button class="sort-btn" data-sort="spd" onclick="setCollSort('spd')">SPD</button>
