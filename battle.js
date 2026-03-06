@@ -414,17 +414,29 @@ function calcBattleExp(won, diff, charTier, isStory, isBoss){
   return Math.floor(base * diffMult * tierMult);
 }
 
-// Stat bonuses from levels (small but meaningful)
-function getLevelStatBonus(id){
+// Stat bonuses from levels - percentage-based so all tiers benefit equally
+// At max level 50: +98% ATK, +73.5% DEF, +49% SPD, +49% HAKI, +49% DF
+function getLevelStatBonus(id, baseStats){
   const lvl = getCharLevelNum(id);
   if(lvl<=1) return {atk:0,def:0,spd:0,haki:0,df:0};
   const scale = lvl - 1; // 0-49
+  // If base stats provided, use percentage scaling
+  if(baseStats){
+    return {
+      atk: Math.floor((baseStats.atk||0) * scale * 0.02),
+      def: Math.floor((baseStats.def||0) * scale * 0.015),
+      spd: Math.floor((baseStats.spd||0) * scale * 0.01),
+      haki: Math.floor((baseStats.haki||0) * scale * 0.01),
+      df: Math.floor((baseStats.df||0) * scale * 0.01)
+    };
+  }
+  // Fallback flat bonuses (stronger than before)
   return {
-    atk: Math.floor(scale * 0.4),
-    def: Math.floor(scale * 0.3),
-    spd: Math.floor(scale * 0.2),
-    haki: Math.floor(scale * 0.15),
-    df: Math.floor(scale * 0.15)
+    atk: Math.floor(scale * 1.5),
+    def: Math.floor(scale * 1.0),
+    spd: Math.floor(scale * 0.7),
+    haki: Math.floor(scale * 0.5),
+    df: Math.floor(scale * 0.5)
   };
 }
 
@@ -1543,7 +1555,7 @@ class BattleChar{
     const _evoName = typeof getEvoFormName==='function' ? getEvoFormName(ch.id) : null;
     if(_evoName) this.name = _evoName;
     // Apply evolution stat boosts
-    const lvlB = typeof getLevelStatBonus==='function' ? getLevelStatBonus(ch.id) : {atk:0,def:0,spd:0,haki:0,df:0};
+    const lvlB = typeof getLevelStatBonus==='function' ? getLevelStatBonus(ch.id, {atk:this.atk,def:this.def,spd:this.spd,haki:this.haki||0,df:this.df||0}) : {atk:0,def:0,spd:0,haki:0,df:0};
     this.atk += lvlB.atk; this.def += lvlB.def; this.spd += lvlB.spd;
     if(lvlB.haki) this.haki = (this.haki||0) + lvlB.haki;
     if(lvlB.df) this.df = (this.df||0) + lvlB.df;
@@ -2660,7 +2672,9 @@ function showCharDetail(id) {
   const unlocked = isUnlocked(id);
   const upgrades = getCharUpgrades(id);
   const currentLevel = getUpgradeLevel(id);
-  const boosts = getUpgradeBoosts(id);
+  const upgBoosts = getUpgradeBoosts(id);
+  const lvlBoosts = getLevelStatBonus(id, {atk:ch.atk,def:ch.def,spd:ch.spd,haki:ch.haki||0,df:ch.df||0});
+  const boosts = {atk:upgBoosts.atk+lvlBoosts.atk, def:upgBoosts.def+lvlBoosts.def, spd:upgBoosts.spd+lvlBoosts.spd, haki:upgBoosts.haki+lvlBoosts.haki, df:upgBoosts.df+lvlBoosts.df};
   const maxHP = calcMaxHP(ch);
   const clampedLevel = Math.min(currentLevel, upgrades.length);
   const upgLabel = clampedLevel > 0 ? upgrades[clampedLevel-1].label : 'Base Form';
