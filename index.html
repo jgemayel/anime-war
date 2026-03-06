@@ -625,7 +625,7 @@ body{background:#0a0a0f;color:#fff;font-family:'Bebas Neue',sans-serif;min-heigh
         <div class="mode-title">STORY MODE</div>
         <div class="mode-desc">Battle through 6 arcs with boss fights and big rewards</div>
       </button>
-      <button class="mode-card mode-endless" onclick="showEndlessSetup()">
+      <button class="mode-card mode-endless" onclick="showEndlessSetup(true)">
         <div class="mode-icon">♾️</div>
         <div class="mode-title">ENDLESS MODE</div>
         <div class="mode-desc">Pick one character and survive increasingly tough opponents</div>
@@ -2222,7 +2222,7 @@ function loadDraftTeamImages(){
 // PWA: Service Worker Registration
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js?v=33').then(r=>{
+    navigator.serviceWorker.register('sw.js?v=34').then(r=>{
       console.log('SW registered, scope:',r.scope);
       r.update();
     }).catch(e=>console.log('SW registration failed:',e));

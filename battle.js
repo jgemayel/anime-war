@@ -2299,6 +2299,11 @@ function setExpWager(mult) {
   renderBattleSetup();
 }
 
+function setExpWagerEndless(mult) {
+  expWagerMult = mult;
+  showEndlessSetup(false);
+}
+
 function setBet(amount) {
   if(amount > saveData.coins) return;
   currentBet = amount;
@@ -3472,35 +3477,24 @@ const OrigBattleChar = BattleChar;
 
 // ===== ENDLESS BATTLE MODE =====
 
-let endlessTeamSize = 1; // 1 or 3
+// Endless is always 1v1
 
-function showEndlessSetup(){
+function showEndlessSetup(fresh){
   document.getElementById('title-screen').style.display='none';
   document.getElementById('battleArena').style.display='none';
   document.getElementById('battleSetup').style.display='block';
   currentBattle=null;
-  // Only clear team if switching modes, otherwise keep pre-filled team
-  if(!endlessBattle || !endlessBattle.teamIds){
+  if(fresh){
     selectedBattleTeam=[];
+    selectedDifficulty='medium';
+    currentBet=0;
+    expWagerMult=1;
+    equippedItems=[];
   }
-  selectedDifficulty='medium';
-  currentBet=0;
-  expWagerMult=1;
-  equippedItems=[];
 
-  // Ensure toggle container exists (use innerHTML to keep it clean)
-  let toggleEl = document.getElementById('endlessToggleContainer');
-  if(!toggleEl){
-    toggleEl = document.createElement('div');
-    toggleEl.id='endlessToggleContainer';
-    toggleEl.className='endless-toggle';
-    const setupHead = document.getElementById('battleSetup').querySelector('h2');
-    if(setupHead) setupHead.parentNode.insertBefore(toggleEl, setupHead.nextSibling);
-  }
-  toggleEl.innerHTML=`
-    <button class="endless-toggle-btn ${endlessTeamSize===1?'active':''}" onclick="setEndlessMode(1)">1v1</button>
-    <button class="endless-toggle-btn ${endlessTeamSize===3?'active':''}" onclick="setEndlessMode(3)">3v3</button>
-  `;
+  // Remove toggle container if present (no more 1v1/3v3)
+  const toggleEl = document.getElementById('endlessToggleContainer');
+  if(toggleEl) toggleEl.remove();
 
   // Character selection grid
   const grid=document.getElementById('battleTeamGrid');
@@ -3518,10 +3512,9 @@ function showEndlessSetup(){
     </div>`;
   }).join('');
 
-  const teamCountText = endlessTeamSize === 1 ? '1' : '3';
-  document.getElementById('battleTeamCount').textContent=`${selectedBattleTeam.length}/${teamCountText}`;
+  document.getElementById('battleTeamCount').textContent=`${selectedBattleTeam.length}/1`;
   const startBtn = document.getElementById('btnBattleStart');
-  startBtn.disabled=selectedBattleTeam.length!==endlessTeamSize;
+  startBtn.disabled=selectedBattleTeam.length!==1;
   startBtn.textContent='START ENDLESS';
   startBtn.onclick=()=>startEndlessBattle();
 
@@ -3542,7 +3535,7 @@ function showEndlessSetup(){
       const active = expWagerMult === mult;
       const label = mult === 1 ? 'SAFE' : mult + 'x';
       const cls = mult >= 100 ? 'wager-suicidal' : mult >= 25 ? 'wager-insane' : mult >= 10 ? 'wager-extreme' : mult >= 5 ? 'wager-high' : '';
-      return '<button class="wager-btn ' + (active ? 'wager-active ' : '') + cls + '" onclick="setExpWager(' + mult + ');showEndlessSetup()">' + label + '</button>';
+      return '<button class="wager-btn ' + (active ? 'wager-active ' : '') + cls + '" onclick="setExpWagerEndless(' + mult + ')">' + label + '</button>';
     }).join('');
   }
   const wagerInfo = document.getElementById('expWagerInfo');
@@ -3567,25 +3560,19 @@ function showEndlessSetup(){
   });
 }
 
-function setEndlessMode(size){
-  endlessTeamSize = size;
-  selectedBattleTeam = []; // Reset team selection when mode changes
-  showEndlessSetup();
-}
-
 function toggleEndlessChar(id){
   if(selectedBattleTeam.includes(id)){
     selectedBattleTeam = selectedBattleTeam.filter(c => c !== id);
   }else{
-    if(selectedBattleTeam.length < endlessTeamSize){
+    if(selectedBattleTeam.length < 1){
       selectedBattleTeam.push(id);
     }
   }
-  showEndlessSetup();
+  showEndlessSetup(false);
 }
 
 function startEndlessBattle(){
-  if(selectedBattleTeam.length !== endlessTeamSize) return;
+  if(selectedBattleTeam.length !== 1) return;
   const charIds = [...selectedBattleTeam];
   const chars = charIds.map(id => ALL_CHARS.find(c => c.id === id)).filter(c => c);
   if(chars.length === 0) return;
@@ -3597,7 +3584,7 @@ function startEndlessBattle(){
     diff:selectedDifficulty,
     totalExp:0,
     startingCoins:saveData.coins,
-    teamSize:endlessTeamSize,
+    teamSize:1,
     expWager:expWagerMult
   };
 
@@ -3679,16 +3666,8 @@ function endlessDefeat(){
 }
 
 function playAgainEndless(teamIds){
-  const savedDiff = selectedDifficulty;
-  const savedWager = expWagerMult;
-  const savedSize = teamIds.length;
-  endlessTeamSize = savedSize;
-  showEndlessSetup();
-  // Restore settings that showEndlessSetup reset
-  selectedDifficulty = savedDiff;
-  expWagerMult = savedWager;
   selectedBattleTeam = [...teamIds];
-  renderBattleSetup();
+  showEndlessSetup(false);
 }
 
 function playAgainNormalBattle(){
