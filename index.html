@@ -1628,15 +1628,25 @@ function loadSandboxImages(chars,side){
 /* Tournament */
 @media(max-width:500px){.dr-teams{flex-direction:column}}
 
-/* Evolution */
-.evo-section{background:#1a0a2e;border:1px solid #9C27B0;border-radius:8px;padding:10px;margin:8px 0;text-align:center}
-.evo-done{border-color:#FFD700;background:#1a1a0a}
-.evo-name{font-family:'Bebas Neue',sans-serif;font-size:16px;color:#FFD700;letter-spacing:1px}
-.evo-desc{font-size:11px;color:#aaa;margin:4px 0}
-.evo-stats{font-size:10px;color:#4CAF50;margin:4px 0}
-.evo-btn{background:linear-gradient(135deg,#9C27B0,#6A1B9A);border:none;color:#fff;padding:8px 16px;border-radius:6px;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;cursor:pointer;margin-top:6px;font-size:14px}
-.evo-btn:hover{filter:brightness(1.3)}
-.evo-locked{font-size:10px;color:#ff6666;margin-top:4px}
+/* Evolution Tree */
+.evo-tree{display:flex;flex-direction:column;align-items:center;gap:4px;margin:8px 0;padding:8px;background:#0d0d1a;border-radius:8px;border:1px solid #333}
+.evo-stage{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;width:90%;max-width:280px}
+.evo-stage-done{background:#1a2e1a;border:1px solid #4CAF50}
+.evo-stage-active{background:#1a1a2e;border:2px solid #FFD700;box-shadow:0 0 8px rgba(255,215,0,0.3)}
+.evo-stage-next{background:#1a0a2e;border:1px solid #9C27B0}
+.evo-stage-locked{background:#111;border:1px solid #333;opacity:0.6}
+.evo-stage-icon{font-size:18px;min-width:24px;text-align:center}
+.evo-stage-info{flex:1}
+.evo-stage-name{font-family:'Bebas Neue',sans-serif;font-size:13px;color:#e0e0e0;letter-spacing:1px}
+.evo-stage-active .evo-stage-name{color:#FFD700}
+.evo-stage-done .evo-stage-name{color:#4CAF50}
+.evo-stage-level{font-size:9px;color:#888}
+.evo-stage-boost{font-size:9px;color:#64B5F6}
+.evo-arrow{color:#555;font-size:10px;line-height:1}
+.evo-btn{background:linear-gradient(135deg,#9C27B0,#6A1B9A);border:none;color:#fff;padding:10px 16px;border-radius:8px;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;cursor:pointer;margin:8px auto;font-size:14px;display:block;text-align:center;width:90%;max-width:280px}
+.evo-btn:hover{filter:brightness(1.3);transform:scale(1.02)}
+.evo-locked{font-size:11px;color:#ff6666;text-align:center;margin:6px 0;padding:4px}
+.evo-maxed{font-size:12px;color:#FFD700;text-align:center;margin:6px 0;font-family:'Bebas Neue',sans-serif;letter-spacing:2px}
 /* Passives */
 .passive-section{background:#0a1a2e;border:1px solid #2196F3;border-radius:8px;padding:10px;margin:8px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .passive-none{border-color:#333;color:#666;justify-content:center}
@@ -2150,7 +2160,7 @@ function loadDraftTeamImages(){
 // PWA: Service Worker Registration
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js?v=19').then(r=>{
+    navigator.serviceWorker.register('sw.js?v=20').then(r=>{
       console.log('SW registered, scope:',r.scope);
       r.update();
     }).catch(e=>console.log('SW registration failed:',e));
@@ -2259,6 +2269,7 @@ window.addEventListener('appinstalled',()=>{
   <div class="coll-sort-row">
     <button class="sort-btn sort-active" data-sort="tier" onclick="setCollSort('tier')">Tier</button>
     <button class="sort-btn" data-sort="level" onclick="setCollSort('level')">Level</button>
+    <button class="sort-btn" data-sort="evo" onclick="setCollSort('evo')">Evo</button>
     <button class="sort-btn" data-sort="atk" onclick="setCollSort('atk')">ATK</button>
     <button class="sort-btn" data-sort="def" onclick="setCollSort('def')">DEF</button>
     <button class="sort-btn" data-sort="spd" onclick="setCollSort('spd')">SPD</button>
