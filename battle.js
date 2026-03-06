@@ -13,6 +13,29 @@ const DEFAULT_STARTERS = [...DEFAULT_STARTERS_OP,...DEFAULT_STARTERS_NR];
 // ---- COLLECTION / SAVE SYSTEM ----
 let saveData = loadSave();
 
+// === ONE-TIME HARD RESET v25 ===
+(function hardResetV25(){
+  if(localStorage.getItem('animewar_reset_v25')) return; // already ran
+  // Clear all game data
+  ['animewar_save','animewar_charlevels','animewar_evolutions','animewar_upgrades',
+   'animewar_equipment','animewar_favorites','animewar_daily','animewar_prestige'].forEach(k=>localStorage.removeItem(k));
+  // Pick 5 random characters from the full roster after DOM ready
+  function doReset(){
+    const pool=[...ALL_CHARS];
+    const picked=[];
+    while(picked.length<5 && pool.length>0){
+      const idx=Math.floor(Math.random()*pool.length);
+      picked.push(pool[idx].id);
+      pool.splice(idx,1);
+    }
+    saveData={unlocked:picked, coins:0, wins:0, losses:0};
+    saveSave();
+    localStorage.setItem('animewar_reset_v25','done');
+  }
+  if(typeof ALL_CHARS!=='undefined' && ALL_CHARS.length>0){ doReset(); }
+  else{ document.addEventListener('DOMContentLoaded',()=>{ setTimeout(doReset,100); }); }
+})();
+
 function loadSave(){
   try{
     const s=localStorage.getItem(SAVE_KEY);
