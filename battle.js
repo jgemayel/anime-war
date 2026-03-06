@@ -332,6 +332,380 @@ function buyItemUI(itemId){
   }
 }
 
+
+// ---- EVOLUTION / TRANSFORMATION SYSTEM ----
+const EVO_KEY = 'animewar_evolutions';
+function loadEvolutions(){try{const s=localStorage.getItem(EVO_KEY);if(s)return JSON.parse(s);}catch(e){}return {};}
+function saveEvolutions(ev){localStorage.setItem(EVO_KEY,JSON.stringify(ev));}
+let evoData = loadEvolutions();
+
+// Evolution requires max upgrade (level 3) + coins + specific conditions
+const EVOLUTION_DATA = {
+  // ONE PIECE evolutions
+  'op1':  {evoName:'Gear 5 Luffy',emoji:'☀️',cost:15000,atkBonus:25,defBonus:5,spdBonus:15,dfBonus:30,newPassive:'joyboy',desc:'Awakened Nika Form'},
+  'op2':  {evoName:'King of Hell Zoro',emoji:'👹',cost:12000,atkBonus:20,defBonus:10,spdBonus:10,hakiBonus:25,newPassive:'ashura',desc:'Three-Sword Style: Ashura'},
+  'op3':  {evoName:'Ifrit Jambe Sanji',emoji:'🔥',cost:12000,atkBonus:15,defBonus:10,spdBonus:25,hakiBonus:15,newPassive:'ifrit',desc:'Germa Awakening + Haki'},
+  'op13': {evoName:'Kaido - Dragon Form',emoji:'🐉',cost:15000,atkBonus:20,defBonus:20,spdBonus:5,dfBonus:25,newPassive:'dragon_scales',desc:'Azure Dragon Mythical Zoan'},
+  'op14': {evoName:'Big Mom - Soul Pocus',emoji:'👻',cost:15000,atkBonus:15,defBonus:25,spdBonus:0,dfBonus:25,newPassive:'soul_drain',desc:'Life or Death'},
+  'op19': {evoName:'Blackbeard - Dual Fruit',emoji:'🌑',cost:15000,atkBonus:25,defBonus:10,spdBonus:0,dfBonus:30,newPassive:'dual_fruit',desc:'Yami Yami + Gura Gura'},
+  'op20': {evoName:'Red Hair Shanks - Supreme',emoji:'⚡',cost:15000,atkBonus:15,defBonus:10,spdBonus:15,hakiBonus:30,newPassive:'conquerors_haki',desc:'Supreme Conquerors Haki'},
+  'op8':  {evoName:'Monster Point Chopper',emoji:'💊',cost:8000,atkBonus:20,defBonus:20,spdBonus:-5,dfBonus:10,newPassive:'monster_point',desc:'Controlled Monster Form'},
+  'op9':  {evoName:'Demon Child Robin',emoji:'🌸',cost:10000,atkBonus:10,defBonus:10,spdBonus:5,dfBonus:25,newPassive:'demonio_fleur',desc:'Gigante Fleur: Demonio'},
+  'op11': {evoName:'Jimbei - Knight of Sea',emoji:'🌊',cost:10000,atkBonus:15,defBonus:15,spdBonus:5,hakiBonus:15,newPassive:'fish_karate',desc:'Fish-Man Karate Master'},
+  // NARUTO evolutions
+  'nr1':  {evoName:'Baryon Mode Naruto',emoji:'⚛️',cost:15000,atkBonus:30,defBonus:5,spdBonus:20,dfBonus:25,newPassive:'baryon_mode',desc:'Life-Burning Power'},
+  'nr2':  {evoName:'Sasuke - Rinne Sharingan',emoji:'🔮',cost:15000,atkBonus:20,defBonus:10,spdBonus:15,hakiBonus:25,newPassive:'amenotejikara',desc:'Space-Time Ninjutsu'},
+  'nr3':  {evoName:'Sakura - Hundred Healings',emoji:'💎',cost:10000,atkBonus:15,defBonus:15,spdBonus:5,dfBonus:15,newPassive:'byakugou',desc:'Creation Rebirth'},
+  'nr5':  {evoName:'Itachi - Susanoo',emoji:'🛡️',cost:12000,atkBonus:15,defBonus:20,spdBonus:5,hakiBonus:20,newPassive:'yata_mirror',desc:'Totsuka Blade + Yata Mirror'},
+  'nr6':  {evoName:'Madara - Six Paths',emoji:'🌙',cost:15000,atkBonus:25,defBonus:15,spdBonus:10,dfBonus:25,newPassive:'limbo',desc:'Limbo: Border Jail'},
+  'nr9':  {evoName:'Pain - Chibaku Tensei',emoji:'🪐',cost:12000,atkBonus:20,defBonus:10,spdBonus:10,dfBonus:25,newPassive:'chibaku',desc:'Planetary Devastation'},
+  'nr12': {evoName:'Orochimaru - White Snake',emoji:'🐍',cost:10000,atkBonus:10,defBonus:5,spdBonus:15,dfBonus:25,newPassive:'immortality',desc:'Immortal Rebirth'},
+  'nr8':  {evoName:'Obito - Ten Tails Jinchuriki',emoji:'🌀',cost:15000,atkBonus:25,defBonus:15,spdBonus:10,dfBonus:20,newPassive:'truth_seeking',desc:'Truth-Seeking Balls'},
+  'nr4':  {evoName:'Eight Gates Guy',emoji:'💚',cost:12000,atkBonus:35,defBonus:-10,spdBonus:30,hakiBonus:0,newPassive:'eighth_gate',desc:'Gate of Death'},
+  'nr7':  {evoName:'Hashirama - Sage Mode',emoji:'🌳',cost:12000,atkBonus:15,defBonus:20,spdBonus:5,dfBonus:25,newPassive:'wood_golem',desc:'Sage Art: Wood Release'},
+  'nr10': {evoName:'Gaara - Ultimate Defense',emoji:'🏜️',cost:10000,atkBonus:10,defBonus:25,spdBonus:5,dfBonus:15,newPassive:'sand_shield',desc:'Absolute Defense'},
+  'nr30': {evoName:'Minato - KCM',emoji:'⚡',cost:12000,atkBonus:15,defBonus:5,spdBonus:25,hakiBonus:15,newPassive:'flying_raijin',desc:'Kurama Chakra Mode'},
+  'nr45': {evoName:'Kakashi - Double Mangekyo',emoji:'⚡',cost:12000,atkBonus:15,defBonus:10,spdBonus:15,hakiBonus:20,newPassive:'kamui_double',desc:'Perfect Susanoo Kamui'},
+};
+
+function isEvolved(id){return evoData[id]||false;}
+function canEvolve(id){
+  const evo=EVOLUTION_DATA[id];
+  if(!evo) return false;
+  if(isEvolved(id)) return false;
+  if(getUpgradeLevel(id)<3) return false;
+  if(saveData.coins<evo.cost) return false;
+  return true;
+}
+
+function evolveCharacter(id){
+  const evo=EVOLUTION_DATA[id];
+  if(!evo||!canEvolve(id)) return;
+  saveData.coins-=evo.cost;
+  saveSave();
+  evoData[id]=true;
+  saveEvolutions(evoData);
+  playSound('win');
+  showCharDetail(id);
+}
+
+function getEvoBoosts(id){
+  if(!isEvolved(id)) return {atk:0,def:0,spd:0,haki:0,df:0};
+  const evo=EVOLUTION_DATA[id];
+  if(!evo) return {atk:0,def:0,spd:0,haki:0,df:0};
+  return {atk:evo.atkBonus||0,def:evo.defBonus||0,spd:evo.spdBonus||0,haki:evo.hakiBonus||0,df:evo.dfBonus||0};
+}
+
+
+// ---- CHARACTER PASSIVES ----
+const CHAR_PASSIVES = {
+  // ONE PIECE
+  'op1': {name:'Rubber Body',emoji:'🎈',desc:'Takes 20% less physical/taijutsu damage',type:'damage_reduce',moveTypes:['physical','taijutsu'],value:0.20},
+  'op2': {name:'Demon Aura',emoji:'👹',desc:'Crit rate +8%',type:'crit_boost',value:0.08},
+  'op3': {name:'Observation Haki',emoji:'👁️',desc:'Dodge 12% of attacks',type:'dodge',value:0.12},
+  'op4': {name:'Sniper King',emoji:'🎯',desc:'All moves +5% accuracy',type:'acc_boost',value:5},
+  'op5': {name:'Diable Jambe',emoji:'🍳',desc:'25% chance to burn on physical hit',type:'on_hit_burn',value:0.25},
+  'op6': {name:'Monster Trio',emoji:'🦌',desc:'Heal 3% HP per turn',type:'regen',value:0.03},
+  'op7': {name:'Soul King',emoji:'🎸',desc:'Team SPD +5% (aura)',type:'team_buff',stat:'spd',value:0.05},
+  'op8': {name:'Emergency Healing',emoji:'🩺',desc:'Heal 15% HP once when below 25%',type:'emergency_heal',value:0.15,threshold:0.25},
+  'op9': {name:'Clutch',emoji:'🌸',desc:'15% chance to stun on hit',type:'on_hit_stun',value:0.15},
+  'op10':{name:'Weather Witch',emoji:'⛈️',desc:'+15% DF move damage',type:'move_boost',moveTypes:['df','ninjutsu'],value:0.15},
+  'op11':{name:'Helmsman',emoji:'🌊',desc:'Team DEF +5% (aura)',type:'team_buff',stat:'def',value:0.05},
+  'op13':{name:'Mythical Zoan',emoji:'🐉',desc:'Takes 15% less damage from all sources',type:'flat_reduce',value:0.15},
+  'op14':{name:'Homies',emoji:'☁️',desc:'Burn and poison last 1 extra turn',type:'status_extend',value:1},
+  'op19':{name:'Darkness',emoji:'🕳️',desc:'Negates enemy passive 50% of the time',type:'passive_negate',value:0.50},
+  'op20':{name:'Conquerors Haki',emoji:'⚡',desc:'10% chance enemy skips turn (fear)',type:'fear',value:0.10},
+  'op15':{name:'Wax Armor',emoji:'🕯️',desc:'+15% DEF when HP above 50%',type:'conditional_stat',stat:'def',value:0.15,condition:'hp_above_50'},
+  'op16':{name:'Sand Logia',emoji:'🏜️',desc:'15% chance to dodge physical moves',type:'dodge_type',moveTypes:['physical','taijutsu','sword'],value:0.15},
+  'op22':{name:'Magma Fist',emoji:'🌋',desc:'All attacks have 20% burn chance',type:'on_hit_burn',value:0.20},
+  'op36':{name:'Ice Age',emoji:'❄️',desc:'20% chance to stun on hit',type:'on_hit_stun',value:0.20},
+  'op35':{name:'Light Speed',emoji:'💡',desc:'Always attacks first',type:'priority',value:1},
+  // NARUTO
+  'nr1': {name:'Nine-Tails Chakra',emoji:'🦊',desc:'ATK +20% when HP below 40%',type:'conditional_stat',stat:'atk',value:0.20,condition:'hp_below_40'},
+  'nr2': {name:'Sharingan',emoji:'👁️',desc:'Copy enemy crit rate (match theirs)',type:'crit_copy',value:1},
+  'nr3': {name:'Medical Ninja',emoji:'💚',desc:'Heal 5% HP per turn',type:'regen',value:0.05},
+  'nr4': {name:'Eight Gates',emoji:'💪',desc:'ATK +3% per turn (stacking)',type:'stacking_buff',stat:'atk',value:0.03},
+  'nr5': {name:'Mangekyo Sharingan',emoji:'🔴',desc:'20% chance to dodge + counter',type:'counter',value:0.20},
+  'nr6': {name:'Rinnegan',emoji:'🟣',desc:'Revive once at 30% HP when KOd',type:'revive',value:0.30},
+  'nr7': {name:'Wood Release',emoji:'🌿',desc:'Heal 4% HP per turn, +10% DEF',type:'regen_plus',healValue:0.04,statBoost:{def:0.10}},
+  'nr8': {name:'Kamui',emoji:'🌀',desc:'25% chance to phase through attacks',type:'dodge',value:0.25},
+  'nr9': {name:'Rinnegan - Deva Path',emoji:'💜',desc:'Every 3rd attack deals 1.5x damage',type:'nth_attack_boost',n:3,value:1.5},
+  'nr10':{name:'Sand Shield',emoji:'🛡️',desc:'Auto-blocks first hit each battle (0 dmg)',type:'auto_shield',value:1},
+  'nr11':{name:'Byakugan',emoji:'👁️',desc:'See enemy moves, +5% accuracy',type:'acc_boost',value:5},
+  'nr12':{name:'Immortality',emoji:'🐍',desc:'Survive lethal hit once with 1 HP',type:'endure',value:1},
+  'nr13':{name:'Lightning Cloak',emoji:'⚡',desc:'+15% SPD, attacks have 10% paralyze',type:'spd_plus_stun',spdBonus:0.15,stunChance:0.10},
+  'nr14':{name:'Shadow Genius',emoji:'🧠',desc:'Enemy accuracy -10%',type:'acc_debuff',value:10},
+  'nr30':{name:'Yellow Flash',emoji:'⚡',desc:'Always attacks first, +10% dodge',type:'priority_dodge',dodgeValue:0.10},
+  'nr33':{name:'Rinnegan Sasuke',emoji:'🔮',desc:'Swap places with enemy (switch after 2 turns)',type:'forced_switch',value:2},
+  'nr45':{name:'Copy Ninja',emoji:'📋',desc:'Copies the type of the last move used against him',type:'type_copy',value:1},
+  'nr47':{name:'Sage of Six Paths',emoji:'☯️',desc:'All damage +10%, all damage taken -10%',type:'sage_balance',atkMult:0.10,defMult:0.10},
+};
+
+// Passives added by evolution
+const EVO_PASSIVES = {
+  'joyboy':     {name:'Sun God Nika',emoji:'☀️',desc:'All damage +25%, immune to stun',type:'nika',dmgBoost:0.25},
+  'ashura':     {name:'Ashura Form',emoji:'👹',desc:'Crit rate +15%, crit damage 2x instead of 1.5x',type:'ashura_crit',critBoost:0.15,critDmg:2.0},
+  'ifrit':      {name:'Ifrit Jambe',emoji:'🔥',desc:'Burns enemy on every hit, +20% SPD',type:'always_burn',spdBoost:0.20},
+  'dragon_scales':{name:'Dragon Scales',emoji:'🐉',desc:'Take 25% less damage, immune to burn',type:'dragon_def',reduce:0.25},
+  'baryon_mode':{name:'Baryon Mode',emoji:'⚛️',desc:'+40% ATK but lose 5% max HP per turn',type:'baryon',atkBoost:0.40,hpCost:0.05},
+  'amenotejikara':{name:'Amenotejikara',emoji:'🔮',desc:'30% chance to dodge and teleport behind enemy (+50% next hit)',type:'teleport_counter',dodge:0.30,nextHitBoost:0.50},
+  'byakugou':   {name:'Byakugou Seal',emoji:'💎',desc:'Heal 8% HP per turn, survive lethal once',type:'seal_heal',healPct:0.08},
+  'eighth_gate':{name:'Night Guy',emoji:'💚',desc:'+50% ATK/SPD but lose 10% HP per turn',type:'gate_burn',atkBoost:0.50,spdBoost:0.50,hpCost:0.10},
+  'limbo':      {name:'Limbo Clones',emoji:'🌙',desc:'20% of attacks hit twice (shadow clone)',type:'double_hit',value:0.20},
+  'yata_mirror':{name:'Yata Mirror',emoji:'🛡️',desc:'Block 50% damage once every 3 turns',type:'periodic_shield',reduce:0.50,interval:3},
+  'chibaku':    {name:'Chibaku Tensei',emoji:'🪐',desc:'Every 4th turn, deal 30% of enemy max HP as damage',type:'periodic_nuke',interval:4,value:0.30},
+  'sand_shield':{name:'Ultimate Sand Defense',emoji:'🏜️',desc:'Auto-block first 2 hits per battle',type:'multi_shield',charges:2},
+  'flying_raijin':{name:'Flying Raijin',emoji:'⚡',desc:'Always first, 20% chance to attack twice',type:'priority_double',doubleChance:0.20},
+  'kamui_double':{name:'Double Kamui',emoji:'⚡',desc:'35% dodge, attacks ignore 30% DEF',type:'kamui_master',dodge:0.35,defIgnore:0.30},
+  'immortality':{name:'Eternal Youth',emoji:'🐍',desc:'Revive twice at 25% HP',type:'multi_revive',charges:2,hpPct:0.25},
+  'wood_golem': {name:'Wood Golem',emoji:'🌳',desc:'Team heals 3% HP per turn, +15% DEF',type:'team_regen',healPct:0.03,defBoost:0.15},
+  'dual_fruit': {name:'Twin Devil Fruits',emoji:'🌑',desc:'All DF damage +30%, quake damage ignores DEF',type:'dual_power',dfBoost:0.30},
+  'conquerors_haki':{name:'Supreme King',emoji:'⚡',desc:'15% chance enemy faints from pressure (< 20% HP only)',type:'conqueror_ko',chance:0.15,threshold:0.20},
+  'soul_drain': {name:'Soul Pocus',emoji:'👻',desc:'Heal 15% of damage dealt',type:'lifesteal',value:0.15},
+  'monster_point':{name:'Monster Point',emoji:'💊',desc:'+30% ATK/DEF but -20% SPD',type:'stat_trade',atkBoost:0.30,defBoost:0.30,spdPenalty:0.20},
+  'fish_karate': {name:'Fish-Man Karate Master',emoji:'🌊',desc:'Water attacks ignore 40% DEF',type:'def_pierce',value:0.40},
+  'demonio_fleur':{name:'Demonio Fleur',emoji:'🌸',desc:'25% stun chance, +20% DF damage',type:'demon_power',stunChance:0.25,dfBoost:0.20},
+  'truth_seeking':{name:'Truth-Seeking Balls',emoji:'🌀',desc:'Negate enemy passive completely',type:'passive_negate_full',value:1.0},
+  'double_hit':  {name:'Double Strike',emoji:'⚔️',desc:'20% chance to hit twice',type:'double_hit',value:0.20},
+};
+
+function getCharPassive(id){
+  // Check evolution passive first (overrides base)
+  if(isEvolved(id)){
+    const evo=EVOLUTION_DATA[id];
+    if(evo && evo.newPassive && EVO_PASSIVES[evo.newPassive]){
+      return EVO_PASSIVES[evo.newPassive];
+    }
+  }
+  return CHAR_PASSIVES[id]||null;
+}
+
+
+// ---- EQUIPMENT / RELIC SYSTEM ----
+const EQUIP_KEY = 'animewar_equipment';
+function loadEquipment(){try{const s=localStorage.getItem(EQUIP_KEY);if(s)return JSON.parse(s);}catch(e){}return {inventory:[],equipped:{}};}
+function saveEquipment(eq){localStorage.setItem(EQUIP_KEY,JSON.stringify(eq));}
+let equipmentData = loadEquipment();
+
+const RELICS = {
+  straw_hat:    {name:'Straw Hat',emoji:'👒',desc:'+10% ATK for physical moves',stat:'atk',moveType:'physical',value:0.10,cost:2000,tier:'B'},
+  headband:     {name:'Ninja Headband',emoji:'🥷',desc:'+10% ATK for ninjutsu moves',stat:'atk',moveType:'ninjutsu',value:0.10,cost:2000,tier:'B'},
+  iron_shield:  {name:'Iron Shield',emoji:'🛡️',desc:'+12% DEF',stat:'def',value:0.12,cost:2500,tier:'B'},
+  swift_boots:  {name:'Swift Boots',emoji:'👢',desc:'+12% SPD',stat:'spd',value:0.12,cost:2500,tier:'B'},
+  power_ring:   {name:'Power Ring',emoji:'💍',desc:'+8% ATK, +8% DEF',stats:{atk:0.08,def:0.08},cost:3000,tier:'A'},
+  chakra_stone: {name:'Chakra Stone',emoji:'💎',desc:'+15% ninjutsu/DF damage',stat:'df',moveType:'df',value:0.15,cost:3500,tier:'A'},
+  haki_crystal: {name:'Haki Crystal',emoji:'🔮',desc:'+15% haki/genjutsu damage',stat:'haki',moveType:'haki',value:0.15,cost:3500,tier:'A'},
+  berserker:    {name:'Berserker Charm',emoji:'💀',desc:'+20% ATK, -10% DEF',stats:{atk:0.20,def:-0.10},cost:4000,tier:'A'},
+  life_orb:     {name:'Life Orb',emoji:'🟢',desc:'Heal 5% HP per turn',healPerTurn:0.05,cost:4000,tier:'A'},
+  scope_lens:   {name:'Scope Lens',emoji:'🔭',desc:'+6% crit rate',critBoost:0.06,cost:3000,tier:'A'},
+  sea_stone:    {name:'Sea Stone Cuffs',emoji:'⛓️',desc:'Enemy DF damage -20%',enemyDebuff:{moveType:'df',value:0.20},cost:5000,tier:'S'},
+  sage_scroll:  {name:'Sage Scroll',emoji:'📜',desc:'+10% all stats',stats:{atk:0.10,def:0.10,spd:0.10},cost:8000,tier:'S'},
+  will_of_d:    {name:'Will of D.',emoji:'🏴‍☠️',desc:'Survive lethal hit once with 1 HP',endure:true,cost:10000,tier:'S+'},
+  curse_mark:   {name:'Curse Mark',emoji:'🔥',desc:'+25% ATK when HP < 50%',conditionalBuff:{stat:'atk',value:0.25,condition:'hp_below_50'},cost:10000,tier:'S+'},
+};
+
+function buyRelic(relicId){
+  const r=RELICS[relicId];
+  if(!r||saveData.coins<r.cost) return;
+  if(equipmentData.inventory.includes(relicId)) return; // already own
+  saveData.coins-=r.cost;
+  saveSave();
+  equipmentData.inventory.push(relicId);
+  saveEquipment(equipmentData);
+}
+
+function equipRelic(charId,relicId){
+  if(!equipmentData.inventory.includes(relicId)) return;
+  // Unequip from anyone else who has it
+  for(const cid in equipmentData.equipped){
+    if(equipmentData.equipped[cid]===relicId) delete equipmentData.equipped[cid];
+  }
+  equipmentData.equipped[charId]=relicId;
+  saveEquipment(equipmentData);
+}
+
+function unequipRelic(charId){
+  delete equipmentData.equipped[charId];
+  saveEquipment(equipmentData);
+}
+
+function getCharRelic(charId){
+  const rid=equipmentData.equipped[charId];
+  if(rid && RELICS[rid]) return {id:rid,...RELICS[rid]};
+  return null;
+}
+
+function showRelicShop(){
+  const modal=document.getElementById('gachaModal');
+  if(!modal) return;
+  let html='<div class="gacha-header"><div class="gacha-title">⚔️ RELIC SHOP</div><div class="gacha-coins">💰 '+saveData.coins.toLocaleString()+'</div></div>';
+  html+='<div class="shop-grid">';
+  const tierOrder=['S+','S','A','B'];
+  for(const tid of tierOrder){
+    const relics=Object.entries(RELICS).filter(([_,r])=>r.tier===tid);
+    if(relics.length===0) continue;
+    html+='<div class="shop-tier-label tier-'+tid.replace('+','p')+'">'+tid+' Tier</div>';
+    for(const [rid,r] of relics){
+      const owned=equipmentData.inventory.includes(rid);
+      const canBuy=!owned&&saveData.coins>=r.cost;
+      const equippedBy=Object.entries(equipmentData.equipped).find(([_,v])=>v===rid);
+      const eqLabel=equippedBy?'Equipped':'';
+      html+='<div class="shop-item '+(owned?'shop-owned':'')+'"><div class="shop-item-icon">'+r.emoji+'</div><div class="shop-item-info"><div class="shop-item-name">'+r.name+'</div><div class="shop-item-desc">'+r.desc+'</div>'+(eqLabel?'<div class="shop-item-eq">'+eqLabel+'</div>':'')+'</div>';
+      if(!owned) html+='<button class="shop-buy-btn '+(canBuy?'':'shop-cant')+'" onclick="buyRelic(\''+rid+'\');showRelicShop()">'+r.cost+'</button>';
+      else html+='<div class="shop-owned-tag">OWNED</div>';
+      html+='</div>';
+    }
+  }
+  html+='</div><button class="gacha-close" onclick="closeGachaShop()">BACK</button>';
+  modal.querySelector('.gacha-content').innerHTML=html;
+  modal.style.display='flex';
+}
+
+
+// ---- AI PERSONALITY SYSTEM ----
+const AI_PERSONALITIES = {
+  // Aggressive: always goes for max damage, never switches
+  aggressive: {name:'Berserker',pickMove:(moves,attacker,defender)=>{
+    const valid=moves.filter(m=>m.curPP>0);
+    if(!valid.length) return 0;
+    let best=0,bestDmg=0;
+    valid.forEach((m,i)=>{
+      const eff=m.power*(m.acc/100)*(TYPE_CHART[m.type]?(TYPE_CHART[m.type][defender._moves[0]?.type]||1):1);
+      if(eff>bestDmg){bestDmg=eff;best=moves.indexOf(m);}
+    });
+    return best;
+  },shouldSwitch:()=>false},
+  // Defensive: prioritizes status moves and switches to type advantage
+  tactical: {name:'Tactician',pickMove:(moves,attacker,defender)=>{
+    const valid=moves.filter(m=>m.curPP>0);
+    if(!valid.length) return 0;
+    // Prefer status moves if enemy has no status
+    const statusMoves=valid.filter(m=>m.effect&&!defender.status.length);
+    if(statusMoves.length>0&&Math.random()<0.6) return moves.indexOf(statusMoves[0]);
+    // Otherwise pick best type-effective move
+    let best=0,bestScore=0;
+    valid.forEach((m,i)=>{
+      const typeMult=TYPE_CHART[m.type]?(TYPE_CHART[m.type][defender._moves[0]?.type]||1):1;
+      const score=m.power*(m.acc/100)*typeMult*(m.effect?1.3:1);
+      if(score>bestScore){bestScore=score;best=moves.indexOf(m);}
+    });
+    return best;
+  },shouldSwitch:(team,current,enemy)=>{
+    // Switch if current matchup is bad
+    const curType=current._moves[0]?.type;
+    const enemyType=enemy._moves[0]?.type;
+    if(curType&&enemyType&&TYPE_CHART[enemyType]&&TYPE_CHART[enemyType][curType]>1.1){
+      return team.findIndex((c,i)=>{
+        if(c.fainted||c===current) return false;
+        const t=c._moves[0]?.type;
+        return t&&TYPE_CHART[t]&&TYPE_CHART[t][enemyType]>1.1;
+      });
+    }
+    return -1;
+  }},
+  // Balanced: mix of offense and defense
+  balanced: {name:'Balanced',pickMove:(moves,attacker,defender)=>{
+    const valid=moves.filter(m=>m.curPP>0);
+    if(!valid.length) return 0;
+    // 30% chance to use status move
+    if(Math.random()<0.3){
+      const sm=valid.filter(m=>m.effect);
+      if(sm.length) return moves.indexOf(sm[Math.floor(Math.random()*sm.length)]);
+    }
+    // Otherwise pick move with best expected damage
+    let best=0,bestDmg=0;
+    valid.forEach((m,i)=>{
+      const dmg=m.power*(m.acc/100);
+      if(dmg>bestDmg){bestDmg=dmg;best=moves.indexOf(m);}
+    });
+    return best;
+  },shouldSwitch:()=>-1},
+  // Reckless: picks highest power move regardless of accuracy
+  reckless: {name:'Reckless',pickMove:(moves)=>{
+    const valid=moves.filter(m=>m.curPP>0);
+    if(!valid.length) return 0;
+    let best=0,bestPwr=0;
+    valid.forEach((m,i)=>{if(m.power>bestPwr){bestPwr=m.power;best=moves.indexOf(m);}});
+    return best;
+  },shouldSwitch:()=>false},
+};
+
+// Map character IDs to AI personalities
+const CHAR_AI_STYLE = {
+  'op1':'aggressive','op2':'aggressive','op3':'aggressive',
+  'op13':'aggressive','op14':'tactical','op19':'reckless',
+  'op20':'balanced','op22':'aggressive','op36':'tactical',
+  'nr1':'aggressive','nr2':'tactical','nr3':'balanced',
+  'nr4':'reckless','nr5':'tactical','nr6':'aggressive',
+  'nr7':'balanced','nr8':'tactical','nr9':'aggressive',
+  'nr10':'balanced','nr14':'tactical','nr30':'aggressive',
+};
+
+function getAIPersonality(charId){
+  const style=CHAR_AI_STYLE[charId]||'balanced';
+  return AI_PERSONALITIES[style]||AI_PERSONALITIES.balanced;
+}
+
+
+// ---- PRESTIGE / NEW GAME+ STORY ----
+const PRESTIGE_KEY = 'animewar_prestige';
+function loadPrestige(){try{const s=localStorage.getItem(PRESTIGE_KEY);if(s)return JSON.parse(s);}catch(e){}return {};}
+function savePrestige(p){localStorage.setItem(PRESTIGE_KEY,JSON.stringify(p));}
+let prestigeData = loadPrestige();
+
+const PRESTIGE_LEVELS = [
+  {level:1,name:'New Game+',emoji:'⭐',statMult:1.3,hpMult:1.5,rewardMult:2.0,color:'#FFD700'},
+  {level:2,name:'Legendary',emoji:'🌟',statMult:1.6,hpMult:2.0,rewardMult:3.0,color:'#FF6600'},
+  {level:3,name:'Mythic',emoji:'💫',statMult:2.0,hpMult:2.5,rewardMult:5.0,color:'#FF0066'},
+];
+
+function getArcPrestige(arcId){return prestigeData[arcId]||0;}
+function getPrestigeInfo(level){return PRESTIGE_LEVELS[level-1]||null;}
+
+function canPrestigeArc(arcId){
+  const story=loadStory();
+  if(!story.bossCleared[arcId]) return false;
+  const current=getArcPrestige(arcId);
+  return current < PRESTIGE_LEVELS.length;
+}
+
+function prestigeArc(arcId){
+  if(!canPrestigeArc(arcId)) return;
+  const current=getArcPrestige(arcId);
+  prestigeData[arcId]=current+1;
+  savePrestige(prestigeData);
+  // Reset arc completion so they have to clear it again
+  const story=loadStory();
+  delete story.completed[arcId];
+  story.bossCleared[arcId]=false;
+  saveStory(story);
+  showStoryMode();
+}
+
+
+// ---- FAVORITES & SORTING ----
+const FAV_KEY = 'animewar_favorites';
+function loadFavorites(){try{const s=localStorage.getItem(FAV_KEY);if(s)return JSON.parse(s);}catch(e){}return [];}
+function saveFavorites(f){localStorage.setItem(FAV_KEY,JSON.stringify(f));}
+let favoriteChars = loadFavorites();
+let collectionSort = 'tier'; // tier, atk, def, spd, name, favorites
+
+function toggleFavorite(id){
+  const idx=favoriteChars.indexOf(id);
+  if(idx>=0) favoriteChars.splice(idx,1);
+  else favoriteChars.push(id);
+  saveFavorites(favoriteChars);
+}
+function isFavorite(id){return favoriteChars.includes(id);}
+
+function setCollSort(s){
+  collectionSort=s;
+  renderCollection();
+  document.querySelectorAll('.sort-btn').forEach(btn=>{
+    btn.classList.toggle('sort-active', btn.getAttribute('data-sort')===s);
+  });
+}
+
 // ---- STORY MODE ----
 const STORY_KEY='animewar_story';
 const STORY_ARCS=[
@@ -437,7 +811,7 @@ function renderStoryArcs(arcs,story){
         <span class="arc-diff" style="color:${diffColor}">${arc.difficulty.toUpperCase()}</span>
       </div>`;
     if(bossCleared){
-      html+=`<div class="arc-progress">🏆 Arc Cleared!</div>`;
+      html+=`<div class="arc-progress">🏆 Arc Cleared! ${pInfo ? pInfo.emoji+' '+pInfo.name : ''}</div>`;
     }else{
       html+=`<div class="arc-progress">${totalChapters} chapters + Boss</div>`;
     }
@@ -452,10 +826,19 @@ function renderStoryArcs(arcs,story){
       <span>⚠️ BOSS: ${arc.boss.name}</span><span class="ch-reward">+${arc.boss.reward}</span>
     </div>`;
     // Action button
+    const pLvl = getArcPrestige(arc.id);
+    const pInfo = pLvl > 0 ? getPrestigeInfo(pLvl) : null;
+    const canPres = canPrestigeArc(arc.id);
     if(bossCleared){
       html+=`<button class="story-start-btn story-replay-btn" onclick="startStoryArc('${arc.id}')">
         🔄 Replay Arc <span class="ch-reward">+${totalCoins-arc.arcReward} coins</span>
       </button>`;
+      if(canPres){
+        const nextP = getPrestigeInfo(pLvl+1);
+        html+=`<button class="story-start-btn story-prestige-btn" style="background:linear-gradient(135deg,${nextP.color},#333)" onclick="prestigeArc('${arc.id}')">
+          ${nextP.emoji} Prestige to ${nextP.name} <span class="ch-reward">${nextP.rewardMult}x rewards</span>
+        </button>`;
+      }
     }else{
       html+=`<button class="story-start-btn" onclick="startStoryArc('${arc.id}')">
         ⚔️ Begin Arc <span class="ch-reward">+${totalCoins} coins</span>
@@ -546,12 +929,13 @@ function storyAdvanceNext(){
     storyRunState.chIdx='boss';
     storyContext={arcId:arc.id,type:'boss',reward:boss.reward,arcReward:arc.arcReward,bossId:boss.bossId,allies:boss.allies,bossHpMult:boss.bossHpMult,bossStatMult:boss.bossStatMult};
     const bossChar={...ALL_CHARS.find(c=>c.id===boss.bossId)};
-    bossChar.atk=Math.floor(bossChar.atk*boss.bossStatMult);
-    bossChar.def=Math.floor(bossChar.def*boss.bossStatMult);
-    bossChar.spd=Math.floor(bossChar.spd*boss.bossStatMult);
-    if(bossChar.haki) bossChar.haki=Math.floor(bossChar.haki*boss.bossStatMult);
-    if(bossChar.df) bossChar.df=Math.floor(bossChar.df*boss.bossStatMult);
-    bossChar._bossHpMult=boss.bossHpMult;
+    const _pMult2 = (typeof getPrestigeInfo==='function') ? (getPrestigeInfo(arc.id).statMult||1) : 1;
+    bossChar.atk=Math.floor(bossChar.atk*boss.bossStatMult*_pMult2);
+    bossChar.def=Math.floor(bossChar.def*boss.bossStatMult*_pMult2);
+    bossChar.spd=Math.floor(bossChar.spd*boss.bossStatMult*_pMult2);
+    if(bossChar.haki) bossChar.haki=Math.floor(bossChar.haki*boss.bossStatMult*_pMult2);
+    if(bossChar.df) bossChar.df=Math.floor(bossChar.df*boss.bossStatMult*_pMult2);
+    bossChar._bossHpMult=boss.bossHpMult*(typeof getPrestigeInfo==='function'?(getPrestigeInfo(arc.id).hpMult||1):1);
     const allies=boss.allies.map(id=>ALL_CHARS.find(c=>c.id===id)).filter(Boolean);
     const eTeam=[bossChar,...allies];
     const pTeam=selectedBattleTeam.map(id=>ALL_CHARS.find(c=>c.id===id));
@@ -881,6 +1265,26 @@ class BattleChar{
     // Default synergy bonuses if not provided
     synergyBonuses = synergyBonuses || { atk: 1.0, def: 1.0, spd: 1.0, haki: 1.0, df: 1.0, healing: 0.0 };
         Object.assign(this,ch);
+    // Apply evolution stat boosts
+    const evoB = typeof getEvoBoosts==='function' ? getEvoBoosts(ch.id) : {atk:0,def:0,spd:0,haki:0,df:0};
+    this.atk += evoB.atk; this.def += evoB.def; this.spd += evoB.spd;
+    if(evoB.haki) this.haki = (this.haki||0) + evoB.haki;
+    if(evoB.df) this.df = (this.df||0) + evoB.df;
+    // Store passive reference
+    this._passive = typeof getCharPassive==='function' ? getCharPassive(ch.id) : null;
+    // Store relic reference
+    this._relic = typeof getCharRelic==='function' ? getCharRelic(ch.id) : null;
+    // Apply relic stat buffs
+    if(this._relic){
+      const rl=this._relic;
+      if(rl.stats){for(const s in rl.stats){if(this[s]!==undefined) this[s]=Math.floor(this[s]*(1+rl.stats[s]));}}
+      if(rl.stat&&rl.value&&!rl.moveType){this[rl.stat]=Math.floor(this[rl.stat]*(1+rl.value));}
+    }
+    // Passive init counters
+    this._passiveUsed = false;
+    this._attackCount = 0;
+    this._shieldCharges = 0;
+    this._turnCount = 0;
     // Apply synergy bonuses to base stats BEFORE HP calculation
     this.atk = Math.floor(this.atk * synergyBonuses.atk);
     this.def = Math.floor(this.def * synergyBonuses.def);
@@ -932,8 +1336,11 @@ class Battle{
     const eMove=e.moves[eMoveIdx];
 
     // Speed determines order
-    const pSpd=p.spd*(1+p.statMod.spd*0.25);
-    const eSpd=e.spd*(1+e.statMod.spd*0.25);
+    let pSpd=p.spd*(1+p.statMod.spd*0.25);
+    let eSpd=e.spd*(1+e.statMod.spd*0.25);
+    // Priority passive: always goes first
+    if(p._passive && p._passive.type==='priority') pSpd=99999;
+    if(e._passive && e._passive.type==='priority') eSpd=99999;
     const playerFirst=pSpd>=eSpd;
 
     const first=playerFirst?p:e, second=playerFirst?e:p;
@@ -961,17 +1368,97 @@ class Battle{
 
   execAttack(atk,def,move){
     if(atk.fainted) return;
+    atk._turnCount = (atk._turnCount||0) + 1;
+    atk._attackCount = (atk._attackCount||0) + 1;
+    const isPlayerAtk = this.pTeam.includes(atk);
+    const isPlayerDef = this.pTeam.includes(def);
+    // Fear passive: chance enemy skips turn
+    if(def._passive && def._passive.type==='fear' && Math.random()<def._passive.value){
+      this.addLog(`${atk.name} is frozen with fear by ${def.name}!`);
+      return;
+    }
     // Stun check
     if(atk.status.some(s=>s.type==='stun')&&Math.random()<0.3){
       this.addLog(`${atk.name} is paralyzed and can't move!`); return;
     }
     if(move.curPP<=0){this.addLog(`${atk.name} has no PP for ${move.name}!`);return;}
     move.curPP--;
-    // Accuracy
-    if(Math.random()*100>move.acc){
-      this.addLog(`${atk.name} used ${move.name}... Miss!`);playSound('miss');return;
+    // Accuracy - passive acc boost
+    let accMod = 0;
+    if(atk._passive && atk._passive.type==='acc_boost') accMod = atk._passive.value;
+    // Dodge passives on defender
+    if(def._passive){
+      const dp = def._passive;
+      if(dp.type==='dodge' && Math.random()<dp.value){
+        this.addLog(`${atk.name} used ${move.name}... ${def.name} dodged!`);
+        playSound('miss'); playMissAnimation(!isPlayerDef);
+        return;
+      }
+      if(dp.type==='dodge_type' && dp.moveTypes && dp.moveTypes.includes(move.type) && Math.random()<dp.value){
+        this.addLog(`${atk.name} used ${move.name}... ${def.name} dodged!`);
+        playSound('miss'); playMissAnimation(!isPlayerDef);
+        return;
+      }
+      if(dp.type==='counter' && Math.random()<dp.value){
+        this.addLog(`${def.name} dodged and countered!`);
+        playSound('miss'); playMissAnimation(!isPlayerDef);
+        // Counter does 50% of a basic attack back
+        const counterDmg = Math.max(1, Math.floor((def.atk - atk.def*0.3)*0.5));
+        atk.hp = Math.max(0, atk.hp - counterDmg);
+        this.addLog(`${def.name} dealt ${counterDmg} counter damage!`);
+        if(atk.hp<=0){atk.fainted=true;this.addLog(`${atk.name} fainted!`);}
+        return;
+      }
     }
-    const {dmg,crit,typeMult}=calcDamage(atk,def,move);
+    // Accuracy check
+    if(Math.random()*100>(move.acc+accMod)){
+      this.addLog(`${atk.name} used ${move.name}... Miss!`);
+      playSound('miss'); playMissAnimation(!isPlayerDef);
+      return;
+    }
+    // Passive negate: darkness negates enemy passive temporarily
+    let defPassiveSaved = def._passive;
+    if(atk._passive && atk._passive.type==='passive_negate' && Math.random()<atk._passive.value){
+      def._passive = null;
+      this.addLog(`${atk.name}'s darkness negated ${def.name}'s passive!`);
+    }
+    // Calculate damage
+    let {dmg,crit,typeMult}=calcDamage(atk,def,move);
+    // Passive crit boost
+    if(!crit && atk._passive && atk._passive.type==='crit_boost'){
+      if(Math.random()<atk._passive.value){crit=true;dmg=Math.floor(dmg*1.5);}
+    }
+    // Nika passive: all damage +25%
+    if(atk._passive && atk._passive.type==='nika') dmg = Math.floor(dmg * (1 + atk._passive.dmgBoost));
+    // Baryon mode: +30% atk bonus when hp below 40%
+    if(atk._passive && atk._passive.type==='conditional_stat' && atk._passive.condition==='hp_below_40' && atk.hp < atk.maxHP*0.4){
+      dmg = Math.floor(dmg * (1 + atk._passive.value));
+    }
+    // Eighth gate: massive damage boost but self-damage
+    if(atk._passive && atk._passive.type==='eighth_gate'){
+      dmg = Math.floor(dmg * 1.5);
+      const selfDmg = Math.floor(atk.maxHP * 0.05);
+      atk.hp = Math.max(1, atk.hp - selfDmg);
+    }
+    // Damage reduction passives on defender
+    if(def._passive && def._passive.type==='damage_reduce' && def._passive.moveTypes && def._passive.moveTypes.includes(move.type)){
+      dmg = Math.floor(dmg * (1 - def._passive.value));
+    }
+    // Conditional DEF boost
+    if(def._passive && def._passive.type==='conditional_stat' && def._passive.stat==='def' && def._passive.condition==='hp_above_50' && def.hp > def.maxHP*0.5){
+      dmg = Math.floor(dmg * (1 - def._passive.value));
+    }
+    // Shield charges (yata_mirror)
+    if(def._passive && def._passive.type==='shield' && (def._shieldCharges||0)<(def._passive.charges||3)){
+      dmg = Math.floor(dmg * (1 - (def._passive.value||0.5)));
+      def._shieldCharges = (def._shieldCharges||0)+1;
+    }
+    // Relic move type bonus for attacker
+    if(atk._relic){
+      const r = atk._relic;
+      if(r.moveType && r.moveType===move.type) dmg = Math.floor(dmg * (1 + r.value));
+      else if(r.stat==='atk' && !r.moveType) dmg = Math.floor(dmg * (1 + r.value));
+    }
     def.hp=Math.max(0,def.hp-dmg);
     let msg=`${atk.name} used ${move.name}! ${dmg} dmg!`;
     if(typeMult>1.1){msg+=` Super effective!`;playSound('supereffective');}
@@ -979,23 +1466,69 @@ class Battle{
     if(crit){msg+=` Critical hit!`;playSound('crit');shakeScreen('big');}
     else{playSound('hit');shakeScreen('small');}
     this.addLog(msg);
-    if(def.hp<=0){def.fainted=true;this.addLog(`${def.name} fainted!`);playSound('faint');shakeScreen('big');}
+    // Animations
+    playHitAnimation(!isPlayerDef, crit, typeMult);
+    showDamageNumber(!isPlayerDef ? '#eCharCard' : '#pCharCard', dmg, crit, typeMult);
+    // On-hit passives: burn chance
+    if(atk._passive && (atk._passive.type==='on_hit_burn') && Math.random()<atk._passive.value && !def.fainted){
+      if(!def.status.some(s=>s.type==='burn')){
+        def.status.push({type:'burn',turns:3});
+        this.addLog(`${def.name} was burned by ${atk.name}'s passive!`);
+        playStatusAnimation(!isPlayerDef, 'burn');
+      }
+    }
+    // On-hit stun
+    if(atk._passive && atk._passive.type==='on_hit_stun' && Math.random()<atk._passive.value && !def.fainted){
+      if(!def.status.some(s=>s.type==='stun')){
+        def.status.push({type:'stun',turns:2});
+        this.addLog(`${def.name} was stunned by ${atk.name}'s passive!`);
+        playStatusAnimation(!isPlayerDef, 'stun');
+      }
+    }
+    // Revive passive check (Rinnegan)
+    if(def.hp<=0){
+      if(def._passive && def._passive.type==='revive' && !def._passiveUsed){
+        def._passiveUsed = true;
+        def.hp = Math.floor(def.maxHP * def._passive.value);
+        def.fainted = false;
+        this.addLog(`${def.name} revived with their passive!`);
+        playHealAnimation(!isPlayerDef);
+      } else {
+        def.fainted=true;this.addLog(`${def.name} fainted!`);playSound('faint');shakeScreen('big');
+      }
+    }
+    // Emergency heal passive
+    if(!def.fainted && def._passive && def._passive.type==='emergency_heal' && !def._passiveUsed && def.hp>0 && def.hp<def.maxHP*def._passive.threshold){
+      def._passiveUsed = true;
+      const heal = Math.floor(def.maxHP * def._passive.value);
+      def.hp = Math.min(def.maxHP, def.hp + heal);
+      this.addLog(`${def.name}'s passive healed ${heal} HP!`);
+      playHealAnimation(!isPlayerDef);
+    }
+    // Restore defender passive if negated
+    def._passive = defPassiveSaved;
     // Effect
     if(move.effect&&!def.fainted) this.applyEffect(atk,def,move.effect);
   }
 
   applyEffect(atk,def,eff){
+    const isPlayerDef2 = this.pTeam.includes(def);
+    const isPlayerAtk2 = this.pTeam.includes(atk);
     if(eff==='burn'&&!def.status.some(s=>s.type==='burn')){
       def.status.push({type:'burn',turns:3});this.addLog(`${def.name} was burned!`);
+      playStatusAnimation(!isPlayerDef2, 'burn');
     }else if(eff==='poison'&&!def.status.some(s=>s.type==='poison')){
       def.status.push({type:'poison',turns:3});this.addLog(`${def.name} was poisoned!`);
+      playStatusAnimation(!isPlayerDef2, 'poison');
     }else if(eff==='stun'&&!def.status.some(s=>s.type==='stun')){
       def.status.push({type:'stun',turns:2});this.addLog(`${def.name} was paralyzed!`);
+      playStatusAnimation(!isPlayerDef2, 'stun');
     }else if(eff.startsWith('heal:')){
       const pct=parseInt(eff.split(':')[1]);
       const heal=Math.floor(atk.maxHP*pct/100);
       atk.hp=Math.min(atk.maxHP,atk.hp+heal);
       this.addLog(`${atk.name} recovered ${heal} HP!`);playSound('heal');
+      playHealAnimation(isPlayerAtk2);
     }else if(eff.startsWith('buff_')){
       const st=eff.replace('buff_','');
       atk.statMod[st]=Math.min(3,(atk.statMod[st]||0)+1);
@@ -1009,7 +1542,27 @@ class Battle{
 
   tickStatus(ch){
     if(ch.fainted) return;
+    // Passive regen
+    if(ch._passive && (ch._passive.type==='regen'||ch._passive.type==='regen_plus')){
+      const healAmt = Math.floor(ch.maxHP * (ch._passive.healValue||ch._passive.value));
+      if(healAmt>0 && ch.hp<ch.maxHP){
+        ch.hp=Math.min(ch.maxHP, ch.hp+healAmt);
+        this.addLog(`${ch.name} regenerated ${healAmt} HP!`);
+      }
+    }
+    // Relic regen
+    if(ch._relic && ch._relic.stat==='regen'){
+      const rHeal = Math.floor(ch.maxHP * ch._relic.value);
+      if(rHeal>0 && ch.hp<ch.maxHP){
+        ch.hp=Math.min(ch.maxHP, ch.hp+rHeal);
+        this.addLog(`${ch.name}'s ${ch._relic.name} healed ${rHeal} HP!`);
+      }
+    }
+    // Soul drain passive: steal HP on kill (handled elsewhere)
+    // Status ticks
     ch.status=ch.status.filter(s=>{
+      // Status extend passive
+      const extPassive = ch._passive && ch._passive.type==='status_extend' ? ch._passive.value : 0;
       if(s.type==='burn'){
         const d=Math.floor(ch.maxHP*0.06);ch.hp=Math.max(0,ch.hp-d);
         this.addLog(`${ch.name} took ${d} burn dmg!`);
@@ -1058,13 +1611,25 @@ class Battle{
     const avail=ai.moves.map((m,i)=>({m,i})).filter(x=>x.m.curPP>0);
     if(!avail.length) return 0;
     if(this.diff==='easy') return avail[Math.floor(Math.random()*avail.length)].i;
-    // Medium/Hard: pick best expected damage (hard always, medium 70%)
-    if(this.diff==='hard'||Math.random()<0.7){
-      let best=avail[0];
-      avail.forEach(x=>{if(x.m.power*x.m.acc>best.m.power*best.m.acc) best=x;});
-      return best.i;
+    // Use AI personality for medium/hard
+    const personality = typeof getAIPersonality==='function' ? getAIPersonality(ai.id) : null;
+    if(personality && this.diff==='hard'){
+      const idx = personality.pickMove(ai.moves, ai, target);
+      // Hard mode: also consider switching
+      const switchIdx = personality.shouldSwitch ? personality.shouldSwitch(this.eTeam, ai, target) : -1;
+      if(switchIdx >= 0 && switchIdx < this.eTeam.length && !this.eTeam[switchIdx].fainted){
+        this.eIdx = switchIdx;
+        return typeof getAIPersonality==='function' ? getAIPersonality(this.eActive.id).pickMove(this.eActive.moves, this.eActive, target) : 0;
+      }
+      return idx;
     }
-    return avail[Math.floor(Math.random()*avail.length)].i;
+    if(personality && this.diff==='medium'){
+      return Math.random()<0.7 ? personality.pickMove(ai.moves, ai, target) : avail[Math.floor(Math.random()*avail.length)].i;
+    }
+    // Fallback
+    let best=avail[0];
+    avail.forEach(x=>{if(x.m.power*x.m.acc>best.m.power*best.m.acc) best=x;});
+    return best.i;
   }
 
   addLog(m){this.pendingLog.push(m);this.log.push(m);}
@@ -1270,11 +1835,12 @@ function startBattleFight(){
     if(storyContext.type==='boss'){
       // Boss fight: boss has boosted stats
       const bossChar={...ALL_CHARS.find(c=>c.id===storyContext.bossId)};
-      bossChar.atk=Math.floor(bossChar.atk*storyContext.bossStatMult);
-      bossChar.def=Math.floor(bossChar.def*storyContext.bossStatMult);
-      bossChar.spd=Math.floor(bossChar.spd*storyContext.bossStatMult);
-      if(bossChar.haki) bossChar.haki=Math.floor(bossChar.haki*storyContext.bossStatMult);
-      if(bossChar.df) bossChar.df=Math.floor(bossChar.df*storyContext.bossStatMult);
+      const _pMult = typeof getArcPrestige==='function' ? (function(){ const pl=getArcPrestige(storyContext.arcId); const pi=getPrestigeInfo(pl); return pi?pi.statMult:1; })() : 1;
+    bossChar.atk=Math.floor(bossChar.atk*storyContext.bossStatMult*_pMult);
+      bossChar.def=Math.floor(bossChar.def*storyContext.bossStatMult*_pMult);
+      bossChar.spd=Math.floor(bossChar.spd*storyContext.bossStatMult*_pMult);
+      if(bossChar.haki) bossChar.haki=Math.floor(bossChar.haki*storyContext.bossStatMult*_pMult);
+      if(bossChar.df) bossChar.df=Math.floor(bossChar.df*storyContext.bossStatMult*_pMult);
       bossChar._bossHpMult=storyContext.bossHpMult;
       const allies=storyContext.allies.map(id=>ALL_CHARS.find(c=>c.id===id)).filter(Boolean);
       eTeam=[bossChar,...allies];
@@ -1554,6 +2120,77 @@ function forfeitBattle(){
   closeBattle();
 }
 
+
+// ---- BATTLE ANIMATION SYSTEM ----
+function flashElement(selector, color, duration){
+  const el = document.querySelector(selector);
+  if(!el) return;
+  el.style.transition = 'none';
+  el.style.boxShadow = '0 0 30px '+color+', inset 0 0 20px '+color;
+  el.style.filter = 'brightness(1.5)';
+  requestAnimationFrame(()=>{
+    el.style.transition = 'all '+(duration||400)+'ms ease-out';
+    el.style.boxShadow = 'none';
+    el.style.filter = 'brightness(1)';
+  });
+}
+
+function showDamageNumber(selector, dmg, isCrit, typeMult){
+  const el = document.querySelector(selector);
+  if(!el) return;
+  const numEl = document.createElement('div');
+  numEl.className = 'dmg-number' + (isCrit?' dmg-crit':'') + (typeMult>1.1?' dmg-super':'') + (typeMult<0.9?' dmg-weak':'');
+  numEl.textContent = (isCrit?'CRIT! ':'') + dmg;
+  numEl.style.position = 'absolute';
+  numEl.style.left = '50%';
+  numEl.style.top = '20%';
+  el.style.position = 'relative';
+  el.appendChild(numEl);
+  requestAnimationFrame(()=>{
+    numEl.style.transform = 'translate(-50%, -60px) scale(1.5)';
+    numEl.style.opacity = '0';
+  });
+  setTimeout(()=>numEl.remove(), 800);
+}
+
+function playHitAnimation(isPlayer, isCrit, typeMult){
+  const target = isPlayer ? '#pCharCard' : '#eCharCard';
+  const img = isPlayer ? '#pImg' : '#eImg';
+  // Shake
+  const shakeAmt = isCrit ? 12 : 6;
+  const imgEl = document.querySelector(img);
+  if(imgEl){
+    imgEl.style.transition = 'none';
+    imgEl.style.transform = 'translateX('+shakeAmt+'px)';
+    setTimeout(()=>{imgEl.style.transition='transform 80ms';imgEl.style.transform='translateX(-'+shakeAmt+'px)';},50);
+    setTimeout(()=>{imgEl.style.transform='translateX('+(shakeAmt/2)+'px)';},130);
+    setTimeout(()=>{imgEl.style.transform='translateX(0)';},200);
+  }
+  // Color flash
+  const color = typeMult > 1.1 ? '#ffaa00' : (typeMult < 0.9 ? '#6666ff' : (isCrit ? '#ff0000' : '#ffffff'));
+  flashElement(target, color, 400);
+}
+
+function playMissAnimation(isPlayer){
+  const img = isPlayer ? '#pImg' : '#eImg';
+  const el = document.querySelector(img);
+  if(!el) return;
+  el.style.transition = 'opacity 150ms';
+  el.style.opacity = '0.3';
+  setTimeout(()=>{el.style.opacity='1';}, 300);
+}
+
+function playStatusAnimation(isPlayer, statusType){
+  const target = isPlayer ? '#pCharCard' : '#eCharCard';
+  const colors = {burn:'#ff4400',poison:'#88ff00',stun:'#ffff00'};
+  flashElement(target, colors[statusType]||'#ffffff', 600);
+}
+
+function playHealAnimation(isPlayer){
+  const target = isPlayer ? '#pCharCard' : '#eCharCard';
+  flashElement(target, '#00ff88', 600);
+}
+
 function closeBattle(){
   document.getElementById('battleArena').style.display='none';
   document.getElementById('battleSetup').style.display='none';
@@ -1587,11 +2224,19 @@ function renderCollection(){
   else if(collectionFilter==='naruto') chars=chars.filter(c=>c.anime==='naruto');
   else if(collectionFilter==='locked') chars=chars.filter(c=>!isUnlocked(c.id));
 
-  // Sort: unlocked first, then by tier
+  // Sort with favorites and multiple options
   const tierOrder={'S+':0,'S':1,'A':2,'B':3,'C':4};
   chars.sort((a,b)=>{
     const ua=isUnlocked(a.id)?0:1, ub=isUnlocked(b.id)?0:1;
     if(ua!==ub) return ua-ub;
+    // Favorites always first among unlocked
+    const fa=isFavorite(a.id)?0:1, fb=isFavorite(b.id)?0:1;
+    if(fa!==fb) return fa-fb;
+    // Then sort by selected criteria
+    if(collectionSort==='atk') return (b.atk||0)-(a.atk||0);
+    if(collectionSort==='def') return (b.def||0)-(a.def||0);
+    if(collectionSort==='spd') return (b.spd||0)-(a.spd||0);
+    if(collectionSort==='name') return a.name.localeCompare(b.name);
     return (tierOrder[a.tier]||9)-(tierOrder[b.tier]||9);
   });
 
@@ -1600,7 +2245,11 @@ function renderCollection(){
     const unlocked=isUnlocked(c.id);
     const cost=TIER_COSTS[c.tier]||800;
     const canAfford=saveData.coins>=cost;
-    return `<div class="coll-card ${unlocked?'coll-unlocked':'coll-locked'}" onclick="${unlocked?`showCharDetail('${c.id}')`:(canAfford?`tryUnlock('${c.id}')`:'')}">
+    const fav=isFavorite(c.id);
+    const evo=isEvolved(c.id);
+    return `<div class="coll-card ${unlocked?'coll-unlocked':'coll-locked'} ${fav?'coll-fav':''}" onclick="${unlocked?`showCharDetail('${c.id}')`:(canAfford?`tryUnlock('${c.id}')`:'')}">
+      ${unlocked&&fav?'<div class="coll-fav-star">⭐</div>':''}
+      ${unlocked&&evo?'<div class="coll-evo-badge">✦</div>':''}
       <div class="coll-img-wrap">
         <img src="${CHAR_IMGS[c.id]||'images/'+c.id+'.jpg'}" class="${unlocked?'':'coll-silhouette'}">
         ${!unlocked?`<div class="coll-cost ${canAfford?'can-afford':''}">${cost} coins</div>`:''}
@@ -1698,11 +2347,17 @@ function showCharDetail(id) {
         </div>
       `).join('')}</div>
       ${unlocked ? renderUpgradeSection(id, ch, currentLevel, upgrades) : `
-        <div class="detail-locked-msg">
-          <div>🔒 Unlock this character to use in Battle Mode</div>
-          <div class="detail-cost">Cost: ${TIER_COSTS[ch.tier]||800} coins</div>
-        </div>
       `}
+      ${unlocked ? renderEvoSection(id, ch) : ''}
+      ${unlocked ? renderPassiveSection(id) : ''}
+      ${unlocked ? renderRelicSection(id) : ''}
+      ${unlocked ? '<div class="detail-fav-row"><button class="detail-fav-btn '+(isFavorite(id)?'fav-active':'')+'" onclick="toggleFavorite(\''+id+'\');showCharDetail(\''+id+'\')">'+
+        (isFavorite(id)?'⭐ Favorited':'☆ Add to Favorites')+'</button></div>' : ''}
+      ${!unlocked ? `
+        <div class="detail-locked-msg">
+          <div>🔒 Available in Gacha packs</div>
+        </div>
+      ` : ''}
     </div>
   `;
   modal.style.display = 'flex';
@@ -1710,6 +2365,59 @@ function showCharDetail(id) {
   modal.onclick = function(e) {
     if(e.target === modal) closeCharDetail();
   };
+}
+
+
+// Render evolution section in char detail
+function renderEvoSection(id, ch){
+  const evo = EVOLUTION_DATA[id];
+  if(!evo) return '';
+  if(isEvolved(id)){
+    return '<div class="detail-section-title">EVOLUTION</div><div class="evo-section evo-done"><div class="evo-name">'+evo.emoji+' '+evo.evoName+'</div><div class="evo-desc">'+evo.desc+'</div></div>';
+  }
+  const canDo = canEvolve(id);
+  const lvl = getUpgradeLevel(id);
+  let reason = '';
+  if(lvl < 3) reason = 'Requires max upgrade (Lv.3)';
+  else if(saveData.coins < evo.cost) reason = 'Need '+evo.cost.toLocaleString()+' coins';
+  return '<div class="detail-section-title">EVOLUTION</div><div class="evo-section"><div class="evo-name">'+evo.emoji+' '+evo.evoName+'</div><div class="evo-desc">'+evo.desc+'</div><div class="evo-stats">ATK+'+evo.atkBonus+' DEF+'+(evo.defBonus||0)+' SPD+'+(evo.spdBonus||0)+'</div>'+(canDo?'<button class="evo-btn" onclick="evolveCharacter(\''+id+'\')">EVOLVE ('+evo.cost.toLocaleString()+' coins)</button>':'<div class="evo-locked">'+reason+'</div>')+'</div>';
+}
+
+// Render passive section
+function renderPassiveSection(id){
+  const p = getCharPassive(id);
+  if(!p) return '<div class="detail-section-title">PASSIVE</div><div class="passive-section passive-none">No passive ability</div>';
+  return '<div class="detail-section-title">PASSIVE ABILITY</div><div class="passive-section"><span class="passive-emoji">'+p.emoji+'</span><span class="passive-name">'+p.name+'</span><div class="passive-desc">'+p.desc+'</div></div>';
+}
+
+// Render relic/equipment section
+function renderRelicSection(id){
+  const relic = getCharRelic(id);
+  const owned = equipmentData.inventory;
+  let html = '<div class="detail-section-title">EQUIPPED RELIC</div>';
+  if(relic){
+    html += '<div class="relic-section relic-equipped"><span class="relic-emoji">'+relic.emoji+'</span><span class="relic-name">'+relic.name+'</span><div class="relic-desc">'+relic.desc+'</div><button class="relic-unequip" onclick="unequipRelic(\''+id+'\');showCharDetail(\''+id+'\')">Unequip</button></div>';
+  } else {
+    html += '<div class="relic-section">';
+    const available = owned.filter(rid => {
+      // Not equipped by anyone else
+      const eq = equipmentData.equipped;
+      for(const cid in eq){ if(eq[cid]===rid) return false; }
+      return true;
+    });
+    if(available.length > 0){
+      html += '<div class="relic-options">';
+      available.forEach(rid => {
+        const r = RELICS[rid];
+        html += '<button class="relic-option" onclick="equipRelic(\''+id+'\',\''+rid+'\');showCharDetail(\''+id+'\')">'+r.emoji+' '+r.name+'</button>';
+      });
+      html += '</div>';
+    } else {
+      html += '<div class="relic-none">No relics available. Visit the Relic Shop!</div>';
+    }
+    html += '</div>';
+  }
+  return html;
 }
 
 function closeCharDetail() {
